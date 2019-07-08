@@ -1,0 +1,3 @@
+[submodule "plugins/amica"]
+	path = plugins/amica
+	url = https://github.com/BUCANL/Amica.git
