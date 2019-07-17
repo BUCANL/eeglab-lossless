@@ -55,50 +55,63 @@
 
 % Copyright (C) Arnaud Delorme, CNL / Salk Institute, 09 March 2002, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
-function com = pop_editoptions(varargin);
+function com = pop_editoptions(varargin)
 
 com = '';
+argsoutput = {};
 
 datasets_in_memory = 0;
 if nargin > 0
-    if ~isstr(varargin{1})
+    if ~ischar(varargin{1})
         datasets_in_memory = varargin{1};
         varargin = {};
-    end;
-end;
+    end
+end
 
 % parse the eeg_options file
 % ----------------------------
 eeglab_options;
 if iseeglabdeployed
-    filename = fullfile(eeglabexefolder,'eeg_options.txt');
-    eegoptionbackup = fullfile(eeglabexefolder,'eeg_optionsbackup.txt');
+    filename = fullfile( ctfroot, 'EEGLAB', 'functions', 'adminfunc', 'eeg_options.txt');
+    eegoptionbackup = fullfile( ctfroot, 'EEGLAB', 'functions', 'adminfunc', 'eeg_optionsbackup.txt');
 else
     % folder for eeg_options file (also update the eeglab_options)
     if ~isempty(EEGOPTION_PATH)
          homefolder = EEGOPTION_PATH;
     elseif ispc
-         if ~exist('evalc'), eval('evalc = @(x)(eval(x));'); end;
+         if ~exist('evalc'), eval('evalc = @(x)(eval(x));'); end
          homefolder = deblank(evalc('!echo %USERPROFILE%'));
     else homefolder = '~';
-    end;
+    end
     filename = fullfile(homefolder, 'eeg_options.m');
     eegoptionbackup = which('eeg_optionsbackup.m');
-end;
+end
+
 fid = fopen( filename, 'r+'); % existing file
 storelocal = 0;
 if	fid == -1
@@ -107,23 +120,23 @@ if	fid == -1
     fid = fopen( fullfile(filepath, filename), 'w'); % new file possible?
     if fid == -1
         error([ 'Cannot write into HOME folder: ' homefolder 10 'You may specify another folder for the eeg_option.m' 10 'file by editing the icadefs.m file' ]);
-    end;
+    end
     fclose(fid);
     delete(fullfile(filepath, filename));
 
     % read variables values and description
     % --------------------------------------
-    [ header opt ] = eeg_readoptions( eegoptionbackup ); 
+    [ header, opt ] = eeg_readoptions( eegoptionbackup ); 
 else 
-    [filepath filename ext] = fileparts(filename);
+    [filepath, filename, ext] = fileparts(filename);
     filename  = [ filename ext ];
     fprintf('Using option file in directory %s\n', filepath);
     
     % read variables values and description
     % --------------------------------------
-    [ header opt ] = eeg_readoptions( eegoptionbackup ); 
-    [ header opt ] = eeg_readoptions( fid, opt  ); % use opt from above as default
-end;
+    [ header, opt ] = eeg_readoptions( eegoptionbackup ); 
+    [ header, opt ] = eeg_readoptions( fid, opt  ); % use opt from above as default
+end
 
 if nargin < 2
     geometry = { [6 1] };
@@ -153,8 +166,7 @@ if nargin < 2
            
         % create the gui for this variable
         % --------------------------------
-        geometry = { geometry{:} [4 0.3 0.1] };
-        if strcmpi(opt(index).varname, 'option_storedisk') & datasets_in_memory
+        if strcmpi(opt(index).varname, 'option_storedisk') && datasets_in_memory
             cb_nomodif = [ 'set(gcbo, ''value'', ~get(gcbo, ''value''));' ...
                            'warndlg2(strvcat(''This option may only be modified when at most one dataset is stored in memory.''));' ];
             
@@ -164,30 +176,31 @@ if nargin < 2
             cb_nomodif = [ 'if get(gcbo, ''value''), warndlg2([''You have selected the option to disable'' 10 ''Matlab toolboxes. Use with caution.'' 10 ''Matlab toolboxes will be removed from'' 10 ''your path. Unlicking this option later will not'' 10 ''add back the toolboxes. You will need'' 10 ''to add them back manually. If you are unsure'' 10 ''if you want to disable Matlab toolboxes'' 10 ''deselect the option now.'' ]); end;' ];
         else
             cb_nomodif = '';
-        end;
+        end
         
         if ~isempty(opt(index).value)
-            uilist   = { uilist{:}, { 'Style', 'text', descrip{:}, 'horizontalalignment', 'left' }, ...
-                         { 'Style', 'checkbox', 'string', '    ', 'value', opt(index).value 'callback' cb_nomodif } { } }; 
+            if opt(index).value <= 1
+                uilist   = { uilist{:}, { 'Style', 'text', descrip{:}, 'horizontalalignment', 'left' }, ...
+                             { 'Style', 'checkbox', 'string', '    ', 'value', opt(index).value 'callback' cb_nomodif } { } }; 
+                geometry = { geometry{:} [4 0.3 0.1] };
+            else
+                uilist   = { uilist{:}, { 'Style', 'text', descrip{:}, 'horizontalalignment', 'left' }, ...
+                             { 'Style', 'edit', 'string', num2str(opt(index).value), 'callback' cb_nomodif } { } }; 
+                geometry = { geometry{:} [3 0.5 0.1] };
+            end
         else
-            uilist   = { uilist{:}, { 'Style', 'text', descrip{:}, 'fontweight' 'bold', 'horizontalalignment', 'left' }, ...
-                         { } { } }; 
-        end;
-    end;
+            uilist   = { uilist{:}, { 'Style', 'text', descrip{:}, 'fontweight' 'bold', 'horizontalalignment', 'left' }, { } { } }; 
+            geometry = { geometry{:} [4 0.3 0.1] };
+        end
+    end
 
     % change option file
     uilist = { uilist{:} {} ...
-                 { 'Style', 'text', 'string', 'Option file:' 'fontweight', 'bold' }, ...
-                 { 'Style', 'text', 'string', tmpfile 'tag' 'filename'  }, ...
-                 {} { 'Style', 'pushbutton', 'string', '...'  'callback' cb_file } };
-    geometry = { geometry{:} [1] [1 6 0.1 0.8] };
-    [results userdat ] = inputgui( geometry, uilist, 'pophelp(''pop_editoptions'');', 'Memory options - pop_editoptions()', ...
+                 { 'Style', 'text', 'string', 'Edit the EEGOPTION_PATH variable of functions/sigprocfunc/icadefs.m to change where the option file is saved' } };
+    geometry = { geometry{:} [1] [1] };
+    [results, userdat ] = inputgui( geometry, uilist, 'pophelp(''pop_editoptions'');', 'Memory options - pop_editoptions()', ...
                         [], 'normal');
-    if ~isempty(userdat)
-        filepath = fileparts(userdat);
-        args = { 'filename' filename };
-    end;
-    if length(results) == 0, return; end;
+    if isempty(results), return; end
    
     % decode inputs
     % -------------
@@ -197,15 +210,14 @@ if nargin < 2
         if ~isempty(opt(index).varname)
             args = {  args{:}, opt(index).varname, results{count} }; 
             count = count+1;
-        end;
-    end;
+        end
+    end
 else 
     % no interactive inputs
     % ---------------------
     args = varargin;
-end;
+end
 
-        
 % change default folder option
 % ----------------------------
 W_MAIN = findobj('tag', 'EEGLAB');
@@ -213,24 +225,33 @@ if ~isempty(W_MAIN)
     tmpuserdata    = get(W_MAIN, 'userdata');
     tmpuserdata{3} = filepath;
     set(W_MAIN, 'userdata', tmpuserdata);
-end;
-        
+end
+
 % decode inputs
 % -------------
 for index = 1:2:length(args)
     ind = strmatch(args{index}, { opt.varname }, 'exact');
     if isempty(ind)
         if strcmpi(args{index}, 'option_savematlab')
-            disp('pop_editoptions: option_savematlab is obsolete, use option_savetwofiles instead'); 
+            disp('pop_editoptions: option_savematlab is obsolete, use option_savetwofiles instead');
             ind = strmatch('option_savetwofiles', { opt.varname }, 'exact');
-            opt(ind).value = ~args{index+1};
         else
             error(['Variable name ''' args{index} ''' is invalid']);
-        end;
-    else
-        opt(ind).value = args{index+1};
-    end;
-end;        
+        end
+    end
+    
+    % case for 'option_cachesize'
+    if strcmpi(args{index}, 'option_cachesize') && ischar(args{index+1})
+        args{index+1}  = str2num(args{index+1});
+    end
+    
+    % overwrite only if different
+    if args{index+1} ~= opt(ind).value 
+        opt(ind).value    = args{index+1};
+        argsoutput{end+1} = args{index};   % for history
+        argsoutput{end+1} = args{index+1}; % for history
+    end  
+end
 
 % write to eeg_options file
 % -------------------------
@@ -238,37 +259,44 @@ fid = fopen( fullfile(filepath, filename), 'w');
 addpath(filepath);
 if fid == -1
 	error('File writing error, check writing permission');
-end;
+end
 fprintf(fid, '%s\n', header);
 for index = 1:length(opt)
     if isempty(opt(index).varname)
         fprintf( fid, '%% %s\n', opt(index).description);
     else
         fprintf( fid, '%s = %d ; %% %s\n', opt(index).varname, opt(index).value, opt(index).description);
-    end;
-end;
+    end
+end
 fclose(fid);    
 % clear it from the MATLAB function cache
 clear(fullfile(filepath,filename));
 
 % generate the output text command
 % --------------------------------
-com = 'pop_editoptions(';
-for index = 1:2:length(args)
-    com = sprintf( '%s ''%s'', %d,', com, args{index}, args{index+1});
-end;
-com = [com(1:end-1) ');'];   
+if ~isempty(argsoutput)
+    com = 'pop_editoptions(';
+    for index = 1:2:length(argsoutput)
+        com = sprintf( '%s ''%s'', %d,', com, argsoutput{index}, argsoutput{index+1});
+    end
+    com = [com(1:end-1) ');'];
+else
+    disp('pop_editoptions: Options were not modified');
+end
+wtmp = warning;
+warning off;
 clear functions
+warning(wtmp);
 
 % ---------------------------
 function  chopedtext = choptext( tmptext )
     chopedtext = '';
     while length(tmptext) > 30
           blanks = findstr( tmptext, ' ');
-          [tmp I] = min( abs(blanks - 30) );
+          [tmp, I] = min( abs(blanks - 30) );
           chopedtext = [ chopedtext ''' 10 ''' tmptext(1:blanks(I)) ];
           tmptext  = tmptext(blanks(I)+1:end);
-    end;    
+    end    
     chopedtext = [ chopedtext ''' 10 ''' tmptext];
     chopedtext = chopedtext(7:end);
 return;
@@ -276,7 +304,7 @@ return;
 function num = popask( text )
 	 ButtonName=questdlg2( text, ...
 	        'Confirmation', 'Cancel', 'Yes','Yes');
-	 switch lower(ButtonName),
+	 switch lower(ButtonName)
 	      case 'cancel', num = 0;
 	      case 'yes',    num = 1;
-	 end;
+	 end

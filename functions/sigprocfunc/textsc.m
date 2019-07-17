@@ -1,3 +1,4 @@
+function H = textsc(x,y,txt);
 % textsc() - places text in screen coordinates and places
 %            a title at the top of the figure.
 %
@@ -25,8 +26,6 @@
 % All Rights Reserved  January 21, 1994
 % LDM031695jlg
 
-function H = textsc(x,y,txt);
-
 % Basic error checking
 if nargin < 2
     y = 'title';
@@ -39,9 +38,9 @@ if ~isempty(ch)
         ind = cellfun(@(x)isequal('axes', x), get(ch, 'type'));
     catch
         ind = cellfun(@(x)isequal('axes', x), {get(ch, 'type')}); % fix Joe Dien bug 1538
-    end;
-    if any(ind), ch = gca; end;
-end;
+    end
+    if any(ind), ch = gca; end
+end
 
 ax = findobj(gcf,'Type','axes','Tag','TEXTSC');
 if isempty(ax)
@@ -52,7 +51,7 @@ else
 end
 
 % Place the text
-if isstr(y) && isstr(x) && strcmp(lower(y),'title')  % Subplot title
+if ischar(y) && ischar(x) && strcmp(lower(y),'title')  % Subplot title
   txt = x;
   x = .5;
   tmp = text('Units','normal','String','tmp','Position',[0 0 0]);
@@ -66,7 +65,7 @@ h = text(x,y,txt,'VerticalAlignment','Middle', ...
 
 % Make the original AXES current
 if ~isempty(ch)
-  set(gcf,'CurrentAxes',ch);
+  set(gcf,'CurrentAxes',ch(end));
 end
 
 % Check for output

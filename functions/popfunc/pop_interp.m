@@ -14,7 +14,7 @@
 %                'invdist'/'v4' uses inverse distance on the scalp
 %                'spherical' uses superfast spherical interpolation. 
 %                'spacetime' uses griddata3 to interpolate both in space 
-%                and time (very slow and cannot be interupted).
+%                and time (very slow and cannot be interrupted).
 % Output: 
 %     EEGOUT   - data set with bad electrode data replaced by
 %                interpolated data
@@ -23,19 +23,30 @@
 
 % Copyright (C) Arnaud Delorme, CERCO, 2009, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [EEG com] = pop_interp(EEG, bad_elec, method)
 
@@ -43,7 +54,10 @@ function [EEG com] = pop_interp(EEG, bad_elec, method)
     if nargin < 1
         help pop_interp;
         return;
-    end;
+    end
+    if nargin > 1 && nargin < 3
+        method = 'spherical';
+    end
     
     if nargin < 2
         disp('Warning: interpolation can be done on the fly in studies'); 
@@ -56,8 +70,8 @@ function [EEG com] = pop_interp(EEG, bad_elec, method)
         if isfield(EEG.chaninfo, 'nodatchans')
             if ~isempty(EEG.chaninfo.nodatchans)
                 enablenondat = 'on';
-            end;
-        end;
+            end
+        end
                   
         uilist = { { 'Style' 'text' 'string' 'What channel(s) do you want to interpolate' 'fontweight' 'bold' } ...
                    { 'style' 'text' 'string' 'none selected' 'tag' 'chanlist' } ...
@@ -72,20 +86,20 @@ function [EEG com] = pop_interp(EEG, bad_elec, method)
                
         geom = { 1 1 1 1 1 1 1 [1.1 1] };
         [res userdata tmp restag ] = inputgui( 'uilist', uilist, 'title', 'Interpolate channel(s) -- pop_interp()', 'geometry', geom, 'helpcom', 'pophelp(''pop_interp'')');
-        if isempty(res) | isempty(userdata), return; end;
+        if isempty(res) || isempty(userdata), return; end
         
         if restag.method == 1
              method = 'spherical';
         else method = 'invdist';
-        end;
+        end
         bad_elec = userdata.chans;
         
         com = sprintf('EEG = pop_interp(EEG, %s, ''%s'');', userdata.chanstr, method);
         if ~isempty(findstr('nodatchans', userdata.chanstr))
             eval( [ userdata.chanstr '=[];' ] );
-        end;
+        end
         
-    elseif isstr(EEG)
+    elseif ischar(EEG)
         command = EEG;
         clear EEG;
         fig = bad_elec;
@@ -100,7 +114,7 @@ function [EEG com] = pop_interp(EEG, bad_elec, method)
                 userdata.chanstr = [ 'EEG.chaninfo.nodatchans([' num2str(chanlisttmp) '])' ];
                 set(fig, 'userdata', userdata);
                 set(findobj(fig, 'tag', 'chanlist'), 'string', chanliststr);
-            end;
+            end
         elseif strcmpi(command, 'datchan')
             global EEG;
             tmpchaninfo = EEG.chanlocs;
@@ -110,14 +124,14 @@ function [EEG com] = pop_interp(EEG, bad_elec, method)
                 userdata.chanstr = [ '[' num2str(chanlisttmp) ']' ];
                 set(fig, 'userdata', userdata);
                 set(findobj(fig, 'tag', 'chanlist'), 'string', chanliststr);
-            end;
+            end
         else
             global ALLEEG EEG;
             tmpanswer = inputdlg2({ 'Dataset index' }, 'Choose dataset', 1, { '' });
             if ~isempty(tmpanswer),
                 tmpanswernum = round(str2num(tmpanswer{1}));
                 if ~isempty(tmpanswernum),
-                    if tmpanswernum > 0 & tmpanswernum <= length(ALLEEG),
+                    if tmpanswernum > 0 && tmpanswernum <= length(ALLEEG),
                         TMPEEG = ALLEEG(tmpanswernum);
                         
                         tmpchans1 = TMPEEG.chanlocs;
@@ -137,21 +151,21 @@ function [EEG com] = pop_interp(EEG, bad_elec, method)
                             else
                                 userdata.chans   = TMPEEG.chanlocs(chanlist(sort(chaninds)));
                                 userdata.chanstr = [ 'ALLEEG(' tmpanswer{1} ').chanlocs([' num2str(chanlist(sort(chaninds))) '])' ];
-                            end;
+                            end
                             set(fig, 'userdata', userdata);
                             tmpchanlist(2,:) = { ' ' };
                             set(findobj(gcbf, 'tag', 'chanlist'), 'string', [ tmpchanlist{:} ]);
                         else
                             warndlg2('No new channels selected');
-                        end;
+                        end
                     else
                         warndlg2('Wrong index');
-                    end;
-                end;
-            end;
-        end;
+                    end
+                end
+            end
+        end
         return;
-    end;
+    end
     
     EEG = eeg_interp(EEG, bad_elec, method);
     

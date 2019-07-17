@@ -1,4 +1,5 @@
-% eeg_getversion() - obtain EEGLAB version number
+% eeg_getversion() - obtain EEGLAB version number (version is embeded in
+%                    the script, edit the function to see the version).
 %
 % Usage:
 %     >> vers = eeg_getversion;
@@ -13,37 +14,40 @@
 
 % Copyright (C) 2010  Arnaud Delorme, SCCN/INC/UCSD
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
-function [vers, versnum, releaseDate] = eeg_getversion;
+function [vers, versnum, releaseDate] = eeg_getversion
 
-vers = '';
-filepath = fileparts(which('eeglab.m'));
-filename = dir(fullfile(filepath, 'Contents.m'));
+vers        = 'development head';
+releaseDate = ''; % 30-Apr-19 14:55:42; unix date -> date +"%d-%b-%y %T"
 
-releaseDate = filename.date;
-
-if isempty(filename), return; end;
-
-fid = fopen(fullfile(filepath, filename.name), 'r');
-fgetl(fid);
-versionline = fgetl(fid);
-vers = versionline(11:end);
-fclose(fid);
-
+% get numerical version number
 tmpvers = vers;
-if isempty(str2num(tmpvers(end))), tmpvers(end) = []; end;
+if isnan(str2double(tmpvers(end))), tmpvers(end) = []; end
 indsDot = find(tmpvers == '.' );
 tmpvers(indsDot(2:end)) = [];
-versnum = str2num(tmpvers);
+versnum = str2double(tmpvers);
+if isnan(versnum), versnum = []; end

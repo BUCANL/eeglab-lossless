@@ -13,40 +13,51 @@
 
 % Copyright (C) Arnaud Delorme, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function h = fillcurves(X, Y1, Y2, color, transparent, legends)
     
     if nargin < 2
         help fillcurves;
         return;
-    end;
+    end
     
     if nargin < 3
         Y2 = Y1;
         Y1 = X;
         X = [1:length(Y1)];
-    end;
+    end
     if nargin < 4 || isempty(color)
         color = { 'r' 'b' 'g' 'c' };
     elseif ~iscell(color)
         color = { color };
-    end;
+    end
     if nargin < 5
         transparent = 0.5;
-    end;
+    end
     X1 = X(:)';
     X2 = X(:)';
     
@@ -62,7 +73,7 @@ function h = fillcurves(X, Y1, Y2, color, transparent, legends)
         tmp2 = find(~Y2);
         Y1(tmp1) = []; X1(tmp1) = [];
         Y2(tmp2) = []; X2(tmp2) = [];
-    end;
+    end
     
     % multiple curve plot
     % -------------------
@@ -70,7 +81,7 @@ function h = fillcurves(X, Y1, Y2, color, transparent, legends)
         for index = 1:size(Y1,2)
             fillcurves(X, Y1(:,index)', Y2(:,index)', color{index}, transparent);
             hold on;
-        end;
+        end
         yl = ylim;
         xl = xlim;
         line([xl(1) xl(1)]+(xl(2)-xl(1))/2000, yl, 'color', 'k');
@@ -86,11 +97,11 @@ function h = fillcurves(X, Y1, Y2, color, transparent, legends)
                 if isfield(fields, 'FaceAlpha');
                     numfaces = size(get(hh(index), 'Vertices'),1);
                     set(hh(index), 'FaceVertexCData', repmat([1 1 1], [numfaces 1]), 'Cdatamapping', 'direct', 'facealpha', transparent, 'edgecolor', 'none');
-                end;
-            end;
-        end;
+                end
+            end
+        end
         return;
-    end;
+    end
     
     % plot
     % ----
@@ -102,7 +113,7 @@ function h = fillcurves(X, Y1, Y2, color, transparent, legends)
     if transparent
         numfaces = size(get(h, 'Vertices'),1);
         set(h, 'FaceVertexCData', repmat([1 1 1], [numfaces 1]), 'Cdatamapping', 'direct', 'facealpha', transparent, 'edgecolor', 'none');
-    end;
+    end
 
     % replot lines at boundaries
     % --------------------------
@@ -112,4 +123,4 @@ function h = fillcurves(X, Y1, Y2, color, transparent, legends)
         xl = xlim;
         line([xl(1) xl(1)]+(xl(2)-xl(1))/2000, yl, 'color', 'k');
         line(xl, [yl(1) yl(1)]+(yl(2)-yl(1))/2000, 'color', 'k');
-    end;
+    end

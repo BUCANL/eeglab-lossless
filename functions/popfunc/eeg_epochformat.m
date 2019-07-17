@@ -46,22 +46,32 @@
 
 %123456789012345678901234567890123456789012345678901234567890123456789012
 
-% Copyright (C) from eeg_eventformat.m, 
-% Arnaud Delorme, CNL / Salk Institute, 12 Feb 2002, arno@salk.edu
+% Copyright (C) Arnaud Delorme, CNL / Salk Institute, 12 Feb 2002, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % $Log: eeg_epochformat.m,v $
 % Revision 1.4  2005/05/24 16:57:09  arno
@@ -88,12 +98,12 @@ end;
 
 if nargin < 3
     fields = {};
-end;
+end
 epocheventout = [];
     
 switch format
 case 'struct'
-   if ~isempty(epoch) & ~isstruct(epoch)
+   if ~isempty(epoch) && ~isstruct(epoch)
 
       fields = getnewfields( fields, size(epoch,2) - length(fields));   
        
@@ -107,7 +117,7 @@ case 'struct'
               command = [ command '''' fields{index} ''', mattocell( epoch(:,' num2str(index) ')'',' ...
                             '[1], ones(1,size(epoch,1))),' ];
           end;                  
-      end;
+      end
       eval( [command(1:end-1) ');' ] );
 
       if exist('epochevent') == 1
@@ -116,9 +126,9 @@ case 'struct'
                  epoch(index).event = epochevent{index};
              else
                  epoch(index).event = epochevent(index);
-             end;
-         end;
-      end;
+             end
+         end
+      end
    end
 
 case 'array'
@@ -128,7 +138,7 @@ case 'array'
         % time locking event
         
         selectedType = fields;
-        if iscell(fields) && ~isempty(fields), selectedType = fields{1}; end;
+        if iscell(fields) && ~isempty(fields), selectedType = fields{1}; end
   	    fields = fieldnames( epoch );
         
         eval( [ 'values = { epoch.' fields{1} ' };' ]);
@@ -136,7 +146,7 @@ case 'array'
         if any(cellfun(@length, values) > 1)
             if ~isfield(epoch, 'eventlatency')
                 error('eventlatency field not present in data epochs');
-            end;
+            end
             
             if isempty(selectedType)
                 % find indices of time locking events
@@ -145,9 +155,9 @@ case 'array'
                     tmpevent = find( abs(epochlat) < 0.02 );
                     if isempty(tmpevent)
                         error('time locking event missing, cannot convert to array');
-                    end;
+                    end
                     epochSubIndex(index) = tmpevent;
-                end;
+                end
             else
                 % find indices of specific event type (if several take the
                 % first one
@@ -156,16 +166,16 @@ case 'array'
                     tmpeventind = strmatch( selectedType, epochtype );
                     if length(tmpeventind) > 1
                         fprintf('Warning: epoch %d has several events of "type" %s, taking the fist one\n', index, selectedType);
-                    end;
+                    end
                     if isempty(tmpeventind)
                          epochSubIndex(index) = NaN;
                     else epochSubIndex(index) = tmpeventind(1);
-                    end;
-                end;
-            end;
+                    end
+                end
+            end
         else
             epochSubIndex = ones(1, length(epoch));
-        end;
+        end
         
         % copy values to array
         tmp = cell( length(epoch), length( fields ));
@@ -179,13 +189,13 @@ case 'array'
                 elseif ~ischar(tmpval)
                      tmp(trial, index) = { tmpval(epochSubIndex(trial)) };
                 else tmp(trial, index) = { tmpval };
-                end;
-            end;
-        end;
+                end
+            end
+        end
         epoch = tmp;
-    end;
+    end
     otherwise, error('unrecognised format');   
-end;
+end
 
 return;
 
@@ -199,7 +209,7 @@ function epochfield = getnewfields( epochfield, nbfields )
                epochfield =  { epochfield{:} [ 'var' int2str(count) ] };
                nbfields = nbfields-1;
             else    count = count+1;
-            end;
+            end
         end;                        
    else
         epochfield = epochfield(1:end+nbfields);

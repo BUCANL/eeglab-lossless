@@ -29,29 +29,40 @@
 
 % Copyright (C) 2003 Arnaud Delorme, SCCN, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [p, c, l, res] = rsfit(x, val, plotflag)
 
     if nargin < 2
         help rsfit;
         return;
-    end;
+    end
     if nargin < 3
         plotflag  = 0;
-    end;
+    end
     
     % moments
     % -------
@@ -70,20 +81,20 @@ function [p, c, l, res] = rsfit(x, val, plotflag)
         disp('rsfit error: Can not fit negative kurtosis');
         save('/home/arno/temp/dattmp.mat', '-mat', 'x');
         disp('data saved to disk in /home/arno/temp/dattmp.mat');        
-    end;
+    end
     
     % find fit
     % --------
     try, 
         [sol tmp exitcode] = fminsearch('rspdfsolv', [0.1 0.1], optimset('TolX',1e-12, 'MaxFunEvals', 100000000), abs(xskew), xkurt);    
     catch, exitcode = 0; % did not converge
-    end;
+    end
     if ~exitcode
         try, [sol tmp exitcode] = fminsearch('rspdfsolv', -[0.1 0.1], optimset('TolX',1e-12, 'MaxFunEvals', 100000000), abs(xskew), xkurt);
-        catch, exitcode = 0; end;
-    end;
-    if ~exitcode,           error('No convergence'); end;
-    if sol(2)*sol(1) == -1, error('Wrong sign for convergence'); end;
+        catch, exitcode = 0; end
+    end
+    if ~exitcode,           error('No convergence'); end
+    if sol(2)*sol(1) == -1, error('Wrong sign for convergence'); end
     %fprintf('          l-val:%f\n', sol);
     
     res = rspdfsolv(sol, abs(xskew), xkurt);
@@ -105,7 +116,7 @@ function [p, c, l, res] = rsfit(x, val, plotflag)
 
     % compute goodness of fit
     % -----------------------
-    if nargout > 3 | plotflag
+    if nargout > 3 || plotflag
 
         % histogram of value 12 bins
         % --------------------------
@@ -120,8 +131,8 @@ function [p, c, l, res] = rsfit(x, val, plotflag)
             if N(index) < 5
                 N(index+1) = N(index+1) + N(index);
                 indices2rm = [ indices2rm index];
-            end;
-        end;
+            end
+        end
         N(indices2rm)   = [];
         X(indices2rm+1) = [];
         indices2rm = [];
@@ -129,8 +140,8 @@ function [p, c, l, res] = rsfit(x, val, plotflag)
             if N(index) < 5
                 N(index-1) = N(index-1) + N(index);
                 indices2rm = [ indices2rm index];
-            end;
-        end;
+            end
+        end
         N(indices2rm)   = [];
         X(indices2rm)   = [];
         
@@ -140,7 +151,7 @@ function [p, c, l, res] = rsfit(x, val, plotflag)
             p1 = rsget( l, X(index+1));
             p2 = rsget( l, X(index  ));
             expect(index) = length(x)*(p1-p2); 
-        end;
+        end
         
         % value of X2
         % -----------
@@ -149,7 +160,7 @@ function [p, c, l, res] = rsfit(x, val, plotflag)
         % plot fit
         % --------
         if plotflag
-            if plotflag ~= 2, figure('paperpositionmode', 'auto'); end;
+            if plotflag ~= 2, figure('paperpositionmode', 'auto'); end
             hist(x, 10);
             
             % plot fit
@@ -163,7 +174,7 @@ function [p, c, l, res] = rsfit(x, val, plotflag)
                 p2 = rsget( l, abscisia(index  ));
                 expectplot(index-1) = length(x)*(p2-p1); 
                 % have to do this subtraction since this a cumulate density distribution
-            end;
+            end
             abscisia = (abscisia(2:end)+abscisia(1:end-1))/2;
             hold on; plot(abscisia, expectplot, 'r');
         
@@ -180,6 +191,6 @@ function [p, c, l, res] = rsfit(x, val, plotflag)
             xlabel('Bins');
             ylabel('# of data point per bin');            
             title (sprintf('Fit of distribution using Ramberg-Schmeiser distribution (Chi2 = %2.4g)', res));            
-        end;
-    end;
+        end
+    end
     return

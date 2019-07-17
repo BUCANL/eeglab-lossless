@@ -55,19 +55,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 01-25-02 reformated help & license -ad 
 % 03-07-02 added srate argument to eegplot call -ad
@@ -88,11 +99,11 @@ end;
 if icacomp == 0
 	if isempty( EEG.icasphere )
 		disp('Error: you must run ICA first'); return;
-	end;
-end;
+	end
+end
 if exist('reject') ~= 1
     reject = 1;
-end;
+end
 
 if nargin < 3
     
@@ -130,7 +141,7 @@ if nargin < 3
     result = inputgui( geometry,uilist,'pophelp(''pop_eegthresh'');', figname);
     
     size_result  = size( result );
-    if size_result(1) == 0 return; end;
+    if size_result(1) == 0 return; end
     elecrange    = result{1};
     negthresh    = result{2};
     posthresh    = result{3};
@@ -138,31 +149,31 @@ if nargin < 3
     endtime      = result{5};
     superpose    = result{6};
     reject       = result{7};
-end;
+end
 
-if isstr(elecrange) % convert arguments if they are in text format
+if ischar(elecrange) % convert arguments if they are in text format
     calldisp = 1;
     elecrange = eval( [ '[' elecrange ']' ]  );
     negthresh = eval( [ '[' negthresh ']' ]  );
     posthresh = eval( [ '[' posthresh ']' ]  );
-    if isstr(starttime)
+    if ischar(starttime)
         starttime = eval( [ '[' starttime ']' ]  );
-    end;
-    if isstr(endtime)
+    end
+    if ischar(endtime)
         endtime   = eval( [ '[' endtime ']' ]  );
-    end;
+    end
 else
     calldisp = 0;
-end;
+end
 
 if any(starttime < EEG.xmin) 
  fprintf('Warning : starttime inferior to minimum time, adjusted\n'); 
 	starttime(find(starttime < EEG.xmin)) = EEG.xmin; 
-end;
+end
 if any(endtime   > EEG.xmax) 
 	fprintf('Warning : endtime superior to maximum time, adjusted\n'); 
 	endtime(find(endtime > EEG.xmax)) = EEG.xmax;
-end;
+end
 
 if icacomp == 1
 	[Itmp Irej NS Erejtmp] = eegthresh( EEG.data, EEG.pnts, elecrange, negthresh, posthresh, [EEG.xmin EEG.xmax], starttime, endtime);
@@ -173,7 +184,7 @@ else
 	[Itmp Irej NS Erejtmp] = eegthresh( icaacttmp, EEG.pnts, 1:length(elecrange), negthresh, posthresh, [EEG.xmin EEG.xmax], starttime, endtime);
     tmpelecIout = zeros(size(EEG.icaweights,1), EEG.trials);
     tmpelecIout(elecrange,Irej) = Erejtmp;
-end;
+end
 
 fprintf('%d channel selected\n', size(elecrange(:), 1));
 fprintf('%d/%d trials marked for rejection\n', length(Irej), EEG.trials);
@@ -187,7 +198,7 @@ if calldisp
         			macrorejE = 'EEG.reject.rejthreshE';
     else			macrorej  = 'EEG.reject.icarejthresh';
         			macrorejE = 'EEG.reject.icarejthreshE';
-    end;
+    end
 	
 	colrej = EEG.reject.rejthreshcol;
 	eeg_rejmacro; % script macro for generating command and old rejection arrays
@@ -196,12 +207,12 @@ if calldisp
         eegplot( EEG.data(elecrange,:,:), 'srate', EEG.srate, 'limits', [EEG.xmin EEG.xmax]*1000 , 'command', command, eegplotoptions{:}); 
     else
         eegplot( icaacttmp, 'srate', EEG.srate, 'limits', [EEG.xmin EEG.xmax]*1000 , 'command', command, eegplotoptions{:}); 
-    end;
+    end
 else 
     if reject == 1
         EEG = pop_rejepoch(EEG, rej, 0);
-    end;
-end;
+    end
+end
 if ~isempty(rej)
     if icacomp	== 1
         EEG.reject.rejthresh  = rej;
@@ -209,17 +220,17 @@ if ~isempty(rej)
     else
         EEG.reject.icarejthresh  = rej;
         EEG.reject.icarejthreshE = rejE;
-    end;
-end;
+    end
+end
 
 %com = sprintf('Indexes = pop_eegthresh( %s, %d, [%s], [%s], [%s], [%s], [%s], %d, %d);', ...
 %   inputname(1), icacomp, num2str(elecrange),  num2str(negthresh), ...
 %   num2str(posthresh), num2str(starttime ) , num2str(endtime), superpose, reject ); 
-com = [ com sprintf('%s = pop_eegthresh(%s,%s);', inputname(1), ...
-		inputname(1), vararg2str({icacomp,elecrange,negthresh,posthresh,starttime,endtime,superpose,reject})) ]; 
+com = [ com sprintf('EEG = pop_eegthresh(EEG,%s);', ...
+		vararg2str({icacomp,elecrange,negthresh,posthresh,starttime,endtime,superpose,reject})) ]; 
 if nargin < 3
 	Irej = com;
-end;
+end
 
 return;
 
@@ -239,5 +250,5 @@ function [Irej, Erej] = thresh( data, elecrange, timerange, negthresh, posthresh
 						timerange, starttime, endtime);
  	   Irej = union_bc(Irej, Itmprej);
  	   Erej(elecrange(index),Itmprej) = Etmprej;
-	end;
+	end
 

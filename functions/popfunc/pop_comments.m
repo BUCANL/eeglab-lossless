@@ -30,19 +30,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 01-25-02 reformated help & license -ad 
 % 03-16-02 text interface editing -sm & ad 
@@ -52,7 +63,7 @@ function [newcomments, com] = pop_comments( comments, plottitle, newcomments, co
 com = '';
 if exist('comments') ~=1, comments = '';
 elseif iscell(comments), comments = strvcat(comments{:}); 
-end;
+end
 
 % remove trailing blanks and make multiline
 comments = strmultiline( comments, 53);
@@ -63,13 +74,13 @@ if nargin < 3
 	catch,
 		BACKCOLOR  =  [.8 .8 .8];     
 		GUIBUTTONCOLOR   = [.8 .8 .8];    
-	end;
+	end
 	figure('menubar', 'none', 'tag', 'comment', 'color', BACKCOLOR, 'userdata', 0, ...
 		   'numbertitle', 'off', 'name', 'Read/Enter comments -- pop_comments()');
 	pos = get(gca,'position'); % plot relative to current axes
 	q = [pos(1) pos(2) 0 0];
 	s = [pos(3) pos(4) pos(3) pos(4)]./100;
-	if exist('plottitle') ~=1, plottitle = ''; end;
+	if exist('plottitle') ~=1, plottitle = ''; end
 	
 	h = title(plottitle);
 	set(h, 'fontname','Helvetica','fontweight', 'bold', 'interpreter', 'none');
@@ -119,28 +130,28 @@ if nargin < 3
     tmppos = strmatch('Courier', lf);
     if ~isempty(tmppos)
         set(hh, 'fontname', lf{tmppos(1)}, 'fontsize', 10);
-    end;
+    end
     
     waitfor(gcf, 'userdata');
 
     % find return mode
-    if isempty(get(0, 'currentfigure')), return; end;
+    if isempty(get(0, 'currentfigure')), return; end
     tmp = get(gcf, 'userdata');
-    if ~isempty(tmp) & isstr(tmp)    
+    if ~isempty(tmp) && ischar(tmp)    
         newcomments = tmp; % ok button
     else return;
-    end;
+    end
 
 	close(findobj('tag', 'comment'));
 else
     if iscell(newcomments)
         newcomments = strvcat(newcomments{:});
-    end;
-    if nargin > 3 & concat == 1
+    end
+    if nargin > 3 && concat == 1
         newcomments = strvcat(comments, newcomments);
-    end;
+    end
     return;
-end;
+end
 
 I = find( comments(:) == '''');
 comments(I) = ' ';  
@@ -148,15 +159,15 @@ if nargout > 1
         if ~strcmp( comments, newcomments)
           allsame = 1;
             for index = 1:size(comments, 1)
-                if ~strcmp(comments(index,:), newcomments(index,:)), allsame = 0; end;
-            end;
+                if ~strcmp(comments(index,:), newcomments(index,:)), allsame = 0; end
+            end
         else
             allsame = 0;
-        end;
-        if allsame & ~isempty(comments)
+        end
+        if allsame && ~isempty(comments)
              com =sprintf('EEG.comments = pop_comments(EEG.comments, '''', %s, 1);', vararg2str(newcomments(index+1:end,:)));
         else 
             com =sprintf('EEG.comments = pop_comments('''', '''', %s);', vararg2str(newcomments));     
-        end;
-end;
+        end
+end
 return;

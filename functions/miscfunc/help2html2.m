@@ -75,33 +75,44 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [linktext,allvars,alltext] = help2html( filename, htmlfile, varargin)
 
 if nargin < 1
 	help help2html;
 	return;
-end;
+end
 if nargin <3
    g = [];
 else
    g = struct( varargin{:});;
 end;	 	
 
-try, g.font; 			catch, g.font		= 'Helvetica'; 	end;
+try, g.font; 			catch, g.font		= 'Helvetica'; 	end
 
 g.functionname = [ '<FONT FACE="' g.font '"><FONT SIZE =+2><B>%s</B></FONT></FONT>' ];
 g.description  = [ '<FONT FACE="' g.font '">%s</FONT>' ];
@@ -116,8 +127,8 @@ g.normcol2     = '<td VALIGN=BOTTOM NOSAVE>';
 g.doublecol    = '<td ALIGN=CENTER COLSPAN="2" NOSAVE>';
 g.seefile      = [ '<FONT FACE="'  g.font '">See the matlab file <A HREF="%s" target="_blank">%s</A> (may require other functions)</FONT><BR><BR>' ]; 
 
-try, g.outputonly; 		catch, g.outputonly	= 'off'; end;
-try, g.background; 		catch, g.background	= ''; 	end;
+try, g.outputonly; 		catch, g.outputonly	= 'off'; end
+try, g.background; 		catch, g.background	= ''; 	end
 try, g.header; 			catch, g.header		= ''; 	end; 
 try, g.footer; 			catch, g.footer		= ''; 	end; 
 try, g.refcall; 		catch, g.refcall	= '%s.html'; 	end; 
@@ -132,29 +143,29 @@ end;
 
 % output file
 % -----------
-if nargin < 2 | isempty(htmlfile);
+if nargin < 2 || isempty(htmlfile);
 	indexdot = findstr( filename, '.');
-	if isempty(indexdot), indexdot = length(filename)+1; end;
+	if isempty(indexdot), indexdot = length(filename)+1; end
 	htmlfile = [ filename(1:indexdot(end)-1) '.html' ];
 else
 	indexdot = findstr( filename, '.');
-end;
+end
 
 % open files
 % ---------- 
 fid = fopen( filename, 'r');
 if fid == -1
 	error('Input file not found');
-end;
+end
 if ~strcmp(g.outputonly, 'on')
 	fo = fopen(htmlfile, 'w');
 	if fo == -1
 		error('Cannot open output file');
-	end;
+	end
 	% write header
 	% ------------
 	fprintf(fo, '<HTML><HEAD>%s</HEAD><BODY>\n%s\n<table WIDTH="100%%" NOSAVE>\n', g.header, g.background);
-end;
+end
 
 	
 cont = 1;
@@ -193,9 +204,9 @@ while (str(1) == '%')
 	  	 switch lower(str(1:i2d))
 	  		case { 'usage:' 'authors:' 'author:' 'notes:' 'note:' 'input:' ...
 	  		'inputs:' 'outputs:' 'output:' 'example:' 'examples:' 'see also:' }, newtitle = 1;
-		 end;
-		 if (i2d == length(str)) & (str(1) ~= '%'), newtitle = 1; end;	
-   	  end;
+		 end
+		 if (i2d == length(str)) && (str(1) ~= '%'), newtitle = 1; end;	
+   	  end
       if newtitle
   			tilehtml = str(1:i2d); 
   			newtitle = 1;
@@ -213,7 +224,7 @@ while (str(1) == '%')
          [tok1 strrm] = mystrtok( str );
          [tok2 strrm] = strtok( strrm );
 
-         if ~isempty(tok2) & ( tok2 == '-' | tok2 == '=') % new variable 
+         if ~isempty(tok2) && ( tok2 == '-' || tok2 == '=') % new variable 
             newvar = 1;
             oldvarname = varname;
             oldvartext = vartext;
@@ -221,7 +232,7 @@ while (str(1) == '%')
 				varname = formatstr( tok1, g.refcall);
             else 
 				varname = tok1;
-			end;
+			end
 			strrm = deblank(strrm);            % remove tail blanks
             strrm = deblank(strrm(end:-1:1));	% remove initial blanks 
            	strrm = formatstr( strrm(end:-1:1), g.refcall);
@@ -243,10 +254,10 @@ while (str(1) == '%')
                     	vartext = [ vartext '<BR>' str];    % CR otherwise
                     end;	
                end;		
-            end;
+            end
          end;	 
          newtitle = 0;		
-      end;
+      end
 	  % --- END OF DECODING 	
       
    	  str = fgets( fid );
@@ -264,7 +275,7 @@ while (str(1) == '%')
        	 	else
        			if ~isempty(oldvartext)
            			fprintf( fo, [ g.normcol2 g.text '</td></tr>\n' ], finalformat(oldvartext));	
-       			end;
+       			end
          	end;	 	
          	newvar = 1;
          	oldvarname = varname;
@@ -274,7 +285,7 @@ while (str(1) == '%')
 
       % test if new input for an array
       % ------------------------------
-      if newvar | newtitle
+      if newvar || newtitle
          if maindescription
             if ~isempty(oldvartext) % FUNCTION TITLE
                maintext = oldvartext;
@@ -282,12 +293,12 @@ while (str(1) == '%')
 			   % generate the output command
 			   % ---------------------------
 			   try, g.outputtext; 		catch, g.outputtext	= ''; 	end; 
-			   if isempty(g.outputtext),  g.outputtext	=  filename(1:indexdot(end)-1); end;
+			   if isempty(g.outputtext),  g.outputtext	=  filename(1:indexdot(end)-1); end
 			   linktext = sprintf( g.outputlink, g.outputtext,  filename(1:indexdot(end)-1), maintext ); 
 			   if strcmp(g.outputonly, 'on')
                    fclose(fid);
 				   return;
-			   end;
+			   end
 			   
                maindescription = 0;
                functioname = oldvarname( 1:findstr( oldvarname, '()' )-1);
@@ -310,9 +321,9 @@ while (str(1) == '%')
                        fprintf(fo, [ g.normrow g.doublecol ...
                                      '<CENTER><BR><A HREF="' imagename '" target="_blank"><img SRC=' imagename ...
                                      ' width=600></A></CENTER></td></tr>' ]);
-                   end;
+                   end
                    
-               end;
+               end
             end;             
    		elseif ~isempty(oldvarname)
 			allvars{indexout} = oldvarname;
@@ -323,7 +334,7 @@ while (str(1) == '%')
    	 	else
    			if ~isempty(oldvartext)
        			fprintf( fo, [ g.normcol2 g.text '</td></tr>\n' ], finalformat(oldvartext));	
-   			end;
+   			end
          end;      
       end;	
       
@@ -336,11 +347,11 @@ while (str(1) == '%')
          end;		
          oldvarname = [];
          oldvartext = [];
-      end;
+      end
    else
       str = fgets( fid );
-   end;
-end;
+   end
+end
 fprintf( fo, [ '</table>\n<BR>' g.seefile '%s</BODY></HTML>'], lower(filename), filename, g.footer);
 fclose( fid );
 fclose( fo  );
@@ -366,52 +377,52 @@ function strout = formatstr( str, refcall );
 				strout = [strout ' ' tokout ]; 	
 			end;	
 			[tok1 strrm] = strtok( strrm );
-		end;
+		end
 return;	
 
 % final formating
 function str = finalformat(str); % bold text in bracket if just in the beginning
     tmploc = sort(union(find(str == '['), find(str == ']')));
-    if ~isempty(tmploc) & str(1) == '['
-        if mod(length(tmploc),2) ~= 0, str, error('Opening but no closing bracket'); end;
+    if ~isempty(tmploc) && str(1) == '['
+        if mod(length(tmploc),2) ~= 0, str, error('Opening but no closing bracket'); end
         tmploc = tmploc(1:2);
         str = [ str(1:tmploc(1)) '<b>' str(tmploc(1)+1:tmploc(2)-1) '</b>' str(tmploc(2):end) ];
-    end;
+    end
 
     %tmploc = find(str == '"');
     %if ~isempty(tmploc)
-    %    if mod(length(tmploc),2) ~= 0, str, error('Opening but no closing parenthesis'); end;
+    %    if mod(length(tmploc),2) ~= 0, str, error('Opening but no closing parenthesis'); end
     %    for index = length(tmploc):-2:1
     %        str = [ str(1:tmploc(index-1)-1) '<b>' str(tmploc(index-1)+1:tmploc(index)-1) '</b>' str(tmploc(index)+1:end) ];
-    %    end;
-    %end;
+    %    end
+    %end
     
 function tokout = functionformat( tokin, refcall );
 	tokout = tokin;	% default
 	[test, realtokin, tail, beg] = testfunc1( tokin );
-	if ~test,  [test, realtokin, tail] = testfunc2( tokin ); end;
+	if ~test,  [test, realtokin, tail] = testfunc2( tokin ); end
 	if test
 		i1 = findstr( refcall, '%s');
 		i2 = findstr( refcall(i1(1):end), '''');
-		if isempty(i2) i2 = length( refcall(i1(1):end) )+1; end;
+		if isempty(i2) i2 = length( refcall(i1(1):end) )+1; end
 		filename  = [ realtokin refcall(i1+2:i1+i2-2)]; % concatenate filename and extension
 		%disp(filename)
 		if exist( filename ) % do not make link if the file does not exist 
 			tokout =  sprintf( [ beg '<A HREF="' refcall '">%s</A>' tail ' ' ], realtokin, realtokin );
-		end;
+		end
 	end;		
 return;
 
 function [test, realtokin, tail, beg] = testfunc1( tokin ) % test if is string is 'function()[,]'  
 	test = 0; realtokin = ''; tail = ''; beg = '';
 	if ~isempty( findstr( tokin, '()' ) )
-		if length(tokin)<3, return; end;
+		if length(tokin)<3, return; end
 		realtokin = tokin( 1:findstr( tokin, '()' )-1);
-		if length(realtokin) < (length(tokin)-2) tail = tokin(end); else tail = []; end;
+		if length(realtokin) < (length(tokin)-2) tail = tokin(end); else tail = []; end
 		test = 1;
-		if realtokin(1) == '(', realtokin = realtokin(2:end); beg = '('; end;
-		if realtokin(1) == ',', realtokin = realtokin(2:end); beg = ','; end;
-	end;
+		if realtokin(1) == '(', realtokin = realtokin(2:end); beg = '('; end
+		if realtokin(1) == ',', realtokin = realtokin(2:end); beg = ','; end
+	end
 return;
 
 function [test, realtokin, tail] = testfunc2( tokin ) % test if is string is 'FUNCTION[,]'  
@@ -422,15 +433,15 @@ function [test, realtokin, tail] = testfunc2( tokin ) % test if is string is 'FU
 			tail = ',';
 		else
 			realtokin = tokin;
-		end;
+		end
 		testokin = realtokin;
 		testokin(findstr(testokin, '_')) = 'A';
 		testokin(findstr(testokin, '2')) = 'A';
-		if all(double(testokin) > 64) & all(double(testokin) < 91)
+		if all(double(testokin) > 64) && all(double(testokin) < 91)
 			test = 1;
 		end;				
 		realtokin = lower(realtokin);
-	end;
+	end
 return;	
 
 function [tok, str] = mystrtok(str)
@@ -439,8 +450,8 @@ function [tok, str] = mystrtok(str)
     if tok(1) == '"'
         while tok(end) ~= '"'
             [tok2 str] = strtok(str);
-            if isempty(tok2), tok, error('can not find closing quote ''"'' in previous text'); end;
+            if isempty(tok2), tok, error('can not find closing quote ''"'' in previous text'); end
             tok = [tok ' ' tok2];
-        end;
-    end;
+        end
+    end
     

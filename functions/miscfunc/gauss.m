@@ -1,3 +1,4 @@
+function outvec = gauss(frames,sds)
 % gauss() - return a smooth Gaussian window
 %
 % Usage:
@@ -8,14 +9,12 @@
 %   sds    = number of +/-std. deviations = steepness 
 %            (~0+ -> flat; >>10 -> spike)
 
-function outvec = gauss(frames,sds)
-
 outvec = [];
 if nargin < 2
   help gauss
   return
 end
-if sds <=0 | frames < 1
+if sds <=0 || frames < 1
   help gauss
   return
 end

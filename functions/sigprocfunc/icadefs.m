@@ -11,23 +11,36 @@
 
 % Copyright (C) 05-20-97 Scott Makeig, SCCN/INC/UCSD, scott@sccn.ucsd.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % ----------------------------------------------------------------------
 % ------ EEGLAB DEFINITION - YOU MAY CHANGE THE TEXT BELOW -------------
 % ----------------------------------------------------------------------
+
+
 
 EEGOPTION_PATH = ''; % if empty, the home folder of the current user is used
                      % Note that this may create problems under Windows
@@ -43,28 +56,13 @@ HZDIR = 'up';               % ascending freqs = 'up'; descending = 'down'
 % Checking MATLAB version
 tmpvers = version;
 indp = find(tmpvers == '.');
-if str2num(tmpvers(indp(1)+1)) >= 1, tmpvers = [ tmpvers(1:indp(1)) '0' tmpvers(indp(1)+1:end) ]; end;
+if str2num(tmpvers(indp(1)+1)) >= 1, tmpvers = [ tmpvers(1:indp(1)) '0' tmpvers(indp(1)+1:end) ]; end
 indp = find(tmpvers == '.');
 VERS = str2num(tmpvers(1:indp(2)-1));                            
 
 % font size
 tmpComputer   = computer;
 tmpScreenSize = get(0, 'ScreenSize');
-retinaDisplay = false;
-if tmpScreenSize(3) == 1440 && ( tmpScreenSize(3) == 878 || tmpScreenSize(3) == 900 )
-    retinaDisplay = true;
-end;
-    
-% retinaDisplay = false; % uncoment this line if not retina display
-if retinaDisplay && strcmpi(tmpComputer(1:3), 'MAC')
-    W_MAIN = findobj('tag', 'EEGLAB');
-    if isempty(W_MAIN)
-        disp('Mac OSX retina display detected. If this is not the case uncoment line 58 of icadefs.m');
-    end;
-    GUI_FONTSIZE  = 18; % graphic interface font size
-    AXES_FONTSIZE = 18; % Axis labels and legend font size
-    TEXT_FONTSIZE = 18; % Miscellaneous font sizes
-end
 
 % Graph Definitions
 DEFAULT_COLORMAP = 'jet';
@@ -89,22 +87,43 @@ if VERS < 8.04
     TEXT_FONTSIZE_L = TEXT_FONTSIZE + 2; % Miscellaneous font sizes Large
     
 elseif VERS >= 8.04
+  
     if strcmpi(tmpComputer(1:3), 'MAC')
+      
         PLOT_LINEWIDTH   = 1;
         PLOT_LINEWIDTH_S = 0.5;
+      
+        %scale up fontsizes on higher resolution mac screens
+        retinaDisplay = false;
+        if tmpScreenSize(3) >= 1920 % bump fontsize only for the highest retina res settings
+            retinaDisplay = true; %comment this out if you don't want fontsizes increased at high display resolutions
+            %disp('Mac OSX retina display detected. If this is not desired comment out line 83 of icadefs.m');
+        end
         
         % AXES FONTSIZE
-        AXES_FONTSIZE   = 9;                 % Axis labels and legend font size
+        if retinaDisplay
+          AXES_FONTSIZE   = 12;                 % Axis labels and legend font size
+        else
+          AXES_FONTSIZE   = 9;                 % Axis labels and legend font size
+        end
         AXES_FONTSIZE_S = AXES_FONTSIZE - 2; % Axis labels and legend font size Small
         AXES_FONTSIZE_L = 12.5;              % Axis labels and legend font size Large
         
         % GUI FONTSIZE
-        GUI_FONTSIZE    = 12;                % graphic interface font size
+        if retinaDisplay
+          GUI_FONTSIZE    = 14;                % graphic interface font size
+        else
+          GUI_FONTSIZE    = 12;                % graphic interface font size
+        end
         GUI_FONTSIZE_S  = GUI_FONTSIZE - 2; % graphic interface font size Small
         GUI_FONTSIZE_L  = GUI_FONTSIZE + 2; % graphic interface font size Large
         
         % TEXT FONTSIZE
-        TEXT_FONTSIZE   = 12;                 % Miscellaneous font sizes
+        if retinaDisplay
+          TEXT_FONTSIZE   = 14;                 % Miscellaneous font sizes
+        else
+          TEXT_FONTSIZE   = 12;                 % Miscellaneous font sizes
+        end
         TEXT_FONTSIZE_S = TEXT_FONTSIZE - 2; % Miscellaneous font sizes Small
         TEXT_FONTSIZE_L = TEXT_FONTSIZE + 4; % Miscellaneous font sizes Large
     else
@@ -126,7 +145,7 @@ elseif VERS >= 8.04
         TEXT_FONTSIZE_S = TEXT_FONTSIZE - 2; % Miscellaneous font sizes Small
         TEXT_FONTSIZE_L = TEXT_FONTSIZE + 4; % Miscellaneous font sizes Large
     end
-end;
+end
 
 clear retinaDisplay tmpScreenSize tmpComputer tmpvers indp;
 
@@ -136,9 +155,18 @@ clear retinaDisplay tmpScreenSize tmpComputer tmpvers indp;
 % ------------------------ END OF DEFINITIONS --------------------------
 % ----------------------------------------------------------------------
 
-% INSERT location of ica executable (LINUX ONLY) for binica.m below
-eeglab_p = fileparts(which('eeglab'));
-ICABINARY = fullfile(eeglab_p, 'functions', 'resources', 'ica_linux'); 
+% INSERT location of ica executable (UNIX ONLY) for binica.m below
+if ~isdeployed
+    eeglab_p = fileparts(which('eeglab'));
+    ICABINARY = fullfile(eeglab_p, 'functions', 'supportfiles', 'ica_linux'); 
+    tmpComputer = computer;
+    if strcmpi(tmpComputer(1:3), 'MAC')
+        ICABINARY = fullfile(eeglab_p, 'functions', 'supportfiles', 'ica_osx_intel_64');
+        clear tmpComputer
+    end
+else
+    ICABINARY = fullfile(ctfroot, 'EEGLAB', 'functions', 'supportfiles', 'ica_linux');
+end
 
 try
     set(0,'defaultaxesfontsize',AXES_FONTSIZE);
@@ -146,7 +174,7 @@ try
     set(0,'DefaultUicontrolFontSize',GUI_FONTSIZE);
 catch
     % most likely Octave here
-end;
+end
 
 TUTORIAL_URL = 'http://sccn.ucsd.edu/wiki/EEGLAB'; % online version
 DEFAULT_SRATE = 256.0175;      % default local sampling rate (rarely used)
@@ -155,11 +183,11 @@ DEFAULT_TIMLIM = [-1000 2000]; % default local epoch limits (ms)
 % Set EEGLAB figure and GUI colors
 % --------------------------------
 lowscreendepth = 0;
-if ~exist('OCTAVE_VERSION', 'builtin')
+if ~exist('OCTAVE_VERSION')
     if get(0, 'screendepth') <=8 % if mono or 8-bit color
 	lowscreendepth = 1; 
-    end;
-end;
+    end
+end
 if lowscreendepth    
     %fprintf('icadefs(): Setting display parameters for mono or 8-bit color\n');
     BACKCOLOR           = [1 1 1];    % Background figure color 
@@ -178,7 +206,7 @@ else % if full color screen
     GUIBACKCOLOR        = BACKEEGLABCOLOR;% EEGLAB GUI background color <---------
     GUITEXTCOLOR        = [0 0 0.4];      % GUI foreground color for text
     PLUGINMENUCOLOR     = [.5 0 .5];      % plugin menu color
-end;
+end
 
 
 % THE FOLLOWING PARAMETERS WILL BE DEPRECATED IN LATER VERSIONS

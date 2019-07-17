@@ -62,8 +62,8 @@
 %
 % Optional inputs:
 %   'setname'    - Name of the EEG dataset
-%   'data'       - ['varname'|'filename'] Import data from a Matlab variable or file
-%                  into an EEG data structure 
+%   'data'       - ['varname'|'filename'|array] Import data from a Matlab variable 
+%                  or file into an EEG data structure.
 %   'dataformat' - ['array|matlab|ascii|float32le|float32be'] Input data format.
 %                  'array' is a Matlab array in the global workspace.
 %                  'matlab' is a Matlab file (which must contain a single variable).
@@ -113,19 +113,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 01-25-02 reformated help & license -ad 
 % 03-16-02 text interface editing -sm & ad 
@@ -168,15 +179,15 @@ if nargin < 1                 % if several arguments, assign values
                       '   set(findobj( ''parent'', gcbf, ''tag'', ''chanfile''), ' ...
                       '                ''string'', sprintf(''{ ALLEEG(%s).chanlocs ALLEEG(%s).chaninfo ALLEEG(%s).urchanlocs }'', res{1}, res{1}, res{1}));' ...
                       'end;' ];
-    if isstr(EEGOUT.ref)
+    if ischar(EEGOUT.ref)
         curref = EEGOUT.ref;
     else
         if length(EEGOUT.ref) > 1
             curref = [ int2str(abs(EEGOUT.ref)) ];
         else
             curref = [ int2str(abs(EEGOUT.ref)) ];
-        end;
-    end;
+        end
+    end
                         
     uilist = { ...
          { 'Style', 'text', 'string', 'Data file/array (click on the selected option)', 'horizontalalignment', 'right', 'fontweight', 'bold' }, ...
@@ -230,7 +241,7 @@ if nargin < 1                 % if several arguments, assign values
          { 'Style', 'pushbutton', 'string', 'Browse', 'callback', [ 'tagtest = ''sphfile'';' commandload ] } };
 
     [ results newcomments ] = inputgui( geometry, uilist, 'pophelp(''pop_importdata'');', 'Import dataset info -- pop_importdata()');
-    if length(results) == 0, return; end;
+    if length(results) == 0, return; end
 	args = {};
 
     % specific to importdata (not identical to pop_editset
@@ -241,29 +252,29 @@ if nargin < 1                 % if several arguments, assign values
 	   case 3, args = { args{:}, 'dataformat', 'float32le' };
 	   case 4, args = { args{:}, 'dataformat', 'float32be' };
 	   case 5, args = { args{:}, 'dataformat', 'matlab' };
-	end;
+	end
     i = 3;
-	if ~isempty( results{i+7} ) , args = { args{:}, 'nbchan',    str2num(results{i+7}) }; end;
-	if ~isempty( results{2} ) ,   args = { args{:}, 'data',              results{2}  }; end;
+	if ~isempty( results{i+7} ) , args = { args{:}, 'nbchan',    str2num(results{i+7}) }; end
+	if ~isempty( results{2} ) ,   args = { args{:}, 'data',              results{2}  }; end
 
 	if ~isempty( results{i  } ) , args = { args{:}, 'setname',           results{i  }  }; end;    
-	if ~isempty( results{i+1} ) , args = { args{:}, 'srate',     str2num(results{i+1}) }; end;
-	if ~isempty( results{i+2} ) , args = { args{:}, 'subject',           results{i+2}  }; end;
-	if ~isempty( results{i+3} ) , args = { args{:}, 'pnts',      str2num(results{i+3}) }; end;
-	if ~isempty( results{i+4} ) , args = { args{:}, 'condition',         results{i+4}  }; end;
-    if ~isempty( results{i+5} ) , args = { args{:}, 'xmin',      str2num(results{i+5}) }; end;
-    if ~isempty( results{i+6} ) , args = { args{:}, 'session',   str2num(results{i+6}) }; end;
-    if ~isempty( results{i+8} ) , args = { args{:}, 'group',             results{i+8}  }; end;
-    if ~isempty( results{i+9} ) , args = { args{:}, 'ref',       str2num(results{i+9}) }; end;
-	if ~isempty( newcomments ) , args = { args{:}, 'comments',  newcomments          }; end;
+	if ~isempty( results{i+1} ) , args = { args{:}, 'srate',     str2num(results{i+1}) }; end
+	if ~isempty( results{i+2} ) , args = { args{:}, 'subject',           results{i+2}  }; end
+	if ~isempty( results{i+3} ) , args = { args{:}, 'pnts',      str2num(results{i+3}) }; end
+	if ~isempty( results{i+4} ) , args = { args{:}, 'condition',         results{i+4}  }; end
+    if ~isempty( results{i+5} ) , args = { args{:}, 'xmin',      str2num(results{i+5}) }; end
+    if ~isempty( results{i+6} ) , args = { args{:}, 'session',   str2num(results{i+6}) }; end
+    if ~isempty( results{i+8} ) , args = { args{:}, 'group',             results{i+8}  }; end
+    if ~isempty( results{i+9} ) , args = { args{:}, 'ref',       str2num(results{i+9}) }; end
+	if ~isempty( newcomments ) , args = { args{:}, 'comments',  newcomments          }; end
     
     if abs(str2num(results{i+5})) > 10,
         fprintf('WARNING: are you sure the epoch start time (%3.2f) is in seconds\n');
-    end;
+    end
     
-	if ~isempty( results{i+10} ) , args = { args{:}, 'chanlocs' ,  results{i+10} }; end;
-	if ~isempty( results{i+11} ),  args = { args{:}, 'icaweights', results{i+11} }; end;
-	if ~isempty( results{i+12} ) , args = { args{:}, 'icasphere',  results{i+12} }; end;
+	if ~isempty( results{i+10} ) , args = { args{:}, 'chanlocs' ,  results{i+10} }; end
+	if ~isempty( results{i+11} ),  args = { args{:}, 'icaweights', results{i+11} }; end
+	if ~isempty( results{i+12} ) , args = { args{:}, 'icasphere',  results{i+12} }; end
 
     % generate the output command
     % ---------------------------
@@ -273,17 +284,17 @@ if nargin < 1                 % if several arguments, assign values
     %com = '';
     %for i=1:2:length(args)
     %    if ~isempty( args{i+1} )
-    %        if isstr( args{i+1} ) com = sprintf('%s, ''%s'', ''%s''', com, args{i}, char(args{i+1}) );
+    %        if ischar( args{i+1} ) com = sprintf('%s, ''%s'', ''%s''', com, args{i}, char(args{i+1}) );
     %        else                  com = sprintf('%s, ''%s'', [%s]', com, args{i}, num2str(args{i+1}) );
-    %        end;
+    %        end
     %    else
     %        com = sprintf('%s, ''%s'', []', com, args{i} );
-    %    end;
-    %end;
+    %    end
+    %end
     %com = [ 'EEG = pop_importdata(' com(2:end) ');'];
 
 else % no interactive inputs
     EEGOUT = pop_editset(EEGOUT, varargin{:});
-end;
+end
 
 return;

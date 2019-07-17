@@ -15,19 +15,30 @@
 
 % Copyright (C) Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function com = pop_writelocs(chans, filename, varargin); 
     
@@ -35,15 +46,15 @@ com = '';
 if nargin < 1
    help pop_writelocs;
    return;
-end;
+end
 
 if isfield(chans, 'shrink')
     chans = rmfield(chans, 'shrink');
     disp('Warning: shrink factor ignored');
-end;
+end
 
 disp('WARNING: ELECTRODE COORDINATES MUST BE WITH NOSE ALONG THE +X DIMENSION TO BE EXPORTED')
-disp('         IF NOT, THE EXPORTED FILE COORDINATES MAY BE INNACURATE')
+disp('         IF NOT, THE EXPORTED FILE COORDINATES MAY BE INACURATE')
 
 % get infos from readlocs
 % -----------------------
@@ -54,11 +65,11 @@ chanformat(end)    = [];
 listcolformat(end) = []; % remove chanedit
 indformat  = [];
 for index = 1:length(chanformat), 
-    if ~isstr(chanformat(index).importformat)
+    if ~ischar(chanformat(index).importformat)
         indformat = [ indformat index ];
-    end;
-    if isempty(chanformat(index).skipline), chanformat(index).skipline = 0; end;
-end;
+    end
+    if isempty(chanformat(index).skipline), chanformat(index).skipline = 0; end
+end
 listtype   = { chanformat(indformat).type };
 formatinfo = { chanformat(indformat).importformat };
 formatskip = [ chanformat(indformat).skipline ];
@@ -147,7 +158,7 @@ if nargin < 2
    
    res = inputgui(geometry, listui, 'pophelp(''writelocs'');', ...
       'Exporting electrode location file -- pop_writelocs()', { listcolformat {} formatinfo formatskip }, fig, [1 3 1 1 3 1 1 1 3 ]);
-   if gcf ~= fig, return; end;
+   if gcf ~= fig, return; end
    exportfields = get(fig, 'userdata');
    exportfields = exportfields{2};
    close(fig);
@@ -157,12 +168,12 @@ if nargin < 2
    if isempty(filename), 
       errordlg2('Error: Empty file name', 'Error');
       return;
-   end;
+   end
    options = { 'filetype' listtype{res{2}} 'format' exportfields ...
          'header' fastif(res{5}, 'on', 'off') 'customheader' res{6} };
 else
 	options = varargin;   
-end;
+end
 
 % generate history
 % ----------------
@@ -176,5 +187,5 @@ else
     else
         writelocs(chans, filename, options{:});
         com = sprintf('pop_writelocs( %s, ''%s'', %s);', inputname(1), filename, vararg2str(options));
-    end;
-end;
+    end
+end

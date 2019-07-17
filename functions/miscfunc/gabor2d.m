@@ -29,19 +29,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function mat = gabor2d( sizeX, sizeY, freq, angle, sigmaX, sigmaY, meanX, ...
 meanY, dephase, cut);
@@ -49,31 +60,31 @@ meanY, dephase, cut);
 if nargin < 2
 	help gabor2d
 	return; 
-end;
+end
 if nargin < 3
 	freq = 360/sizeX;
-end;
+end
 if nargin < 4
 	angle = 0;
-end;
+end
 if nargin < 5
 	sigmaX = sizeX/5;
-end;
+end
 if nargin < 6
 	sigmaY = sizeY/5;
-end;
+end
 if nargin < 7
 	meanX = (sizeX+1)/2;
-end;
+end
 if nargin < 8
 	meanY = (sizeY+1)/2;
-end;
+end
 if nargin < 9
 	dephase = 0;
-end;
+end
 if nargin < 10
 	cut = 0;
-end;
+end
 freq = freq/180*pi;
 
 X = linspace(1, sizeX, sizeX)'* ones(1,sizeY);
@@ -90,7 +101,7 @@ if cut > 0
 	maximun = max(max(mat))*cut;
 	I = find(mat < maximun);
 	mat(I) = 0;
-end;
+end
 
 return;
 
@@ -103,7 +114,7 @@ for X = 1:sizeX
             .*exp(-0.5*(  ((X-meanX)/sigmaX).*((X-meanX)/sigmaX)...
                           +((Y-meanY)/sigmaY).*((Y-meanY)/sigmaY)))... 
             			/((sigmaX*sigmaY)^(0.5)*pi); 
-    end;
-end;
+    end
+end
 
 return;

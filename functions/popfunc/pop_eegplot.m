@@ -57,19 +57,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 01-25-02 reformated help & license -ad 
 % 03-07-02 added srate argument to eegplot call -ad
@@ -87,17 +98,17 @@ if nargin < 2
 end;	
 if nargin < 3
 	superpose = 0;
-end;
+end
 if nargin < 4
 	reject = 1;
-end;
+end
 if icacomp == 0
 	if isempty( EEG.icasphere )
 		disp('Error: you must run ICA first'); return;
-	end;
-end;
+	end
+end
 
-if nargin < 3 & EEG.trials > 1
+if nargin < 3 && EEG.trials > 1
 
 	% which set to save
 	% -----------------
@@ -109,23 +120,23 @@ if nargin < 3 & EEG.trials > 1
                        fastif(icacomp==0, 'Manual component rejection -- pop_eegplot()', ...
 								'Reject epochs by visual inspection -- pop_eegplot()'));
 	size_result  = size( result );
-	if size_result(1) == 0 return; end;
+	if size_result(1) == 0 return; end
    
-   if result{1}, superpose=1; end;
-   if ~result{2}, reject=0; end;
+   if result{1}, superpose=1; end
+   if ~result{2}, reject=0; end
 
-end;
+end
 
-if EEG.trials > 1
+if EEG.trials > 1 && ~isempty(EEG.reject)
     if icacomp == 1 macrorej  = 'EEG.reject.rejmanual';
         			macrorejE = 'EEG.reject.rejmanualE';
     else			macrorej  = 'EEG.reject.icarejmanual';
         			macrorejE = 'EEG.reject.icarejmanualE';
-    end;
+    end
     if icacomp == 1
          elecrange = [1:EEG.nbchan];
     else elecrange = [1:size(EEG.icaweights,1)];
-    end;
+    end
     colrej = EEG.reject.rejmanualcol;
 	rej  = eval(macrorej);
 	rejE = eval(macrorejE);
@@ -140,7 +151,7 @@ else % case of a single trial (continuous data)
       	 %else, command = ['if isempty(EEG.event) EEG.event = [eegplot2event(TMPREJ, -1)];' ...
          %         'else EEG.event = [EEG.event(find(EEG.event(:,1) ~= -2),:); eegplot2event(TMPREJ, -1, [], [0.8 1 0.8])];' ...
          %         'end;']; 
-      	 %end;
+      	 %end
          %if reject
          %   command = ...
          %   [  command ...
@@ -169,19 +180,19 @@ else % case of a single trial (continuous data)
                                      'stretches to unmark. When done,press "REJECT" to', ...
                                      'excise marked stretches (Note: Leaves rejection', ...
                                      'boundary markers in the event table).'), 'Warning', 'Cancel', 'Continue', 'Continue');
-            if strcmpi(res, 'Cancel'), return; end;
-        end;
+            if strcmpi(res, 'Cancel'), return; end
+        end
     end; 
     eegplotoptions = { 'events', EEG.event };
-    if ~isempty(EEG.chanlocs) & icacomp
+    if ~isempty(EEG.chanlocs) && icacomp
         eegplotoptions = { eegplotoptions{:}  'eloc_file', EEG.chanlocs };
-    end;
-end;
+    end
+end
 
 if EEG.nbchan > 100
     disp('pop_eegplot() note: Baseline subtraction disabled to speed up display');
     eegplotoptions = { eegplotoptions{:} 'submean' 'off' };
-end;
+end
 
 if icacomp == 1
 	eegplot( EEG.data, 'srate', EEG.srate, 'title', 'Scroll channel activities -- eegplot()', ...
@@ -190,6 +201,6 @@ else
     tmpdata = eeg_getdatact(EEG, 'component', [1:size(EEG.icaweights,1)]);
 	eegplot( tmpdata, 'srate', EEG.srate, 'title', 'Scroll component activities -- eegplot()', ...
 			 'limits', [EEG.xmin EEG.xmax]*1000 , 'command', command, eegplotoptions{:}, varargin{:}); 
-end;
-com = [ com sprintf('pop_eegplot( %s, %d, %d, %d);', inputname(1), icacomp, superpose, reject) ]; 
+end
+com = [ com sprintf('pop_eegplot( EEG, %d, %d, %d);', icacomp, superpose, reject) ]; 
 return;

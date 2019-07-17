@@ -25,19 +25,30 @@
 
 % Copyright (C) 11 March 2002 arno@salk.edu, Arnaud Delorme, CNL / Salk Institute
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 03-18-02 added title -ad & sm
 % 04-04-02 added outputs -ad & sm
@@ -55,11 +66,11 @@ lastcom = [];
 if nargin < 3
 	popup = 1;
 else
-	popup = isstr(num1) | isempty(num1);
-	if isstr(num1)
+	popup = ischar(num1) | isempty(num1);
+	if ischar(num1)
 		lastcom = num1;
-	end;
-end;
+	end
+end
 
 % pop up window
 % -------------
@@ -102,7 +113,7 @@ if popup
 	result = inputgui( geometry, uilist, 'pophelp(''pop_newcrossf'');', ...
 					   fastif(typeproc, 'Plot channel cross-coherence -- pop_newcrossf()', ...
 							  'Plot component cross-coherence -- pop_newcrossf()'));
-	if length( result ) == 0 return; end;
+	if length( result ) == 0 return; end
 
 	num1     = eval( [ '[' result{1} ']' ] ); 
 	num2     = eval( [ '[' result{2} ']' ] ); 
@@ -111,8 +122,8 @@ if popup
     if result{5}, 
         if isempty(result{8}), result{8} = '''freqscale'', ''log''';
         else     result{8} = [ result{8} ', ''freqscale'', ''log''' ];
-        end;
-    end;
+        end
+    end
     if result{6}
     	options = [',''type'', ''coher''' ];
     else
@@ -122,50 +133,50 @@ if popup
     % add topoplot
     % ------------
 	if isfield(EEG.chanlocs, 'theta') && ~isempty(EEG.chanlocs(num1).theta) && ~isempty(EEG.chanlocs(num2).theta)
-        if ~isfield(EEG, 'chaninfo'), EEG.chaninfo = []; end;
+        if ~isfield(EEG, 'chaninfo'), EEG.chaninfo = []; end
 		if typeproc == 1
 			options = [options ', ''topovec'', [' int2str([num1 num2]) ...
                        '], ''elocs'', EEG.chanlocs, ''chaninfo'', EEG.chaninfo' ];
 		else % typeproc == 0
 			options = [options ', ''topovec'', EEG.icawinv(:, [' int2str([num1 num2]) ...
                        '])'', ''elocs'', EEG.chanlocs, ''chaninfo'', EEG.chaninfo' ];
-		end;
-	end;
+		end
+	end
     
     % add title
     % ---------
 	if isempty( findstr(  'title', result{8}))
-        if ~isempty(EEG.chanlocs) & typeproc
+        if ~isempty(EEG.chanlocs) && typeproc
             chanlabel1 = EEG.chanlocs(num1).labels;
             chanlabel2 = EEG.chanlocs(num2).labels;
         else
             chanlabel1 = int2str(num1);
             chanlabel2 = int2str(num2);
-        end;
+        end
 		if result{6}
             options = [options ', ''title'',' fastif(typeproc, '''Channel ', '''Component ') chanlabel1 '-' chanlabel2 ...
 					' Coherence'''];
         else
             options = [options ', ''title'',' fastif(typeproc, '''Channel ', '''Component ') chanlabel1 '-' chanlabel2 ...
 					' Phase Coherence''' ];
-		end;
-	end;
+		end
+	end
 	if ~isempty( result{7} )
 		options      = [ options ', ''alpha'',' result{7} ];
-	end;
+	end
 	if ~isempty( result{8} )
 		  options = [ options ',' result{8} ];
-	end;
+	end
 	if ~result{9}
 		options = [ options ', ''plotersp'', ''off''' ];
-	end;
+	end
 	if ~result{10}
 		options = [ options ', ''plotphase'', ''off''' ];
-	end;
+	end
     figure; try, icadefs; set(gcf, 'color', BACKCOLOR); catch, end; 
 else
 	options = [ ',' vararg2str(varargin) ];
-end;
+end
 
 % compute epoch limits
 % --------------------
@@ -197,17 +208,17 @@ tmpsig2 = reshape( tmpsig2, 1, size(tmpsig2,2)*size(tmpsig2,3));
 % -------
 outstr = '';
 if ~popup
-    for io = 1:nargout, outstr = [outstr 'varargout{' int2str(io) '},' ]; end;
-    if ~isempty(outstr), outstr = [ '[' outstr(1:end-1) '] =' ]; end;
-end;
+    for io = 1:nargout, outstr = [outstr 'varargout{' int2str(io) '},' ]; end
+    if ~isempty(outstr), outstr = [ '[' outstr(1:end-1) '] =' ]; end
+end
 
 % plot the datas and generate output command
 % --------------------------------------------
 if length( options ) < 2
     options = '';
-end;
-varargout{1} = sprintf('figure; pop_newcrossf( %s, %d, %d, %d, [%s], [%s] %s);', ...
-          inputname(1), typeproc, num1, num2, int2str(tlimits), num2str(cycles), options);
+end
+varargout{1} = sprintf('figure; pop_newcrossf( EEG, %d, %d, %d, [%s], [%s] %s);', ...
+          typeproc, num1, num2, int2str(tlimits), num2str(cycles), options);
  
 com = sprintf( '%s newcrossf( tmpsig1, tmpsig2, length(pointrange), [tlimits(1) tlimits(2)], EEG.srate, cycles %s);', outstr, options);
 eval(com)
@@ -223,4 +234,4 @@ function txt = context(var, allvars, alltext);
 	else
 		disp([ 'warning: variable ''' var ''' not found']);
 		txt = '';
-	end;
+	end

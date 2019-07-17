@@ -54,6 +54,33 @@
 % Author: Nima Bigdely Shamlo, SCCN/INC/UCSD, 2008
 % See also: show_events(), newtimef()
 
+% Copyright (C) Nima Bigdely Shamlo, SCCN/INC/UCSD, 2008
+%
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
+%
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
+%
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
+
 function timeWarpStructure = make_timewarp(EEG, eventSequence, varargin)
 
 inputKeyValues = finputcheck(varargin, ...
@@ -72,14 +99,14 @@ eventConditions = [];
 inputKeyValuesFields = fieldnames(inputKeyValues);
 for i=1:length(inputKeyValuesFields)
     eval([inputKeyValuesFields{i} '= inputKeyValues.' inputKeyValuesFields{i} ';']);
-end;
+end
 
 
 if length(eventConditions) < length(eventSequence)
     for i = (length(eventConditions)+1):length(eventSequence)
         eventConditions{i} = '';
-    end;
-end;
+    end
+end
 
 epochsIsAcceptable = ones(1, length(EEG.epoch));
 for epochNumber = 1:length(EEG.epoch)
@@ -95,13 +122,13 @@ for epochNumber = 1:length(EEG.epoch)
             timeWarp{epochNumber} = [timeWarp{epochNumber}; firstLatency];
             minimumLatency = firstLatency;
             eventNameID = eventNameID + 1;
-        end;
-    end;
+        end
+    end
 
     if length(timeWarp{epochNumber}) < length(eventSequence)
         epochsIsAcceptable(epochNumber) = false;
-    end;
-end;
+    end
+end
 
 
 acceptableEpochs = find(epochsIsAcceptable);
@@ -115,14 +142,14 @@ else
     timeWarp(:,rejectedEpochesBasedOnLateny) = [];
     acceptableEpochs(rejectedEpochesBasedOnLateny) = [];
     
-end;
+end
 
 % since latencies and accepted epochs always have to be together, we put them in one structure
 timeWarpStructure.latencies = timeWarp'; % make it suitable for newtimef()
 
 if isempty(timeWarpStructure.latencies) % when empty, it becomes a {} instead of [], so we change it to []
     timeWarpStructure.latencies = [];
-end;
+end
 
 timeWarpStructure.epochs = acceptableEpochs;
 timeWarpStructure.eventSequence = eventSequence;
@@ -134,7 +161,7 @@ timeWarpStructure.eventSequence = eventSequence;
         rejectedBasedOnLateny = [];
         for eventNumber = 1:size(timeWarpDiff, 1)
             rejectedBasedOnLateny = [rejectedBasedOnLateny find(abs(timeWarpDiff(eventNumber, :)-  mean(timeWarpDiff(eventNumber, :))) > maxSTDForRelative * std(timeWarpDiff(eventNumber, :)))];
-        end;
+        end
         rejectedEpochesBasedOnLateny = unique_bc(rejectedBasedOnLateny);
     end
 
@@ -144,7 +171,7 @@ timeWarpStructure.eventSequence = eventSequence;
         rejectedBasedOnLateny = [];
         for eventNumber = 1:size(timeWarp, 1)
             rejectedBasedOnLateny = [rejectedBasedOnLateny find(abs(timeWarp(eventNumber, :)-  mean(timeWarp(eventNumber, :))) >  maxSTDForAbsolute* std(timeWarp(eventNumber, :)))];
-        end;
+        end
         rejectedEpochesBasedOnLateny = unique_bc(rejectedBasedOnLateny);
     end
 
@@ -158,9 +185,9 @@ timeWarpStructure.eventSequence = eventSequence;
 
                 if isempty(firstLatency)
                     firstLatency = epoch.eventlatency{eventNumber};
-                end;
-            end;
-        end;
+                end
+            end
+        end
     end
 
     function result = eventMeetsCondition(epoch, eventNumber, condition)
@@ -173,10 +200,10 @@ timeWarpStructure.eventSequence = eventSequence;
             for i=1:length(epochField)
                 epochField{i} = strrep(epochField{i},'event',''); % remove event from the beginning of field names
                 condition = strrep(condition, epochField{i}, ['cell2mat(epoch.event' epochField{i} '(' num2str(eventNumber) '))' ]);
-            end;
+            end
 
             result = eval(condition);
-        end;
+        end
 
     end
 
@@ -185,15 +212,15 @@ timeWarpStructure.eventSequence = eventSequence;
         if ischar(types)
             if iscell(eventStr) && isnumeric(cell2mat(eventStr))
                 eventStr = num2str(cell2mat(eventStr));
-            end;
+            end
             
             result = strcmp(eventStr, types);
         else % it must be a cell of strs
             result = false;
             for i=1:length(types)
                 result = result ||  strcmp(eventStr, types{i});                
-            end;
-        end;
+            end
+        end
     end
         
 end

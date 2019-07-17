@@ -23,7 +23,8 @@
 %               'FIELDNAME_X' may be 'latency', 'type', 'duration'.
 %  'latency'  - [ 'filename'|vector ] example of field name (see description above).
 %  'type'     - [ 'filename'|vector ] example of field name (see description above).
-%  'duration' - [ 'filename'|vector ] example of field name (see description above).
+%  'duration' - [ 'filename'|vector ] example of field name (see description above). 
+%               Units must be in seconds (s).
 %  'FIELDNAME_X_info' - new comment string for field FIELDNAME_X.
 %  'latency_info'     - description string for the latency field.
 %  'type_info'        - description string for the type field.
@@ -78,19 +79,30 @@
 
 % Copyright (C) Arnaud Delorme, CNL / Salk Institute, 9 Feb 2002, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 %02/13/2001 fix bug if EEG.event is empty -ad
 %03/12/2001 add timeunit option -ad
@@ -118,10 +130,10 @@ if ~isempty(EEG.event),
     ind1 = strmatch('urevent', allfields, 'exact');
     ind2 = strmatch('epoch', allfields, 'exact');
     allfields([ind1 ind2]) = [];
-    try, EEG.eventdescription([ind1 ind2]) = []; catch, end;
+    try, EEG.eventdescription([ind1 ind2]) = []; catch, end
 else
     allfields = { 'type' 'latency' }; 
-end;
+end
     
 if nargin<2
     commandload = [ '[filename, filepath] = uigetfile(''*'', ''Select a text file'');' ...
@@ -147,19 +159,19 @@ if nargin<2
             description = fastif(isempty(EEG.eventdescription{index}), '', EEG.eventdescription{index});
             description = description(1,:);
             tmplines = find(description == 10);
-            if ~isempty(tmplines), description = description(1:tmplines(1)-1); end;
-        catch, end;
+            if ~isempty(tmplines), description = description(1:tmplines(1)-1); end
+        catch, end
         if strcmp(allfields{index}, 'latency') || strcmp(allfields{index}, 'type')
              cb_warn  = { 'callback' [ 'if get(gcbo, ''value''),' txt_warn 'end;' ] };
         else cb_warn = { };
-        end;
+        end
         if strcmp(allfields{index}, 'latency')
             tmpfield = [ allfields{index} '(s)' ];
         elseif strcmp(allfields{index}, 'duration')
             tmpfield = [ allfields{index} '(s)' ];
         else
             tmpfield = allfields{index};
-        end;
+        end
         uilist   = { uilist{:}, ...
                      { 'Style', 'text', 'string', tmpfield }, ...
                      { 'Style', 'pushbutton', 'string', description, 'callback', ...
@@ -172,7 +184,7 @@ if nargin<2
                      { 'Style', 'pushbutton', 'string', 'Browse', 'callback', ['tagtest = ''' allfields{index} ''';' commandload ] }, ...
                      { }, { 'Style', 'checkbox', 'string', '    ', cb_warn{:} }, { } };
         listboxtext = { listboxtext{:}  allfields{index} }; 
-    end;
+    end
     index = length(allfields) + 1;
     uilist   = { uilist{:}, ...
                  { 'Style', 'edit', 'string', ''}, ...
@@ -194,10 +206,10 @@ if nargin<2
     geometry = { geometry{:} [1 1 1 0.7 0.72] [1] [1 1.2 0.6 1 2] };
 
     descriptions = EEG.eventdescription;
-    if isempty(descriptions), descriptions = { '' '' }; end;
+    if isempty(descriptions), descriptions = { '' '' }; end
     [results userdat ]= inputgui( geometry, uilist, 'pophelp(''pop_editeventfield'');', ...
                                   'Edit event field(s) -- pop_editeventfield()', { descriptions{:} '' } );
-    if length(results) == 0, return; end;
+    if length(results) == 0, return; end
 
     % decode top inputs
     % -----------------
@@ -210,22 +222,22 @@ if nargin<2
         else 
             if ~isempty( results{index*2-1} )
                 if exist(results{index*2-1}) == 2,  args = { args{:}, allfields{index}, [ results{index*2-1} ] }; % file
-                else                                args = { args{:}, allfields{index}, results{index*2-1} }; end;
-            end;
+                else                                args = { args{:}, allfields{index}, results{index*2-1} }; end
+            end
             try, 
                 if ~strcmp( userdat{index}, EEG.eventdescription{index})
                     args = { args{:}, [ allfields{index} 'info' ], userdat{index} }; 
-                end;
-            catch, end;
+                end
+            catch, end
         end;     
-    end;
+    end
     
     % dealing with the new field
     %---------------------------
     sub = 3;
     if ~isempty( results{end-sub} )
         args = { args{:}, results{end-sub}, results{end-sub+1} }; % file
-    end;
+    end
     
     % handle rename 
     % -------------
@@ -239,32 +251,32 @@ else % no interactive inputs
     % --------------------------------------------------------------
     for index=1:2:length(args)
         if iscell(args{index+1}), args{index+1} = { args{index+1} }; end; % double nested 
-        if isstr(args{index+1})   args{index+1} = args{index+1}; % string 
-        end;
+        if ischar(args{index+1})   args{index+1} = args{index+1}; % string 
+        end
     end;                
-end;
+end
 
 % create structure
 % ----------------
 try, g = struct(args{:});
 catch, disp('pop_editeventfield(): wrong syntax in function arguments'); return; 
-end;
+end
 
 % test the presence of variables
 % ------------------------------
-try, g.skipline;      catch, g.skipline = 0; end;
-try, g.indices;       catch, g.indices = [1:length(EEG.event)]; end;
-try, g.delold; 	      catch, g.delold = 'no'; end;
-try, g.timeunit; 	  catch, g.timeunit = 1; end;
-try, g.delim; 	      catch, g.delim = char([9 32]); end;
-if isstr(g.indices), g.indices = eval([ '[' g.indices ']' ]); end;
+try, g.skipline;      catch, g.skipline = 0; end
+try, g.indices;       catch, g.indices = [1:length(EEG.event)]; end
+try, g.delold; 	      catch, g.delold = 'no'; end
+try, g.timeunit; 	  catch, g.timeunit = 1; end
+try, g.delim; 	      catch, g.delim = char([9 32]); end
+if ischar(g.indices), g.indices = eval([ '[' g.indices ']' ]); end
 
 tmpfields = fieldnames(g);
 % scan all the fields of g
 % ------------------------
 for curfield = tmpfields'
     if ~isempty(EEG.event), allfields = fieldnames(EEG.event);
-    else                    allfields = {}; end;
+    else                    allfields = {}; end
     switch lower(curfield{1})
        case { 'append' 'delold', 'fields', 'skipline', 'indices', 'timeunit', 'delim' }, ; % do nothing now
        case 'rename',
@@ -280,15 +292,15 @@ for curfield = tmpfields'
                         eval([ 'EEG.event(index).' newname '=EEG.event(index).' oldname ';']);  
                     end;    
                     EEG.event = rmfield(EEG.event, oldname);
-                end;
+                end
                 if isfield(EEG, 'urevent')
                     disp('pop_editeventfield() warning: field name not renamed in urevent structure');
-                end;
-            end;
+                end
+            end
        otherwise, % user defined field command
                   % --------------------------
             infofield = findstr(curfield{1}, 'info');
-            if ~isempty(infofield) & infofield == length( curfield{1} )-3
+            if ~isempty(infofield) && infofield == length( curfield{1} )-3
                 % description of a field
                 % ----------------------     
                 fieldname = curfield{1}(1:infofield-1);
@@ -297,7 +309,7 @@ for curfield = tmpfields'
                     disp(['pop_editeventfield() warning: Field ' fieldname ' not found to add description, ignoring']);
                 else
                     EEG.eventdescription{indexmatch} = getfield(g, curfield{1});
-                end;
+                end
             else              
                 % not an field for description
                 % ----------------------------      
@@ -310,10 +322,10 @@ for curfield = tmpfields'
 	                    allfields(indexmatch) = [];
                         if isfield(EEG, 'urevent')
                             fprintf('pop_editeventfield() warning: field ''%s'' not deleted from urevent structure\n', curfield{1}  );
-                        end;
+                        end
 						try,
 							EEG.eventdescription(indexmatch) = [];
-						catch, end;
+						catch, end
 	                 end;    
 	            else % interpret
 		            switch g.delold % delete old events
@@ -326,25 +338,25 @@ for curfield = tmpfields'
 		                 case 'no' % match existing fields
 		                           % ---------------------
 		                      tmparray = load_file_or_array( getfield(g, curfield{1}), g.skipline, g.delim );
-		                      if isempty(g.indices) g.indices = [1:size(tmparray(:),1)] + length(EEG.event); end;
+		                      if isempty(g.indices) g.indices = [1:size(tmparray(:),1)] + length(EEG.event); end
 		                      
 		                      indexmatch = strmatch(curfield{1}, allfields);
 		                      if isempty(indexmatch) % no match
 		                          disp(['pop_editeventfield(): creating new field ''' curfield{1} '''' ]);
-		                      end;
+		                      end
                               try
-                                  EEG.event = setstruct(EEG.event, curfield{1}, g.indices, [ tmparray{:} ]);
+                                  EEG.event = setstruct(EEG.event, curfield{1}, g.indices, tmparray);
                               catch,
                                   error('Wrong size for input array');
-                              end;
+                              end
   							  if strcmp(curfield{1}, 'latency')
 								  EEG.event = recomputelatency( EEG.event, g.indices, EEG.srate, g.timeunit);
-							  end;
+							  end
  							  if strcmp(curfield{1}, 'duration')
                                   for indtmp = 1:length(EEG.event)
-                                      EEG.event(indtmp).duration = EEG.event(indtmp).duration/EEG.srate;
-                                  end;
-							  end;
+                                      EEG.event(indtmp).duration = EEG.event(indtmp).duration*EEG.srate;
+                                  end
+							  end
                               if isfield(EEG, 'urevent')
                                   disp('pop-editeventfield(): updating urevent structure');
                                   try
@@ -354,26 +366,26 @@ for curfield = tmpfields'
                                               tmpval      = getfield (EEG.event, {indtmp}, curfield{1});
                                               EEG.urevent = setfield (EEG.urevent, { tmpevent(indtmp).urevent }, ...
                                                                                    curfield{1}, tmpval);
-                                          end;
-                                      end;
+                                          end
+                                      end
                                   catch,
                                       disp('pop_editeventfield(): problem while updating urevent structure');
-                                  end;
-                              end;
-		             end;
-	            end;
+                                  end
+                              end
+		             end
+	            end
 	        end;    
-      end;
-end;
+      end
+end
 
 if isempty(EEG.event) % usefull 0xNB empty structure
     EEG.event = [];
-end;
+end
 EEG = eeg_checkset(EEG, 'eventconsistency');
 
 % generate the output command
 % ---------------------------
-com = sprintf('%s = pop_editeventfield( %s, %s);', inputname(1), inputname(1), vararg2str(args));
+com = sprintf('EEG = pop_editeventfield( EEG, %s);', vararg2str(args));
 
 % interpret the variable name
 % ---------------------------
@@ -381,7 +393,7 @@ function str = str2str( array )
 	str = '';
 	for index = 1:size(array,1)
 		str = [ str ', ''' array(index,:) '''' ];
-	end;
+	end
 	if size(array,1) > 1
 		str = [ 'strvcat(' str(2:end) ')'];
 	else
@@ -392,7 +404,7 @@ return;
 % interpret the variable name
 % ---------------------------
 function array = load_file_or_array( varname, skipline, delim );
-    if isstr(varname)
+    if ischar(varname)
         if exist(varname) == 2 % mean that it is a filename
                                % --------------------------
             array = loadtxt( varname, 'skipline', skipline, 'delim', delim);
@@ -403,7 +415,7 @@ function array = load_file_or_array( varname, skipline, delim );
             if ~iscell(array)
                 array = mattocell(array, ones(1, size(array,1)), ones(1, size(array,2)));
             end;   
-        end;
+        end
     else
         array = mattocell(varname);
     end;     
@@ -412,10 +424,10 @@ return;
 % update latency values
 % ---------------------
 function event = recomputelatency( event, indices, srate, timeunit);
-    if ~isfield(event, 'latency'), return; end;
+    if ~isfield(event, 'latency'), return; end
     for index = indices
         event(index).latency = event(index).latency*srate*timeunit+1;
-    end;
+    end
          
 % create new field names
 % ----------------------
@@ -431,14 +443,26 @@ function epochfield = getnewfields( epochfield, nbfields )
 return;
     
 function var = setstruct( var, fieldname, indices, values )
-    if exist('indices') ~= 1, indices = 1:length(var); end;
-    if length(values) > 1
-        for index = 1:length(indices)
-            var = setfield(var, {indices(index)}, fieldname, values(index));
-        end;
-    else
-        for index = 1:length(indices)
-            var = setfield(var, {indices(index)}, fieldname, values);
-        end;
-    end;
+    if exist('indices') ~= 1, indices = 1:length(var); end
+    if iscell(values)
+        if length(values) > 1
+            for index = 1:length(indices)
+                var = setfield(var, {indices(index)}, fieldname, values{index});
+            end
+        else
+            for index = 1:length(indices)
+                var = setfield(var, {indices(index)}, fieldname, values{1});
+            end
+        end; 
+    else % Code below may be unused
+        if length(values) > 1
+            for index = 1:length(indices)
+                var = setfield(var, {indices(index)}, fieldname, values(index));
+            end
+        else
+            for index = 1:length(indices)
+                var = setfield(var, {indices(index)}, fieldname, values);
+            end
+        end
+    end
 return;

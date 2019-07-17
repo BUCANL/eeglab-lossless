@@ -10,12 +10,12 @@
 %                3D array (chan, frames, epochs), epochs are extracted
 %                only if their time windows fall within existing 
 %                pre-existing epochs.
-%   events     - vector events (expressed in seconds or points)
-%   timelim    - [init end] in second or points centered
-%                on the events (i.e. [-1 2])
+%   events     - vector events (expressed in samples)
+%   timelim    - [init end] in second centered on the events (i.e. [-1 2])
 %
 % Optional inputs:
-%   'srate'      - sampling rate in Hz for events expressed in seconds
+%   'srate'      - sampling rate in Hz for events expressed in seconds.
+%                Required.
 %   'valuelim'   - [min max] data limits. If one positive value is given,
 %                the opposite value is used for lower bound. For example, 
 %                use [-50 50] to remove artifactual epoch. Default: none.
@@ -53,19 +53,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [epochdat, newtime, indexes, alleventout, alllatencyout, reallim] = epoch( data, events, lim, varargin );
 
@@ -79,16 +90,16 @@ alleventout = {};
 % ----------------
 if ~isempty(varargin)
    try, g = struct(varargin{:});
-   catch, error('Epoch: wrong syntax in function arguments'); end;
+   catch, error('Epoch: wrong syntax in function arguments'); end
 else
     g = [];
-end;
+end
 
-try, g.srate; 	 	     catch, g.srate = 1; end;
-try, g.valuelim; 	     catch, g.valuelim =  [-Inf Inf]; end;
-try, g.verbose; 	     catch, g.verbose = 'on'; end;
-try, g.allevents; 	     catch, g.allevents = []; end;
-try, g.alleventrange; 	 catch, g.alleventrange = lim; end;
+try, g.srate; 	 	     catch, g.srate = 1; end
+try, g.valuelim; 	     catch, g.valuelim =  [-Inf Inf]; end
+try, g.verbose; 	     catch, g.verbose = 'on'; end
+try, g.allevents; 	     catch, g.allevents = []; end
+try, g.alleventrange; 	 catch, g.alleventrange = lim; end
 
 % computing point limits
 % ----------------------
@@ -104,7 +115,7 @@ eeglab_options;
 if option_memmapdata == 1
      epochdat = mmo([], [size(data,1), newdatalength, length(events)]);
 else epochdat = zeros( size(data,1), newdatalength, length(events) );
-end;
+end
 g.allevents =  g.allevents(:)';
 datawidth  = size(data,2)*size(data,3);
 dataframes = size(data,2);
@@ -125,14 +136,14 @@ for index = 1:length(events)
           if (tmpmin > g.valuelim(1)) && (tmpmax < g.valuelim(2))
               indexes(index) = 1;
           else
-              switch g.verbose, case 'on', fprintf('Warning: event %d out of value limits\n', index); end;
+              switch g.verbose, case 'on', fprintf('Warning: event %d out of value limits\n', index); end
           end;   
       else 
           indexes(index) = 1;
-      end;
+      end
    else
-      switch g.verbose, case 'on', fprintf('Warning: event %d out of data boundary\n', index); end;
-   end;
+      switch g.verbose, case 'on', fprintf('Warning: event %d out of data boundary\n', index); end
+   end
 
    % rereference events
    % ------------------
@@ -142,7 +153,7 @@ for index = 1:length(events)
         eventtrial = intersect_bc( find(g.allevents*g.srate >= posinit),  find(g.allevents*g.srate <= posend) );
         alleventout{index} = eventtrial;
         alllatencyout{index} = g.allevents(eventtrial)*g.srate-pos0; 
-   end;
+   end
 end;   
 newtime(1) = reallim(1)/g.srate;
 newtime(2) = reallim(2)/g.srate;
@@ -153,7 +164,7 @@ indexes = find(indexes == 1);
 if ~isempty(alleventout)
     alleventout = alleventout(indexes);
     alllatencyout= alllatencyout(indexes);
-end;
+end
 reallim = reallim*g.srate;
 return;
 
@@ -166,7 +177,7 @@ return;
 %    alleventout = alleventout(indexes,:) - 1000000;
 %   alllatencyout( find( alllatencyout == 0) ) = nan;
 %   alllatencyout = alllatencyout(indexes,:) - 1000000;
-%end;
+%end
 
 function res = lat2point( lat, srate, pnts);
 

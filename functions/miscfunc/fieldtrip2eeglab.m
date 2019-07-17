@@ -1,52 +1,48 @@
-% load data file ('dataf') preprocessed with fieldtrip
-% and show in eeglab viewer
+% fieldtrip2eeglab - convert Fieldtrip structures to EEGLAB dataset
 %
-% This function is provided as is. It only works for some specific type of
-% data. This is a simple function to help the developer and by no mean
-% an all purpose function.
+% EEG = fieldtrip2eeglab(header, data, evt);
+%
+% Inputs:
+%    header   - Fieldtrip data header 
+%    data     - Fieldtrip raw data
+%    evt      - Fieldtrip event structure (optional)
+%
+% Output:
+%    EEG     - EEGLAB structure
+%
+% Author: Arnaud Delorme, UCSD
 
-function [EEG] = fieldtrip2eeglab(dataf)
+% Copyright (C) Arnaud Delorme, UCSD 2018
+%
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
+%
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
+%
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
-[ALLEEG EEG CURRENTSET ALLCOM] = eeglab;
+function EEG = fieldtrip2eeglab(header,data,evt)
 
-if exist(dataf,'file')
-  load(dataf)
+if nargin < 3
+    evt = [];
 end
 
-% load chanlocs.mat
-% EEG.chanlocs = chanlocs;
-EEG.chanlocs = [];
-
-for i=1:size(data.trial,2)
-  EEG.data(:,:,i) = single(data.trial{i});
-end
-
-EEG.setname    = dataf; %data.cfg.dataset;
-EEG.filename   = '';
-EEG.filepath   = '';
-EEG.subject    = '';
-EEG.group      = '';
-EEG.condition  = '';
-EEG.session    = [];
-EEG.comments   = 'preprocessed with fieldtrip';
-EEG.nbchan     = size(data.trial{1},1);
-EEG.trials     = size(data.trial,2);
-EEG.pnts       = size(data.trial{1},2);
-EEG.srate      = data.fsample;
-EEG.xmin       = data.time{1}(1);
-EEG.xmax       = data.time{1}(end);
-EEG.times      = data.time{1};
-EEG.ref        = []; %'common';
-EEG.event      = [];
-EEG.epoch      = [];
-EEG.icawinv    = [];
-EEG.icasphere  = [];
-EEG.icaweights = [];
-EEG.icaact     = [];
-EEG.saved      = 'no';
-
-[ALLEEG EEG CURRENTSET] = eeg_store(ALLEEG, EEG);
-eeglab redraw
-pop_eegplot( EEG, 1, 1, 1);
-
- 
+EEG = pop_fileio(header, data, evt);

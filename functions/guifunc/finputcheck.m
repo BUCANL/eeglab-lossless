@@ -34,7 +34,7 @@
 %               { 'title'         'string'   []       ''; ...
 %                 'percent'       'real'     [0 1]    1 ; ...
 %                 'elecamp'       'integer'  [1:10]   [] });
-%   if isstr(result)
+%   if ischar(result)
 %       error(result);
 %   end
 %
@@ -49,37 +49,48 @@
 
 % Copyright (C) Arnaud Delorme, CNL / Salk Institute, 10 July 2002, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [g, varargnew] = finputcheck( vararg, fieldlist, callfunc, mode, verbose )
 
 	if nargin < 2
 		help finputcheck;
 		return;
-	end;
+	end
 	if nargin < 3
 		callfunc = '';
 	else 
 		callfunc = [callfunc ' ' ];
-	end;
+	end
     if nargin < 4
         mode = 'do not ignore';
-    end;
+    end
     if nargin < 5
         verbose = 'verbose';
-    end;
+    end
 	NAME = 1;
 	TYPE = 2;
 	VALS = 3;
@@ -96,8 +107,8 @@ function [g, varargnew] = finputcheck( vararg, fieldlist, callfunc, mode, verbos
             for index=1:length(vararg)
                 if iscell(vararg{index})
                     vararg{index} = {vararg{index}};
-                end;
-            end;
+                end
+            end
             try
                 g = struct(vararg{:});
             catch
@@ -106,19 +117,19 @@ function [g, varargnew] = finputcheck( vararg, fieldlist, callfunc, mode, verbos
                     g = struct(vararg{:});
                 catch
                     g = [ callfunc 'error: bad ''key'', ''val'' sequence' ]; return;
-                end;
-            end;
-        end;
+                end
+            end
+        end
 	else 
 		g = [];
-	end;
+	end
 	
 	for index = 1:size(fieldlist,NAME)
 		% check if present
 		% ----------------
 		if ~isfield(g, fieldlist{index, NAME})
 			g = setfield( g, fieldlist{index, NAME}, fieldlist{index, DEF});
-		end;
+		end
 		tmpval = getfield( g, {1}, fieldlist{index, NAME});
 		
 		% check type
@@ -126,7 +137,7 @@ function [g, varargnew] = finputcheck( vararg, fieldlist, callfunc, mode, verbos
         if ~iscell( fieldlist{index, TYPE} )
             res = fieldtest( fieldlist{index, NAME},  fieldlist{index, TYPE}, ...
                            fieldlist{index, VALS}, tmpval, callfunc );
-            if isstr(res), g = res; return; end;
+            if ischar(res), g = res; return; end
         else 
             testres = 0;
             tmplist = fieldlist;
@@ -136,18 +147,18 @@ function [g, varargnew] = finputcheck( vararg, fieldlist, callfunc, mode, verbos
                                            fieldlist{index, VALS}, tmpval, callfunc );
                 else res{it} = fieldtest(  fieldlist{index, NAME},  fieldlist{index, TYPE}{it}, ...
                                            fieldlist{index, VALS}{it}, tmpval, callfunc );
-                end;
-                if ~isstr(res{it}), testres = 1; end;
-            end;
+                end
+                if ~ischar(res{it}), testres = 1; end
+            end
             if testres == 0,
                 g = res{1};
                 for tmpi = 2:length(res)
                     g = [ g 10 'or ' res{tmpi} ];
-                end;
+                end
                 return; 
-            end;
-        end;
-	end;
+            end
+        end
+	end
     
     % check if fields are defined
 	% ---------------------------
@@ -156,11 +167,11 @@ function [g, varargnew] = finputcheck( vararg, fieldlist, callfunc, mode, verbos
 		if isempty(strmatch(allfields{index}, fieldlist(:, 1)', 'exact'))
 			if ~strcmpi(mode, 'ignore')
 				g = [ callfunc 'error: undefined argument ''' allfields{index} '''']; return;
-			end;
+			end
 			varargnew{end+1} = allfields{index};
 			varargnew{end+1} = getfield(g, {1}, allfields{index});
-		end;
-	end;
+		end
+	end
 
 
 function g = fieldtest( fieldname, fieldtype, fieldval, tmpval, callfunc );
@@ -175,7 +186,7 @@ function g = fieldtest( fieldname, fieldtype, fieldval, tmpval, callfunc );
      case { 'integer' 'real' 'boolean' 'float' }, 
       if ~isnumeric(tmpval) && ~islogical(tmpval)
           g = [ callfunc 'error: argument ''' fieldname ''' must be numeric' ]; return;
-      end;
+      end
       if strcmpi(fieldtype, 'boolean')
           if tmpval ~=0 && tmpval ~= 1
               g = [ callfunc 'error: argument ''' fieldname ''' must be 0 or 1' ]; return;
@@ -186,48 +197,48 @@ function g = fieldtest( fieldname, fieldtype, fieldval, tmpval, callfunc );
                   if (any(isnan(tmpval(:))) && ~any(isnan(fieldval))) ...
                           && (~ismember(tmpval, fieldval))
                       g = [ callfunc 'error: wrong value for argument ''' fieldname '''' ]; return;
-                  end;
-              end;
+                  end
+              end
           else % real or float
               if ~isempty(fieldval) && ~isempty(tmpval)
                   if any(tmpval < fieldval(1)) || any(tmpval > fieldval(2))
                       g = [ callfunc 'error: value out of range for argument ''' fieldname '''' ]; return;
-                  end;
-              end;
-          end;
+                  end
+              end
+          end
       end;  
       
       
      case 'string'
-      if ~isstr(tmpval)
+      if ~ischar(tmpval) && ~isempty(tmpval)
           g = [ callfunc 'error: argument ''' fieldname ''' must be a string' ]; return;
-      end;
+      end
       if ~isempty(fieldval)
-          if isempty(strmatch(lower(tmpval), lower(fieldval), 'exact'))
+          if isempty(tmpval) && isempty(strmatch(char(lower(tmpval)), lower(fieldval), 'exact'))
               g = [ callfunc 'error: wrong value for argument ''' fieldname '''' ]; return;
-          end;
-      end;
+          end
+      end
 
       
      case 'cell'
       if ~iscell(tmpval)
           g = [ callfunc 'error: argument ''' fieldname ''' must be a cell array' ]; return;
-      end;
+      end
       
       
      case 'struct'
       if ~isstruct(tmpval)
           g = [ callfunc 'error: argument ''' fieldname ''' must be a structure' ]; return;
-      end;
+      end
       
      case 'function_handle'
       if ~isa(tmpval, 'function_handle')
           g = [ callfunc 'error: argument ''' fieldname ''' must be a function handle' ]; return;
-      end;
+      end
       
      case '';
      otherwise, error([ 'finputcheck error: unrecognized type ''' fieldname '''' ]);
-    end;
+    end
 
 % remove duplicates in the list of parameters
 % -------------------------------------------
@@ -237,7 +248,7 @@ function cella = removedup(cella, verbose)
     [tmp indices] = unique_bc(cella(1:2:end));
     if length(tmp) ~= length(cella)/2
         myfprintf(verbose,'Note: duplicate ''key'', ''val'' parameter(s), keeping the last one(s)\n');
-    end;
+    end
     cella = cella(sort(union(indices*2-1, indices*2)));
 %catch
     % some elements of cella were not string
@@ -248,4 +259,4 @@ function myfprintf(verbose, varargin)
 
 if strcmpi(verbose, 'verbose')
     fprintf(varargin{:});
-end;
+end

@@ -22,39 +22,50 @@
 
 % Copyright (C) Arnaud Delorme, CNL / Salk Institute, 2002
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function makehelpfiles( varargin );
 
 if nargin < 1
     help makehelpfiles;
     return;
-end;
+end
     
 opt = finputcheck( varargin,  { 'folder'     'string'   { }  '';
                                 'outputfile' 'string'   { }  '';
                                 'title'      'string'   { }  '' }, 'makehelpfiles');
-if isstr(opt), error(opt); end;
-if isempty(opt.folder),     error('You need to specify a folder'); end;
-if isempty(opt.outputfile), error('You need to specify an output file'); end;
+if ischar(opt), error(opt); end
+if isempty(opt.folder),     error('You need to specify a folder'); end
+if isempty(opt.outputfile), error('You need to specify an output file'); end
 
 fo = fopen( opt.outputfile, 'w');
 if ~isempty(opt.title)
      fprintf(fo, '%%%s (%s folder):\n', opt.title, opt.folder);
 else fprintf(fo, '%% *Content of %s folder:*\n', opt.folder);
-end;
+end
 dirContent = dir(fullfile(opt.folder, '*.m'));
 dirContent = { dirContent.name };
 for iFile = 1:length(dirContent)
@@ -65,7 +76,7 @@ for iFile = 1:length(dirContent)
     % get help from the first line
     if isempty(firstLine) || firstLine(1) ~= '%'
         firstLine = fgetl(fidTmp);
-    end;
+    end
     fclose(fidTmp);
         
     if isempty(firstLine) || firstLine(1) ~= '%'
@@ -75,16 +86,16 @@ for iFile = 1:length(dirContent)
         if ~isempty(indexMinus)
              firstLineText = deblank(firstLine(indexMinus(1)+1:end));
         else firstLineText = deblank(firstLine(2:end));
-        end;
-        if isempty(firstLineText), firstLineText = 'No help information'; end;
-        if firstLineText(1) == ' ', firstLineText(1) = []; end;
-        if firstLineText(1) == ' ', firstLineText(1) = []; end;
-        if firstLineText(1) == ' ', firstLineText(1) = []; end;
+        end
+        if isempty(firstLineText), firstLineText = 'No help information'; end
+        if firstLineText(1) == ' ', firstLineText(1) = []; end
+        if firstLineText(1) == ' ', firstLineText(1) = []; end
+        if firstLineText(1) == ' ', firstLineText(1) = []; end
         firstLineText(1) = upper(firstLineText(1));
-        if firstLineText(end) ~= '.', firstLineText = [ firstLineText '...' ]; end;
-    end;
+        if firstLineText(end) ~= '.', firstLineText = [ firstLineText '...' ]; end
+    end
     
     refFunction = sprintf('<a href="matlab:helpwin %s">%s</a>', fileName(1:end-2), fileName(1:end-2));
     fprintf(fo, '%%  %-*s - %s\n', 50+length(fileName(1:end-2)), refFunction, firstLineText);
-end;
+end
 fclose( fo );

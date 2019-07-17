@@ -35,19 +35,30 @@
 
 % Copyright (C) 2003 Arnaud Delorme, SCCN, INC, UCSD, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [EEG, command] = my_pop_biosig(filename, varargin); 
 EEG = [];
@@ -58,7 +69,7 @@ if nargin < 1
 	[filename, filepath] = uigetfile('*.*', 'Choose an BDF file -- pop_biosig()'); %%% this is incorrect in original version!!!!!!!!!!!!!!
     drawnow;
     
-	if filename == 0 return; end;
+	if filename == 0 return; end
 	filename = [filepath filename];
     
     % open file to get infos
@@ -71,7 +82,7 @@ if nargin < 1
     if strcmpi(dat.TYPE, 'BDF')
         disp('We highly recommend that you choose a reference channel IF these are Biosemi data');
         disp('(e.g., a mastoid or other channel). Otherwise the data will lose 40 dB of SNR!');
-    end;
+    end
     uilist = { { 'style' 'text' 'String' 'Channel list (defaut all):' } ...
                  { 'style' 'edit' 'string' '' } ...
                  { 'style' 'text' 'String' [ 'Data range (in seconds) to read (default all [0 ' int2str(dat.NRec) '])' ] } ...
@@ -85,20 +96,20 @@ if nargin < 1
     geom = { [3 1] [3 1] [3 0.35 0.5] [3 0.35 0.5] [3 1] };
     result = inputgui( geom, uilist, 'pophelp(''pop_biosig'')', ...
                                  'Load data using BIOSIG -- pop_biosig()');
-    if length(result) == 0 return; end;
+    if length(result) == 0 return; end
     
     % decode GUI params
     % -----------------
     options = {};
-    if ~isempty(result{1}), options = { options{:} 'channels'   eval( [ '[' result{1} ']' ] ) }; end;
-    if ~isempty(result{2}), options = { options{:} 'blockrange' eval( [ '[' result{2} ']' ] ) }; end;
+    if ~isempty(result{1}), options = { options{:} 'channels'   eval( [ '[' result{1} ']' ] ) }; end
+    if ~isempty(result{2}), options = { options{:} 'blockrange' eval( [ '[' result{2} ']' ] ) }; end
     if length(result) > 2
-        if ~isempty(result{4}), options = { options{:} 'ref'        eval( [ '[' result{4} ']' ] ) }; end;
-        if ~result{3},          options = { options{:} 'rmeventchan' 'off' }; end;
-    end;
+        if ~isempty(result{4}), options = { options{:} 'ref'        eval( [ '[' result{4} ']' ] ) }; end
+        if ~result{3},          options = { options{:} 'rmeventchan' 'off' }; end
+    end
 else
     options = varargin;
-end;
+end
 
 % decode imput parameters
 % -----------------------
@@ -106,7 +117,7 @@ g = finputcheck( options, { 'blockrange'  'integer' [0 Inf]    [];
                             'channels'    'integer' [0 Inf]    [];
                             'ref'         'integer' [0 Inf]    [];
                             'rmeventchan' 'string'  { 'on';'off' } 'on' }, 'pop_biosig');
-if isstr(g), error(g); end;
+if ischar(g), error(g); end
 
 % import data
 % -----------
@@ -150,7 +161,7 @@ else
     EEG.trials   = dat.NRec;
     EEG.pnts     = size(EEG.data,2)/dat.NRec;
 end
-if isfield(dat, 'Label') & ~isempty(dat.Label)
+if isfield(dat, 'Label') && ~isempty(dat.Label)
     EEG.chanlocs = struct('labels', cellstr(char(dat.Label)));
 end
 EEG = eeg_checkset(EEG);
@@ -166,8 +177,8 @@ EEG.event = [];
 % $$$     if EEG.data(end,p) > EEG.data(end,p-1) & EEG.data(end,p) >= EEG.data(end,p+1)
 % $$$         EEG.event(end+1).latency =  p;
 % $$$         EEG.event(end).type = bitand(double(EEG.data(end,p)-startval),255);
-% $$$     end;
-% $$$ end;
+% $$$     end
+% $$$ end
 
 % lastout = mod(EEG.data(end,1),256);newevs = []; % andrey's code 8 bits
 % codeout = mod(EEG.data(end,2),256);
@@ -177,10 +188,10 @@ EEG.event = [];
 %         newevs = [newevs codeout];
 %         EEG.event(end+1).latency =  p;
 %         EEG.event(end).type = codeout;
-%     end;
+%     end
 %     lastout = codeout;
 %     codeout = nextcode;
-% end;
+% end
 
 %lastout = mod(EEG.data(end,1),256*256);newevs = []; % andrey's code 16 bits
 %codeout = mod(EEG.data(end,2),256*256);
@@ -190,10 +201,10 @@ EEG.event = [];
 %        newevs = [newevs codeout];
 %        EEG.event(end+1).latency =  p;
 %        EEG.event(end).type = codeout;
-%    end;
+%    end
 %    lastout = codeout;
 %    codeout = nextcode;
-%end;
+%end
 
 % Modifieded by Andrey (Aug.5,2008) to detect all non-zero codes: 
 thiscode = 0;lastcode=0;
@@ -204,24 +215,24 @@ for p = 1:size(EEG.data,2)-1
         EEG.event(end+1).latency =  p;
         EEG.event(end).type = thiscode;
         lastcode = thiscode;
-    end;
-end;
+    end
+end
 
 if strcmpi(g.rmeventchan, 'on')
     EEG.data(dat.BDF.Status.Channel,:) = [];
     EEG.nbchan = size(EEG.data,1);
     if ~isempty(EEG.chanlocs)
         EEG.chanlocs(dat.BDF.Status.Channel,:) = [];
-    end;
-end;
+    end
+end
 EEG = eeg_checkset(EEG, 'eventconsistency');
 
 % $$$ if ~isempty(dat.EVENT)    
 % $$$     if isfield(dat, 'out') % Alois fix for event interval does not work
 % $$$         if isfield(dat.out, 'EVENT')
 % $$$             dat.EVENT = dat.out.EVENT;
-% $$$         end;
-% $$$     end;
+% $$$         end
+% $$$     end
 % $$$     if ~isempty(newblockrange)
 % $$$         interval(1) = newblockrange(1) * dat.SampleRate(1) + 1;
 % $$$         interval(2) = newblockrange(2) * dat.SampleRate(1);
@@ -234,13 +245,13 @@ EEG = eeg_checkset(EEG, 'eventconsistency');
 % $$$         EEG.nbchan = size(EEG.data,1);
 % $$$         if ~isempty(EEG.chanlocs)
 % $$$             EEG.chanlocs(dat.BDF.Status.Channel,:) = [];
-% $$$         end;
-% $$$     end;
+% $$$         end
+% $$$     end
 % $$$     EEG = eeg_checkset(EEG, 'eventconsistency');
 % $$$ else 
 % $$$     disp('Warning: no event found. Events might be embeded in a data channel.');
 % $$$     disp('         To extract events, use menu File > Import Event Info > From data channel');
-% $$$ end;
+% $$$ end
 
 % rerefencing
 % -----------
@@ -249,13 +260,13 @@ if ~isempty(g.ref)
     EEG.data = EEG.data - repmat(mean(EEG.data(g.ref,:),1), [size(EEG.data,1) 1]);
     if length(g.ref) == size(EEG.data,1)
         EEG.ref  = 'averef';
-    end;
+    end
     if length(g.ref) == 1
         disp([ 'Warning: channel ' int2str(g.ref) ' is now zeroed (but still present in the data)' ]);
     else
         disp([ 'Warning: data matrix rank has decreased through re-referencing' ]);
-    end;
-end;
+    end
+end
 
 % convert data to single if necessary
 % -----------------------------------

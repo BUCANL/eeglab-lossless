@@ -1,6 +1,7 @@
-function [urlConnection,errorid,errormsg] = urlreadwrite(fcn,urlChar)
+function [urlConnection,errorid,errormsg] = plugin_urlreadwrite(fcn,urlChar)
 %URLREADWRITE A helper function for URLREAD and URLWRITE.
 
+%   Adapted by A. Delorme from 
 %   Matthew J. Simoneau, June 2005
 %   Copyright 1984-2011 The MathWorks, Inc.
 %   $Revision: 1.1.6.7 $ $Date: 2011/10/22 22:05:21 $
@@ -35,8 +36,10 @@ end
 try
     if isempty(handler)
         url = java.net.URL(urlChar);
+        % url = javaObject('java.net.URL', urlChar); % Octave
     else
         url = java.net.URL([],urlChar,handler);
+        % url = javaObject('java.net.URL', [],urlChar,handler); % Octave
     end
 catch exception %#ok
     errorid = ['MATLAB:' fcn ':InvalidUrl'];

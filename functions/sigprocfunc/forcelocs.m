@@ -41,19 +41,30 @@
 
 % Copyright (C) 2003 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [chanlocs,options] = forcelocs( chanlocs, varargin)
     
@@ -64,7 +75,7 @@ function [chanlocs,options] = forcelocs( chanlocs, varargin)
     if nargin < 1
         help forcelocs;
         return;
-    end;
+    end
     if nargin < 2
         geom = { [0.4 1 1 0.3] };
         uilist = { { 'style' 'text' 'string' 'X/Y value' 'tag' 'valstr' } ...
@@ -86,10 +97,10 @@ function [chanlocs,options] = forcelocs( chanlocs, varargin)
                                        '[tmp1 tmp2] = pop_chansel({tmp3.labels}, ''selectionmode'', ''single'');' ...
                                        'if ~isempty(tmp1) set(findobj(gcbf, ''tag'', ''' tag '''), ''string'', tmp2); end;' ...
                                        'clear tmp1 tmp2;' ] } };
-        end;
+        end
         
         results = inputgui( geom, uilist, 'pophelp(''forcelocs'');', 'Force electrode location -- forcelocs()', chanlocs );
-        if length(results) == 0, return; end;
+        if length(results) == 0, return; end
         
         options = {};
         for index = 1:NENTRY
@@ -97,11 +108,11 @@ function [chanlocs,options] = forcelocs( chanlocs, varargin)
             if ~isempty(results{tmpi})
                 tmpchans = parsetxt(results{tmpi+2});
                 options = { options{:},{ str2num(results{tmpi}) FIELDS{results{tmpi+1}} tmpchans{:} }};
-            end;
+            end
         end;    
     else 
         options = varargin;
-    end;
+    end
 
     % scan all locations
     % ------------------
@@ -122,9 +133,9 @@ function [chanlocs,options] = forcelocs( chanlocs, varargin)
             
             for chanind = 1:length(chanlocs)
                 [chanlocs(chanind).X chanlocs(chanind).Z]= rotation(chanlocs(chanind).X, chanlocs(chanind).Z, rotangle);
-            end;
+            end
             chanlocs = convertlocs(chanlocs, 'cart2all');
-        end;
+        end
         
         % rotate Y-Z plane 
         % ----------------
@@ -136,11 +147,11 @@ function [chanlocs,options] = forcelocs( chanlocs, varargin)
             
             for chanind = 1:length(chanlocs)
                 [chanlocs(chanind).Y chanlocs(chanind).Z]= rotation(chanlocs(chanind).Y, chanlocs(chanind).Z, rotangle);
-            end;
+            end
             chanlocs = convertlocs(chanlocs, 'cart2all');
-        end;
+        end
     
-    end;
+    end
         
 
 % get channel indices
@@ -150,7 +161,7 @@ function chanlist = getchans(chanliststr, channelnames);
     for index = 1:length(chanliststr)
         i = strmatch (lower(chanliststr{index}), channelnames, 'exact');
         chanlist  = [chanlist i];
-    end;
+    end
 
 % function rotate coordinates
 % ---------------------------

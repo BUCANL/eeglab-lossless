@@ -1,8 +1,33 @@
+% Web-based software updater class with download and installation capabilities.
+
+% Copyright (C) 2012 by Nima Bigdely-Shamlo, Swartz Center for Computational Neuroscience, INC,
+%
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
+%
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
+%
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
+
 classdef updater < handle
-    % Web-based software updater class with download and installation capabilities.
-    % Copyright (C) 2012 by Nima Bigdely-Shamlo, Swartz Center for Computational Neuroscience, INC,
-    % UCSD.
-    % Usage is only allowed under the same (non-commercial) license as Measure Projection toolbox.
     
     properties
         currentVersionNumber
@@ -32,20 +57,20 @@ classdef updater < handle
             
             if nargin < 4
                 releaseNotes = '';
-            end;
+            end
             
             if nargin < 5
                 releaseNotesUrl = '';
-            end;
+            end
             
             if nargin < 6
                 releaseDate = datestr(now); % e.g. '0-Jan-2012 11:54:10'
-            end;
+            end
             
             % make sure version number is a string  as only strings can be set as attributes.
             if isnumeric(versionNumber)
                 versionNumber = num2str(versionNumber);
-            end;
+            end
             
             docNode = com.mathworks.xml.XMLUtils.createDocument('latestVersion');
             docRootNode = docNode.getDocumentElement;
@@ -65,7 +90,7 @@ classdef updater < handle
             else
                 homeDir = getenv('HOME');
             end
-        end;
+        end
     end
     
     methods
@@ -77,11 +102,11 @@ classdef updater < handle
             
             if nargin > 2
                 obj.softwareName = softwareName;
-            end;
+            end
             
             if nargin > 3
                 obj.currentVersionReleaseDate = currentVersionReleaseDate;
-            end;
+            end
         end
         
         function obj = checkForNewVersion(obj, nameValuePairs)
@@ -90,7 +115,7 @@ classdef updater < handle
             
             if nargin < 2
                 nameValuePairs = {};
-            end;
+            end
             
             % add current version number and some other basic setup info to request URL
             if ispc
@@ -101,15 +126,21 @@ classdef updater < handle
                 osType = 'max';
             else
                 osType = 'unknown';
-            end;
+            end
             
             nameValuePairs = [{'currentVersionNumber' num2str(obj.currentVersionNumber) 'matlabVersion' version 'OS' osType} nameValuePairs];
             
             try
-                [xmlString successfullRead] = plugin_urlread([obj.xmlFileUrl], 'get', nameValuePairs);
+                tic;
+                [xmlString, successfullRead] = plugin_urlread([obj.xmlFileUrl], 'get', nameValuePairs);
+                t = toc;
+                if t > 5
+                    disp('Sorry for the wait. EEGLAB was trying to check for updates but the internet is down.');
+                    disp('(you may disable this option using menu item File > Memory and other options)');
+                end
             catch
                 successfullRead = false;
-            end;
+            end
             
             if successfullRead
                 
@@ -126,7 +157,7 @@ classdef updater < handle
                 catch
                     successfullRead = false;
                     return;
-                end;
+                end
                 
                 % delete temporary file afterwards
                 delete(temporaryFileName);
@@ -149,22 +180,22 @@ classdef updater < handle
                         set(obj.menuItemHandle, 'visible', 'on');
                     else
                         set(obj.menuItemHandle, 'visible', 'off');
-                    end;
-                end;
-            end;
-        end;
+                    end
+                end
+            end
+        end
         
         function answer = newerVersionIsAvailable(obj)
             answer = obj.latestVersionNumber > obj.currentVersionNumber;
-        end;
+        end
         
         function timeAGo = howLongAgoChecked(obj) % how ago was the last version check, in seconds
             if isempty(obj.lastTimeChecked)
                 timeAGo = Inf;
             else
                 timeAGo = etime (clock, obj.lastTimeChecked);
-            end;
-        end;
+            end
+        end
         
         function obj = downloadLatestVersion(obj, folderToPlace)
             
@@ -189,18 +220,18 @@ classdef updater < handle
                 fprintf(['Latest-version file successfully download and is located at: ' obj.downloadedFileName '\n']);
             else
                 fprintf('Latest-version file could not be downloaded.\n');
-            end;
-        end;
+            end
+        end
         
         function obj = installDownloadedFile(obj, installFolder, goOneFolderLevelIn)
             
             if nargin < 2
                 error(' You must specy a folder to install the latest version');
-            end;
+            end
             
             if nargin < 3
                 goOneFolderLevelIn = false;
-            end;
+            end
             
             [pathstr, name, ext] = fileparts(obj.downloadedFileName);
             
@@ -215,13 +246,13 @@ classdef updater < handle
             else
                 fprintf('File type in unknown and cannot be unzipped.\n');
                 return;
-            end;
+            end
             
             % remove all files from installation folder
             if exist(installFolder)
                 fprintf('Removing all files from installation folder...\n');
                 rmdir(installFolder,'s');
-            end;
+            end
             
             if goOneFolderLevelIn
                 listing = dir(temporaryFolder);
@@ -230,18 +261,18 @@ classdef updater < handle
                     if ~(strcmp(listing(i).name, '.') || strcmp(listing(i).name, '..'))
                         insideFolderName = listing(i).name;
                         break;
-                    end;
-                end;
+                    end
+                end
                 
                 temporaryFolder = [temporaryFolder filesep insideFolderName];
-            end;
+            end
             
             % copy extracted files and folder into the install (destination) folder
             fprintf('Copying files from the latest version into the installation folder...\n');
             movefile(temporaryFolder, installFolder, 'f');
             
             fprintf('New version (%s) is now installed. You may need to clear functions and objects or exit Matlab in order to use it.\n', num2str(obj.latestVersionNumber));
-        end;
+        end
         
         function numberOfDays = daysCurrentVersionIsOlder(obj)
             % numberOfDays = daysCurrentVersionIsOlder(obj)
@@ -252,8 +283,8 @@ classdef updater < handle
                 numberOfDays = []; % cannot be calculated
             else
                 numberOfDays = round(etime(clock, datevec(datenum(obj.currentVersionReleaseDate))) / (3600*24) );
-            end;
-        end;
+            end
+        end
         
         function downloadButtonCallBack(handle, event, obj)
             % close the figure
@@ -261,7 +292,7 @@ classdef updater < handle
             drawnow;
             
             obj.downloadLatestVersion;
-        end;
+        end
                 
         function installButtonCallBack(handle, event, obj, installDirectory, goOneFolderLevelIn)
             
@@ -275,15 +306,15 @@ classdef updater < handle
             % download the file if it has not been downloaded yet.
             if isempty(obj.downloadedFileName)
                  obj.downloadLatestVersion;
-            end;
+            end
             
             obj.installDownloadedFile(installDirectory, goOneFolderLevelIn);
             
             % evaulate post-install callback (text) after installation.
             if ~isempty(guiData.postInstallCallbackString)
                 evalin('base', guiData.postInstallCallbackString);
-            end;
-        end;
+            end
+        end
         
         function launchGui(obj, installDirectory, goOneFolderLevelIn, backGroundColor, postInstallCallbackString)
             % launchGui(obj, installDirectory, goOneFolderLevelIn, backGroundColor, postInstallCallbackString)
@@ -301,11 +332,11 @@ classdef updater < handle
             
             if nargin < 3
                 goOneFolderLevelIn = false;
-            end;
+            end
             
             if nargin < 5
                 postInstallCallbackString = [];
-            end;
+            end
             
             updaterFolder = fileparts(which('up.updater'));
             obj.guiHandle = open([updaterFolder filesep 'updater_gui.fig']);
@@ -319,7 +350,7 @@ classdef updater < handle
                 warningTextHandle = findobj(obj.guiHandle, 'tag', 'warningText');
                 set(obj.guiHandle, 'color', backGroundColor);                
                 set(warningTextHandle, 'backgroundColor', backGroundColor);
-            end;
+            end
             
             % full the texbox
             textBoxHandle = findobj(obj.guiHandle, 'tag', 'textBox');
@@ -328,14 +359,14 @@ classdef updater < handle
                 textBoxTextCell = {['A newer version is available and ready for download.']};
             else
                 textBoxTextCell = {['A newer version of ' obj.softwareName ' is available and ready for download.']};
-            end;
+            end
             
             currentVersionString = ['You are currently using version (' num2str(obj.currentVersionNumber) ')'];
             if isempty(obj.daysCurrentVersionIsOlder)
                 currentVersionString = [currentVersionString '.'];
             else
                 currentVersionString = [currentVersionString ' which is ' num2str(obj.daysCurrentVersionIsOlder) ' days older.'];
-            end;
+            end
             
             textBoxTextCell  = cat(1, textBoxTextCell, currentVersionString);
             
@@ -344,7 +375,7 @@ classdef updater < handle
                 textBoxTextCell  = cat(1, textBoxTextCell, '------------------------------');
                 textBoxTextCell  = cat(1, textBoxTextCell, 'Release Notes:');
                 textBoxTextCell  = cat(1, textBoxTextCell, obj.releaseNotes);
-            end;
+            end
             
             set(textBoxHandle, 'string', textBoxTextCell);
             
@@ -358,8 +389,8 @@ classdef updater < handle
                 set(installButtonHandle, 'visible', 'off');
             else
                 set(installButtonHandle, 'callback', {@installButtonCallBack, obj, installDirectory, goOneFolderLevelIn});
-            end;
+            end
             
-        end;
+        end
     end
 end

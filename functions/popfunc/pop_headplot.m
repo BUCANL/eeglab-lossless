@@ -47,19 +47,30 @@
 
 % Copyright (C) 20 March 2002 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [EEG, com] = pop_headplot( EEG, typeplot, arg2, topotitle, rowcols, varargin);
 
@@ -71,7 +82,7 @@ end;
 
 if isempty(EEG.chanlocs)
     error('Pop_headplot: this dataset does not contain channel locations. Use menu item: Edit > Dataset info');
-end;
+end
 
 if nargin < 3 % Open GUI input window
     % remove old spline file
@@ -83,9 +94,9 @@ if nargin < 3 % Open GUI input window
             if byteperelec/EEG.nbchan < 625, % old head plot file
                 EEG.splinefile = [];
                 disp('Warning: Wrong montage or old-version spline file version detected and removed; new spline file required');
-            end;
-        end;
-    end;
+            end
+        end
+    end
     
     % show the file be recomputed
     % ---------------------------
@@ -93,26 +104,26 @@ if nargin < 3 % Open GUI input window
     if typeplot == 1 % ********** data plot
         fieldname    = 'splinefile';        
         if isempty(EEG.splinefile) && exist(EEG.splinefile, 'file')          
-            if length(EEG.icachansind) == EEG.nbchan & ~isempty(EEG.icasplinefile)
+            if length(EEG.icachansind) == EEG.nbchan && ~isempty(EEG.icasplinefile)
                 EEG.splinefile = EEG.icasplinefile;
             else
                 compute_file = 1;
-            end;
+            end
         else
             compute_file = 1;
-        end;
+        end
     else % ************* Component plot       
         fieldname    = 'icasplinefile';
         if isempty(EEG.icasplinefile) && exist(EEG.icasplinefile, 'file')
-            if length(EEG.icachansind) == EEG.nbchan & ~isempty(EEG.splinefile)
+            if length(EEG.icachansind) == EEG.nbchan && ~isempty(EEG.splinefile)
                 EEG.icasplinefile = EEG.splinefile;
             else
                 compute_file = 1;
-            end;
+            end
         else
             compute_file = 1;
-        end;
-    end;
+        end
+    end
             
     if compute_file
         
@@ -123,7 +134,7 @@ if nargin < 3 % Open GUI input window
                          'parameters should allow creating the correct spline file.'), 'Headplot() warning');
     else
     	pop_options      = {};
-    end;
+    end
     
  	% graphic interface
 	% -----------------
@@ -142,7 +153,7 @@ if nargin < 3 % Open GUI input window
     transform = [];
     if isfield(EEG.chaninfo, 'filename')
         [tmp transform] = lookupchantemplate(lower(EEG.chaninfo.filename), template);
-    end;
+    end
             
 	if typeplot
 		txt = sprintf('Making headplots for these latencies (from %d to %d ms):', round(EEG.xmin*1000), round(EEG.xmax*1000));
@@ -156,7 +167,7 @@ if nargin < 3 % Open GUI input window
     else
         enableload = 'on';
         enablecomp = 'off';
-    end;
+    end
     cb_load = [ 'set(findobj(gcbf, ''tag'', ''load''), ''enable'', ''on'');' ...
                 'set(findobj(gcbf, ''tag'', ''comp''), ''enable'', ''off'');' ...
                 'set(findobj(gcbf, ''tag'', ''compcb''), ''value'', 0);' ];
@@ -205,18 +216,26 @@ if nargin < 3 % Open GUI input window
     defaultmat = { 'mheadnew.mat' 'colin27headmesh.mat' };
     defaultloc = { 'mheadnew.xyz' 'colin27headmesh.xyz' };
     defaulttransform = { transform [0 -15 -15 0.05 0 -1.57 100 88 110] };
-    if iseeglabdeployed
-        defaultmat = fullfile(eeglabexefolder, defaultmat);
-        defaultloc = fullfile(eeglabexefolder, defaultloc);
-    end;
     userdatatmp = { EEG.chanlocs EEG.chaninfo };
+    if isdeployed
+        basefolder = [ getenv('HOME')  getenv('USERPROFILE') ];
+    elseif ~isempty(EEG.filepath)
+        basefolder = EEG.filepath;
+    else
+        basefolder = pwd;        
+    end
+    if isempty(EEG.filename)
+        splfile     = fullfile(basefolder, 'tmp.spl');
+    else
+        splfile     = [fullfile(basefolder, EEG.filename(1:length(EEG.filename)-3)),'spl'];
+    end
 	txt = { { 'style' 'text'        'string' 'Co-register channel locations with head mesh and compute a mesh spline file (each scalp montage needs a headplot() spline file)' 'fontweight' 'bold' } ...
             { 'style' 'checkbox'    'string' 'Use the following spline file or structure' 'userdata' 'loadfile' 'tag' 'loadcb' 'callback' cb_load 'value' ~compute_file } ...
             { 'style' 'edit'        'string' fastif(typeplot, EEG.splinefile, EEG.icasplinefile)  'userdata' 'load' 'tag' 'load' 'enable' enableload } ...
             { 'style' 'pushbutton'  'string' 'Browse'        'callback' cb_browseload                               'tag' 'load' 'enable' enableload } ... 
             { 'style' 'pushbutton'  'string' 'Help'          'callback' cb_helpload } ...
             { 'style' 'checkbox'    'string' 'Or (re)compute a new spline file named:' 'tag' 'compcb' 'callback' cb_comp 'value' compute_file } ...
-            { 'style' 'edit'        'string' [fullfile(pwd, EEG.filename(1:length(EEG.filename)-3)),'spl'] 'userdata' 'coregfile'  'tag' 'comp' 'enable' enablecomp } ...
+            { 'style' 'edit'        'string' splfile 'userdata' 'coregfile'  'tag' 'comp' 'enable' enablecomp } ...
             { 'style' 'pushbutton'  'string' 'Browse'        'callback' cb_browsecomp                               'tag' 'comp' 'enable' enablecomp } ... 
             { 'style' 'pushbutton'  'string' 'Help'          'callback' cb_helpcoreg } ...
             { 'style' 'text'        'string' '            3-D head mesh file'                                       'tag' 'comp' 'enable' enablecomp } ...
@@ -250,13 +269,13 @@ if nargin < 3 % Open GUI input window
     optiongui = { 'uilist', txt, 'title', fastif( typeplot, 'ERP head plot(s) -- pop_headplot()', ...
                        'Component head plot(s) -- pop_headplot()'), 'geometry', geom 'userdata' defaulttransform };
 	[result, userdat2, strhalt, outstruct] = inputgui( 'mode', 'noclose', optiongui{:});
-    if isempty(result), return; end;
-    if ~isempty(get(0, 'currentfigure')) currentfig = gcf; else return; end;
+    if isempty(result), return; end
+    if ~isempty(get(0, 'currentfigure')) currentfig = gcf; else return; end
     
     while test_wrong_parameters(currentfig)
     	[result, userdat2, strhalt, outstruct] = inputgui( 'mode', currentfig, optiongui{:});
-        if isempty(result), return; end;
-    end;
+        if isempty(result), return; end
+    end
     close(currentfig);
     
     % decode setup parameters
@@ -264,34 +283,34 @@ if nargin < 3 % Open GUI input window
     options = {};
     if result{1},               options = { options{:} 'load'    result{2} };
     else
-        if ~isstr(result{5})    result{5} = defaultmat{result{5}}; end;
+        if ~ischar(result{5})    result{5} = defaultmat{result{5}}; end
         if isempty(result{7})   setupopt = { result{4} 'meshfile' result{5} };  % no coreg
         else                    setupopt = { result{4} 'meshfile' result{5} 'transform' str2num(result{7}) };
                                 fprintf('Transformation matrix: %s\n', result{7});
-        end;
+        end
         options = { options{:} 'setup' setupopt };
         if ~strcmpi(result{5}, 'mheadnew.mat'), EEG.headplotmeshfile = result{5}; 
-        else EEG.headplotmeshfile = ''; end;
-    end;
+        else EEG.headplotmeshfile = ''; end
+    end
     
     % decode other parameters
     % -----------------------
     arg2 = eval( [ '[' result{8} ']' ] );
 	if length(arg2) > EEG.nbchan
 		tmpbut = questdlg2(['This will draw ' int2str(length(arg2)) ' plots. Continue ?'], '', 'Cancel', 'Yes', 'Yes');
-		if strcmp(tmpbut, 'Cancel'), return; end;
-	end;
+		if strcmp(tmpbut, 'Cancel'), return; end
+	end
     if length(arg2) == 0, error('please choose a latency(s) to plot'); end
 	topotitle  = result{9};
 	rowcols    = eval( [ '[ ' result{10} ' ]' ] );
     tmpopts    = eval( [ '{ ' result{11} ' }' ] );
     if ~isempty(tmpopts)
         options    = { options{:} tmpopts{:} };
-    end;
-	if size(arg2(:),1) == 1, figure; end;
+    end
+	if size(arg2(:),1) == 1, figure; end
 else % Pass along parameters and bypass GUI input
     options = varargin;
-end;
+end
 
 % Check if pop_headplot input 'colorbar' was called, and don't send it to headplot
 loc = strmatch('colorbar', options(1:2:end), 'exact');
@@ -312,9 +331,9 @@ if ~isempty(loc)
         EEG.splinefile    = options{ loc+1 };
     else            
         EEG.icasplinefile = options{ loc+1 };
-    end;
+    end
     options(loc:loc+1) = [];
-end;
+end
 loc = strmatch('setup', options(1:2:end)); loc = loc*2-1;
 if ~isempty(loc)
     if typeplot
@@ -323,38 +342,38 @@ if ~isempty(loc)
     else
         headplot('setup', EEG.chanlocs, options{loc+1}{1}, 'chaninfo', EEG.chaninfo, 'ica', 'on', options{ loc+1 }{2:end});
         EEG.icasplinefile = options{loc+1}{1};
-    end;
+    end
     options(loc:loc+1) = [];
     compute_file = 1;
 else
     compute_file = 0;
-end;
+end
 
 % search for existing file if necessary
 % -------------------------------------
 if typeplot == 1 % ********** data plot
     fieldname    = 'splinefile';        
     if isempty(EEG.splinefile)            
-        if length(EEG.icachansind) == EEG.nbchan & ~isempty(EEG.icasplinefile)
+        if length(EEG.icachansind) == EEG.nbchan && ~isempty(EEG.icasplinefile)
             EEG.splinefile = EEG.icasplinefile;
-        end;
-    end;
+        end
+    end
 else % ************* Component plot       
     fieldname    = 'icasplinefile';
     if isempty(EEG.icasplinefile)
-        if length(EEG.icachansind) == EEG.nbchan & ~isempty(EEG.splinefile)
+        if length(EEG.icachansind) == EEG.nbchan && ~isempty(EEG.splinefile)
             EEG.icasplinefile = EEG.splinefile;
-        end;
-    end;
-end;
+        end
+    end
+end
 
 % headplot mesh file
 % ------------------
 if isfield(EEG, 'headplotmeshfile')
     if ~isempty(EEG.headplotmeshfile)
         options = { options{:} 'meshfile' EEG.headplotmeshfile };
-    end;
-end;
+    end
+end
 
 % check parameters
 % ----------------
@@ -364,15 +383,15 @@ end;
 if typeplot
     if isempty(EEG.splinefile)
         error('Pop_headplot: cannot find spline file, aborting...');
-    end;
+    end
 else
     if isempty(EEG.icasplinefile)
         error('Pop_headplot: cannot find spline file, aborting...');
-    end;
+    end
 end;    
 SIZEBOX = 150;
 nbgraph = size(arg2(:),1);
-if ~exist('rowcols') | isempty(rowcols) | rowcols == 0
+if ~exist('rowcols') || isempty(rowcols) || rowcols(1) == 0
     rowcols(2) = ceil(sqrt(nbgraph));
     rowcols(1) = ceil(nbgraph/rowcols(2));
 end;    
@@ -396,7 +415,7 @@ if typeplot
     maplimits = [ -maplimits maplimits ];
 else
     maplimits = [-1 1];
-end;
+end
 	
 % plot the graphs
 % ---------------
@@ -406,23 +425,23 @@ disp('                  might slightly differ from the one they had during coreg
 for index = 1:size(arg2(:),1)
 	if nbgraph > 1
         if mod(index, rowcols(1)*rowcols(2)) == 1
-            if index> 1, a = textsc(0.5, 0.05, topotitle); set(a, 'fontweight', 'bold'); end;
+            if index> 1, a = textsc(0.5, 0.05, topotitle); set(a, 'fontweight', 'bold'); end
         	figure;
         	pos = get(gcf,'Position');
 			posx = max(0, pos(1)+(pos(3)-SIZEBOX*rowcols(2))/2);
 			posy = pos(2)+pos(4)-SIZEBOX*rowcols(1);
 			set(gcf,'Position', [posx posy  SIZEBOX*rowcols(2)  SIZEBOX*rowcols(1)]);
-			try, icadefs; set(gcf, 'color', BACKCOLOR); catch, end;
+			try, icadefs; set(gcf, 'color', BACKCOLOR); catch, end
         end;    
 		subplot( rowcols(1), rowcols(2), mod(index-1, rowcols(1)*rowcols(2))+1);
-	end;
+	end
 
 	if ~isnan(arg2(index))
 		if typeplot
             headplot( SIGTMPAVG(:,index), EEG.splinefile, 'maplimits', maplimits, options{:});
 			if nbgraph == 1, title( topotitle );
 			else title([int2str(arg2(index)) ' ms']);
-			end;
+			end
 		else
             if arg2(index) < 0
                 headplot( -EEG.icawinv(:, -arg2(index)), EEG.icasplinefile, options{:});
@@ -431,11 +450,11 @@ for index = 1:size(arg2(:),1)
             end;    			
 			if nbgraph == 1, title( topotitle );
 			else title(['' int2str(arg2(index))]);
-			end;
-		end;
+			end
+		end
 		drawnow;
 		axis equal; 
-		rotate3d off;
+		try, rotate3d off; catch, end
     else
         axis off
     end
@@ -456,7 +475,7 @@ if colorbar_switch
     end
 end
         
-try, icadefs; set(gcf, 'color', BACKCOLOR); catch, end;
+try, icadefs; set(gcf, 'color', BACKCOLOR); catch, end
 
 
 if nbgraph> 1, 
@@ -464,14 +483,14 @@ if nbgraph> 1,
     set(a, 'fontweight', 'bold');
     axcopy(gcf, [ 'set(gcf, ''''units'''', ''''pixels''''); postmp = get(gcf, ''''position'''');' ...
                   'set(gcf, ''''position'''', [postmp(1) postmp(2) 560 420]); rotate3d(gcf); clear postmp;' ]);
-end;
+end
 
 % generate output command
 % -----------------------
-com = sprintf('pop_headplot(%s, %d, %s, ''%s'', [%s], %s);', inputname(1), typeplot, vararg2str(arg2), ...
+com = sprintf('pop_headplot(EEG, %d, %s, ''%s'', [%s], %s);', typeplot, vararg2str(arg2), ...
               topotitle, int2str(rowcols), vararg2str( pop_options ) );
-if compute_file, com = [ 'EEG = ' com ]; end;
-if nbgraph== 1,  com = [ 'figure; ' com ]; rotate3d(gcf); end;
+if compute_file, com = [ 'EEG = ' com ]; end
+if nbgraph== 1,  com = [ 'figure; ' com ]; try, rotate3d(gcf); catch, end; end
 
 return;
 
@@ -493,13 +512,13 @@ function bool = test_wrong_parameters(hdl)
                                 'To bypass co-registration (not recommended), enter', ...
                                 '"0 0 0 0 0 0 1 1 1" as the "Tailairach transformation matrix.');
             bool = 1;
-        end;
+        end
         if isempty(coreg3)
             textlines = strvcat(textlines, ' ', 'You need to enter an output file name.');
             bool = 1;
-        end;
+        end
         
         if bool
             warndlg2( textlines, 'Error');
-        end;
-    end;
+        end
+    end

@@ -28,19 +28,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 01-25-02 reformated help & license -ad 
 
@@ -54,23 +65,23 @@ if nargin < 1
     % -------------
 	[inputname, inputpath] = uigetfile2('*.SET*;*.set', 'Load dataset(s) -- pop_loadset()', 'multiselect', 'on');
     drawnow;
-	if isequal(inputname, 0) return; end;
+	if isequal(inputname, 0) return; end
     options = { 'filename' inputname 'filepath' inputpath };
 else
     % account for old calling format
     % ------------------------------
-    if ~strcmpi(inputname, 'filename') && ~strcmpi(inputname, 'filepath') && ~strcmpi(inputname, 'eeg')
+    if ~strcmpi(inputname, 'filename') && ~strcmpi(inputname, 'filepath') && ~strcmpi(inputname, 'eeg') && ~strcmpi(inputname, 'loadmode') && ~strcmpi(inputname, 'check')
         options = { 'filename' inputname }; 
         if nargin > 1
             options = { options{:} 'filepath' inputpath }; 
-        end;
+        end
         if nargin > 2
             options = { options{:} 'loadmode' varargin{1} }; 
-        end;
+        end
     else
         options = { inputname inputpath varargin{:} };
-    end;
-end;
+    end
+end
 
 % decode input parameters
 % -----------------------
@@ -80,8 +91,8 @@ g = finputcheck( options, ...
                    'check'      'string'               { 'on';'off' }   'on';
                    'loadmode'   { 'string';'integer' } { { 'info' 'all' } [] }  'all';
                    'eeg'        'struct'               []   struct('data',{}) }, 'pop_loadset');
-if isstr(g), error(g); end;
-if isstr(g.filename), g.filename = { g.filename }; end;
+if ischar(g), error(g); end
+if ischar(g.filename), g.filename = { g.filename }; end
 
 % reloading EEG structure from disk
 % ---------------------------------
@@ -98,7 +109,7 @@ else
               g.loadmode = 'last';
 %             warndlg2(strvcat('You may only load a single dataset','when selecting the "Store at most one', 'dataset in memory" option'));
 %             break;
-         end;
+         end
         
         % read file
         % ---------
@@ -108,13 +119,13 @@ else
         TMPVAR = load('-mat', filename);
         %catch,
         %    error([ filename ': file is protected or does not exist' ]);
-        %end;
+        %end
 
         % variable not found
         % ------------------
         if isempty(TMPVAR)
             error('No dataset info is associated with this file');
-        end;
+        end
 
         if isfield(TMPVAR, 'EEG')
 
@@ -126,34 +137,34 @@ else
 
             % account for name changes etc...
             % -------------------------------
-            if isstr(EEG.data) && ~strcmpi(EEG.data, 'EEGDATA')
+            if ischar(EEG.data) && ~strcmpi(EEG.data, 'EEGDATA')
 
                 [tmp EEG.data ext] = fileparts( EEG.data ); EEG.data = [ EEG.data ext];
                 if ~isempty(tmp) && ~strcmpi(tmp, EEG.filepath)
                     disp('Warning: updating folder name for .dat|.fdt file');
-                end;
+                end
                 if ~strcmp(EEG.filename(1:end-3), EEG.data(1:end-3))
-                    disp('Warning: the name of the dataset has changed on disk, updating .dat & .fdt data file to the new name');
+                    disp('Warning: the name of the dataset has changed on disk, updating EEG structure accordingly');
                     EEG.data = [ EEG.filename(1:end-3) EEG.data(end-2:end) ];
                     EEG.saved = 'no';
-                end;
+                end
 
-            end;
+            end
 
             % copy data to output variable if necessary (deprecated)
             % -----------------------------------------
             if ~strcmpi(g.loadmode, 'info') && isfield(TMPVAR, 'EEGDATA')
                 if ~option_storedisk || ifile == length(g.filename)
                     EEG.data = TMPVAR.EEGDATA;
-                end;
-            end;
+                end
+            end
 
         elseif isfield(TMPVAR, 'ALLEEG') % old format
 
             eeglab_options;
             if option_storedisk
                 error('Cannot load multiple dataset file. Change memory option to allow multiple datasets in memory, then try again. Remember that this file type is OBSOLETE.');
-            end;
+            end
 
             % this part is deprecated as of EEGLAB 5.00
             % since all dataset data have to be saved in separate files
@@ -163,40 +174,40 @@ else
             for index=1:length(EEG)
                 EEG(index).filename = '';
                 EEG(index).filepath = '';        
-                if isstr(EEG(index).data), 
+                if ischar(EEG(index).data), 
                     EEG(index).filepath = g.filepath; 
                     if length(g.filename{ifile}) > 4 && ~strcmp(g.filename{ifile}(1:end-4), EEG(index).data(1:end-4)) && strcmpi(g.filename{ifile}(end-3:end), 'sets')
                         disp('Warning: the name of the dataset has changed on disk, updating .dat data file to the new name');
                         EEG(index).data = [ g.filename{ifile}(1:end-4) 'fdt' int2str(index) ];
-                    end;
-                end;
-            end;
+                    end
+                end
+            end
         else
             EEG = checkoldformat(TMPVAR);
             if ~isfield( EEG, 'data')
                 error('pop_loadset(): not an EEG dataset file');
-            end;
-            if isstr(EEG.data), EEG.filepath = g.filepath; end;
-        end;
+            end
+            if ischar(EEG.data), EEG.filepath = g.filepath; end
+        end
         
         %ALLEEGLOC = pop_newset(ALLEEGLOC, EEG, 1);
         ALLEEGLOC = eeg_store(ALLEEGLOC, EEG, 0, 'verbose', 'off');
                 
-    end;
+    end
     EEG = ALLEEGLOC;
-end;
+end
 
 % load all data or specific data channel
 % --------------------------------------
 if strcmpi(g.check, 'on')
     EEG = eeg_checkset(EEG);
-end;
-if isstr(g.loadmode)
+end
+if ischar(g.loadmode)
     if strcmpi(g.loadmode, 'all')
         EEG = eeg_checkset(EEG, 'loaddata');
     elseif strcmpi(g.loadmode, 'last')
         EEG(end) = eeg_checkset(EEG(end), 'loaddata');
-    end;
+    end
 else
     % load/select specific channel
     % ----------------------------
@@ -205,13 +216,13 @@ else
     EEG.nbchan = length(g.loadmode);
     if ~isempty(EEG.chanlocs)
         EEG.chanlocs = EEG.chanlocs(g.loadmode);
-    end;
+    end
     EEG.icachansind = [];
     EEG.icaact = [];
     EEG.icaweights = [];
     EEG.icasphere = [];
     EEG.icawinv = [];
-    %if isstr(EEG.data)
+    %if ischar(EEG.data)
     %    EEG.datfile = EEG.data;
     %    fid = fopen(fullfile(EEG.filepath, EEG.data), 'r', 'ieee-le');
     %    fseek(fid, EEG.pnts*EEG.trials*( g.loadmode - 1), 0 );
@@ -219,8 +230,8 @@ else
     %    fclose(fid);
     %else
     %    EEG.data        = EEG.data(g.loadmode,:,:);
-    %end;
-end;
+    %end
+end
 
 % set file name and path
 % ----------------------
@@ -229,19 +240,19 @@ if length(EEG) == 1
     if isempty(g.filepath)
         [g.filepath tmpfilename ext] = fileparts(tmpfilename);
         tmpfilename = [ tmpfilename ext ];
-    end;
+    end
     EEG.filename = tmpfilename;
     EEG.filepath = g.filepath;
-end;
+end
 
 % set field indicating that the data has not been modified
 % --------------------------------------------------------
 if isfield(EEG, 'changes_not_saved')
     EEG = rmfield(EEG, 'changes_not_saved');
-end;
+end
 for index=1:length(EEG)
     EEG(index).saved = 'justloaded';
-end;
+end
 
 command = sprintf('EEG = pop_loadset(%s);', vararg2str(options));
 return;
@@ -334,22 +345,22 @@ function EEG = checkoldformat(EEG)
 		EEG.stats.eegkurtg   = eegset{off_eegkurtg     };
 		%catch
 		%	disp('Warning: some variables may not have been assigned');
-		%end;
+		%end
 		
 		% modify the eegtype to match the new one
 		
 		try
 			if EEG.trials > 1
 				EEG.events  = [ EEG.rt(:) EEG.eegtype(:) EEG.eegresp(:) ];
-			end;
-		catch, end;
-	end;
+			end
+		catch, end
+	end
 	% check modified fields
 	% ---------------------
 	if isfield(EEG,'icadata'), EEG.icaact = EEG.icadata; end;  
 	if isfield(EEG,'poschan'), EEG.chanlocs = EEG.poschan; end;  
-	if ~isfield(EEG, 'icaact'), EEG.icaact = []; end;
-	if ~isfield(EEG, 'chanlocs'), EEG.chanlocs = []; end;
+	if ~isfield(EEG, 'icaact'), EEG.icaact = []; end
+	if ~isfield(EEG, 'chanlocs'), EEG.chanlocs = []; end
 	
 	if isfield(EEG, 'events') && ~isfield(EEG, 'event')
 		try
@@ -358,16 +369,16 @@ function EEG = checkoldformat(EEG)
 				
 				EEG = eeg_checkset(EEG);
 				EEG = pop_importepoch(EEG, EEG.events, { 'rt'}, {'rt'}, 1E-3);
-			end;
+			end
 			if isfield(EEG, 'trialsval')
 				EEG = pop_importepoch(EEG, EEG.trialsval(:,2:3), { 'eegtype' 'response' }, {},1,0,0);
-			end;
+			end
 			EEG = eeg_checkset(EEG, 'eventconsistency');
 		catch, disp('Warning: could not import events'); end;			
-	end;
+	end
 	rmfields = {'icadata' 'events' 'accept' 'eegtype' 'eegresp' 'trialsval' 'poschan' 'icadata' 'namechan' };
 	for index = 1:length(rmfields)
 		if isfield(EEG, rmfields{index}), 
 			disp(['Warning: field ' rmfields{index} ' is deprecated']);
-		end;
-	end;
+		end
+	end

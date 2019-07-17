@@ -75,19 +75,30 @@
 
 % Copyright (C) 1999 Scott Makeig, SCCN/INC/UCSD, scott@sccn.ucsd.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 12/16/99 Corrected denomiator on the suggestion of Ian Nimmo-Smith, Cambridge UK
 % 01-25-02 reformated help & license -ad 
@@ -100,7 +111,7 @@ if nargin<1
 end
 if nargin < 2
     ref = [];
-end;
+end
 
 % check inputs
 % ------------
@@ -108,30 +119,32 @@ g = finputcheck(varargin, { 'icaweight'   'real'    []          [];
                             'icaweights'  'real'    []          [];
                             'icasphere'   'real'    []          [];
                             'icachansind' 'integer'    []       [];
+                            'interpchan'  {''}      []          [];
                             'method'     'string'  { 'standard','withref' }  'standard';
                             'refstate'   { 'string','integer' } { { 'common','averef' } [1 size(data,1)] }     'common'; % ot used but kept for backward compatib.
                             'exclude'    'integer' [1 size(data,1)]          [];
                             'refloc'     { 'cell','struct' }  { [] [] }   {};
                             'keepref'    'string'  {'on','off' }             'off';
                             'elocs'      {'integer','struct'}  []            [] });
-if isstr(g), error(g); end;
+if ischar(g), error(g); end
 if ~isempty(g.icaweight)
     g.icaweights = g.icaweight;
-end;
+end
 if ~isempty(g.icaweights)
     if isempty(g.icachansind), 
         g.icachansind = [1:size(g.icaweights,2)]; 
         disp('Warning: reref() output has changed slightly since EEGLAB 5.02');
         disp('         the 4th output argument is the indices of channels used for ICA instead');
         disp('         of the mean reference value (which is now output argument 5)');
-    end;
-end;
-
+    end
+end
+if ischar(ref), ref = { ref }; end
+if iscell(ref), ref = eeg_chaninds(g.elocs, ref); end
 if ~isempty(ref)
     if ref > size(data,1)
         error('reference channel index out of range');
-    end;
-end;
+    end
+end
 
 [dim1 dim2 dim3] = size(data);
 data = reshape(data, dim1, dim2*dim3);
@@ -153,12 +166,12 @@ if ~isempty(g.refloc) == 1
                 fieldloc = fieldnames(g.elocs);
                 for ind = 1:length(fieldloc)
                     g.elocs(end) = setfield(g.elocs(end), fieldloc{ind}, getfield(g.refloc(iLocs), fieldloc{ind}));
-                end;
-            end;
-        end;
-    end;
+                end
+            end
+        end
+    end
     [dim1 dim2 dim3] = size(data);
-end;
+end
 
 % exclude some channels
 % ---------------------
@@ -169,7 +182,7 @@ nchansin  = length(chansin);
 % ----------------
 if nargout > 4
     meandata = sum(data(chansin,2))/nchansin;
-end;
+end
 
 % generate rereferencing matrix
 % -----------------------------
@@ -185,16 +198,16 @@ else
         tmpref = ref;
         for index = length(g.exclude):-1:1
             tmpref(find(g.exclude(index) < tmpref)) = tmpref(find(g.exclude(index) < tmpref))-1;
-        end;
+        end
         for index = 1:length(tmpref)
             refmatrix(:,tmpref(index)) = refmatrix(:,tmpref(index))-1/length(tmpref);
-        end;
+        end
     else % compute average reference
         refmatrix = eye(nchansin)-ones(nchansin)*1/nchansin;
-    end;
+    end
     chansout = chansin;
     data(chansout,:) = refmatrix*data(chansin,:);
-end;
+end
 
 % change reference in elocs structure
 % -----------------------------------
@@ -202,19 +215,19 @@ if ~isempty(g.elocs)
     if isempty(ref)
         for ind = chansin
             g.elocs(ind).ref = 'average';
-        end;
+        end
     else
         reftxt = { g.elocs(ref).labels };
         if length(reftxt) == 1, reftxt = reftxt{1}; 
         else
             reftxt = cellfun(@(x)([x ' ']), reftxt, 'uniformoutput', false);
             reftxt = [ reftxt{:} ];
-        end;
+        end
         for ind = chansin
             g.elocs(ind).ref = reftxt;
-        end;
-    end;
-end;
+        end
+    end
+end
 
 % remove reference
 % ----------------
@@ -224,8 +237,8 @@ if strcmpi(g.keepref, 'off')
     if ~isempty(g.elocs)
         morechans = g.elocs(ref);
         g.elocs(ref) = [];
-    end;
-end;
+    end
+end
 
 data = reshape(data, size(data,1), dim2, dim3);
 
@@ -234,5 +247,5 @@ data = reshape(data, size(data,1), dim2, dim3);
 W = []; S = []; icachansind = [];
 if ~isempty(g.icaweights) 
     disp('Warning: This function does not process ICA array anymore, use the pop_reref function instead');
-end;
+end
 Elocs = g.elocs;

@@ -21,19 +21,30 @@
 
 % Copyright (C) 1996 Scott Makeig, SCCN/INC/UCSD, scott@sccn.ucsd.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 11-30-96 Scott Makeig  CNL / Salk Institute, La Jolla as plotprojchan.m
 % 03-19-97 changed var() to diag(cov()) -sm
@@ -73,12 +84,12 @@ end
 [chans,framestot] = size(projdata);
 frames = fix(framestot/(ncomps+1));
 
-if ncomps < 1 | frames*(ncomps+1) ~= framestot,
+if ncomps < 1 || frames*(ncomps+1) ~= framestot,
     fprintf(...
   'chanproj(): data length (%d) not a multiple of ncomps (%d).\n',...
                                    framestot,ncomps);
     return
-end;
+end
  
 if chan> chans,
     fprintf(...
@@ -88,7 +99,7 @@ if chan> chans,
 else
     chandata = projdata(chan,:);
     epochs = fix(length(chandata)/frames);
-end;
+end
 if epochs > MAXPLOTDATACHANS
   fprintf(...
  'chanproj(): maximum number of traces to plot is %d\n',...
@@ -110,23 +121,23 @@ else
       fprintf( ...
 'chanproj():^G limits should be 0 or an array [xmin xmax ymin ymax].\n');
       return
-  end;
+  end
   xmin = limits(1);
   xmax = limits(2);
   ymin = limits(3);
   ymax = limits(4);
-end;
+end
 
-if xmin == 0 & xmax == 0,
+if xmin == 0 && xmax == 0,
   x = [0:frames-1];
   xmin = 0;
   xmax = frames-1;
 else
   dx = (xmax-xmin)/(frames-1);
   x=xmin*ones(1,frames)+dx*(0:frames-1);          % construct x-values
-end;
+end
 
-if ymax == 0 & ymin == 0,
+if ymax == 0 && ymin == 0,
   ymax=max(max(projdata(chan,:)));
   ymin=min(min(projdata(chan,:)));
 end
@@ -149,7 +160,7 @@ if size(framelist,2)==1,
      end
 end
   
-if framelist(1)<1 | framelist(length(framelist))>frames,
+if framelist(1)<1 || framelist(length(framelist))>frames,
     fprintf('chanproj(): framelist values must be between 1-%d.\n',frames);
     return
 else
@@ -167,7 +178,7 @@ if colorfile ~=0,
     if cid <3,
         fprintf('chanproj(): cannot open file %s.\n',colorfile);
         return
-    end;
+    end
     colors = fscanf(cid,'%s',[3 MAXPLOTDATACHANS]);
     colors = colors';
     [r c] = size(colors);
@@ -175,12 +186,12 @@ if colorfile ~=0,
         for j=1:c
             if colors(i,j)=='.',
                 colors(i,j)=' ';
-            end;
-        end;
-    end;
+            end
+        end
+    end
 else    % default color order - no yellow
     colors =['w  ';'r  ';'b  ';'g  ';'c  ';'m  ';'r  ';'b  ';'g  ';'c  ';'m  ';'r  ';'b  ';'g  ';'c  ';'m  ';'r  ';'b  ';'g  ';'c  ';'m  ';'r  ';'b  ';'g  ';'c  ';'m  ';'r  ';'b  ';'g  ';'c  ';'m  ';'r  '];
-end;
+end
 %
 % Make vector of x-values
 %
@@ -215,7 +226,7 @@ for e=1:epochs,
       plot(x,chandata(e,:),colors(e),'LineWidth',1);  % plot it!
     end
     hold on;
-end;
+end
 fprintf('\n');
 %
 %%%%%%%%%%%%%%%%%%%% Fix axis limits %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

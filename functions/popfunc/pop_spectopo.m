@@ -83,19 +83,30 @@
 
 % Copyright (C) 10 March 2002 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 03-15-02 debugging -ad
 % 03-16-02 add all topoplot options -ad
@@ -111,10 +122,10 @@ end;
 
 if nargin < 2
 	dataflag = 1;
-end;
+end
 if nargin < 3
 	processflag = 'EEG';
-end;
+end
 
 chanlocs_present = 0;
 if ~isempty(EEG.chanlocs)
@@ -122,9 +133,9 @@ if ~isempty(EEG.chanlocs)
         tmpchanlocs = EEG.chanlocs;
         if any(~cellfun(@isempty, { tmpchanlocs.theta }))
             chanlocs_present = 1;
-        end;
-    end;
-end;
+        end
+    end
+end
 
 if nargin < 3
 	if dataflag
@@ -145,30 +156,30 @@ if nargin < 3
 		if EEG.trials == 1
 			geometry(3) = [];
 			promptstr(7:8) = [];
-		end;
+		end
 		result       = inputgui( geometry, promptstr, 'pophelp(''pop_spectopo'')', 'Channel spectra and maps -- pop_spectopo()');
-		if size(result,1) == 0 return; end;
+		if size(result,1) == 0 return; end
 		timerange    = eval( [ '[' result{1} ']' ] );
 		options = [];
         if isempty(EEG.chanlocs)
             disp('Topographic plot options ignored. First import a channel location file');  
             disp('To plot a single channel, use channel property menu or the following call');
             disp('  >> figure; chan = 1; spectopo(EEG.data(chan,:,:), EEG.pnts, EEG.srate);');
-        end;
-		if eval(result{2}) ~= 100, options = [ options ', ''percent'', '  result{2} ]; end;
-		if ~isempty(result{3}) & ~isempty(EEG.chanlocs), options = [ options ', ''freq'', ['  result{3} ']' ]; end;
+        end
+		if eval(result{2}) ~= 100, options = [ options ', ''percent'', '  result{2} ]; end
+		if ~isempty(result{3}) && ~isempty(EEG.chanlocs), options = [ options ', ''freq'', ['  result{3} ']' ]; end
 		if EEG.trials ~= 1
 			processflag = result{4};
-			if ~isempty(result{5}),    options = [ options ', ''freqrange'',[' result{5} ']' ]; end;
-			if ~isempty(result{6}),    options = [ options ',' result{6} ]; end;
+			if ~isempty(result{5}),    options = [ options ', ''freqrange'',[' result{5} ']' ]; end
+			if ~isempty(result{6}),    options = [ options ',' result{6} ]; end
 		else 
-			if ~isempty(result{4}),    options = [ options ', ''freqrange'',[' result{4} ']' ]; end;
-			if ~isempty(result{5}),    options = [ options ',' result{5} ]; end;
-		end;
+			if ~isempty(result{4}),    options = [ options ', ''freqrange'',[' result{4} ']' ]; end
+			if ~isempty(result{5}),    options = [ options ',' result{5} ]; end
+		end
 	else
 		if ~chanlocs_present
 			error('pop_spectopo(): cannot plot component contributions without channel locations');
-		end;
+		end
 		geometry = { [2 1] [2 1] [2 1] [2 1] [2 1] [2 1] [2 1] [2 0.18 0.78] [2 1] [2 1] };
 		promptstr    = { { 'style' 'text' 'string' 'Epoch time range to analyze [min_ms max_ms]:' }, ...
 						 { 'style' 'edit' 'string' [num2str( EEG.xmin*1000) ' ' num2str(EEG.xmax*1000)] }, ...
@@ -198,14 +209,14 @@ if nargin < 3
 						 { 'style' 'text' 'string' 'Spectral and scalp map options (see topoplot):' } ...
 						 { 'style' 'edit' 'string' '''electrodes'',''off''' } };
 		result       = inputgui( geometry, promptstr, 'pophelp(''spectopo'')', 'Component spectra and maps -- pop_spectopo()');
-		if size(result,1) == 0 return; end;
+		if size(result,1) == 0 return; end
 		timerange    = eval( [ '[' result{1} ']' ] );
 		options = '';
-		if ~isempty(result{2})   , options = [ options ', ''freq'', ['  result{2} ']' ]; end;
-		if ~isempty(result{3})   , options = [ options ', ''plotchan'', ' result{3} ]; end;
-		if eval(result{4}) ~= 100, options = [ options ', ''percent'', '  result{4} ]; end;
-		if ~isempty(result{5})   , options = [ options ', ''icacomps'', [' result{5} ']' ]; end;
-		if ~isempty(result{6})   , options = [ options ', ''nicamaps'', ' result{6} ]; end;
+		if ~isempty(result{2})   , options = [ options ', ''freq'', ['  result{2} ']' ]; end
+		if ~isempty(result{3})   , options = [ options ', ''plotchan'', ' result{3} ]; end
+		if eval(result{4}) ~= 100, options = [ options ', ''percent'', '  result{4} ]; end
+		if ~isempty(result{5})   , options = [ options ', ''icacomps'', [' result{5} ']' ]; end
+		if ~isempty(result{6})   , options = [ options ', ''nicamaps'', ' result{6} ]; end
         if ~isempty(result{7}) && ~isempty(result{5})
             try list2 = eval(result{7}); catch,list2 = str2double(result{7}); end
             try list1 = eval(result{5}); catch,list1 = str2double(result{5}); end
@@ -216,10 +227,10 @@ if nargin < 3
                 fprintf(2,'pop_spectopo error: IC(s) selected do not match the ones on the list\n');
                 return;
             end
-        end;
-		if ~result{8}, options = [ options ', ''icamode'', ''sub''' ]; end;
-		if ~isempty(result{9}),    options = [ options ', ''freqrange'',[' result{9} ']' ]; end;
-		if ~isempty(result{10}), options      =  [ options ',' result{10} ]; end;
+        end
+		if ~result{8}, options = [ options ', ''icamode'', ''sub''' ]; end
+		if ~isempty(result{9}),    options = [ options ', ''freqrange'',[' result{9} ']' ]; end
+		if ~isempty(result{10}), options      =  [ options ',' result{10} ]; end
 	end;		
 	figure('tag', 'spectopo');
         set(gcf,'Name','spectopo()');
@@ -228,65 +239,65 @@ else
         options = [',' vararg2str(varargin)];
     else
         options = '';
-    end;
+    end
 	if isempty(timerange)
 		timerange = [ EEG.xmin*1000 EEG.xmax*1000 ];
-	end;
+	end
 	if nargin < 3 
 		percent = 100;
-	end;
+	end
 	if nargin < 4 
 		topofreqs = [];
-	end;
-end;
+	end
+end
 
 % set the background color of the figure
-try, tmpopt = struct(varargin{:}); if ~isfield(tmpopt, 'plot') || strcmpi(tmpopt, 'on'), icadefs; set(gcf, 'color', BACKCOLOR); end; catch, end;
+try, tmpopt = struct(varargin{:}); if ~isfield(tmpopt, 'plot') || strcmpi(tmpopt, 'on'), icadefs; set(gcf, 'color', BACKCOLOR); end; catch, end
 
 switch processflag,
  case {'EEG' 'eeg' 'ERP' 'erp' 'BOTH' 'both'},;
  otherwise, if nargin <3, close; end; 
   error('Pop_spectopo: processflag must be ''EEG'', ''ERP'' or ''BOTH''');
-end;
-if EEG.trials == 1 & ~strcmp(processflag,'EEG')
-	 if nargin <3, close; end;
+end
+if EEG.trials == 1 && ~strcmp(processflag,'EEG')
+	 if nargin <3, close; end
 	 error('pop_spectopo(): must use ''EEG'' mode when processing continuous data');
-end;
+end
 
 if ~isempty(EEG.chanlocs)
-    if ~isfield(EEG, 'chaninfo'), EEG.chaninfo = []; end;
+    if ~isfield(EEG, 'chaninfo'), EEG.chaninfo = []; end
 	spectopooptions = [ options ', ''verbose'', ''off'', ''chanlocs'', EEG.chanlocs, ''chaninfo'', EEG.chaninfo' ];
 	if dataflag == 0 % i.e. components
 		spectopooptions = [ spectopooptions ', ''weights'', EEG.icaweights*EEG.icasphere' ];
-	end;
+	end
 else
 	spectopooptions = options;
-end;
+end
 if ~dataflag
     spectopooptions  = [ spectopooptions ', ''icawinv'', EEG.icawinv, ''icachansind'', EEG.icachansind' ];
-end;
+end
 
 % The programming here is a bit redundant but it tries to optimize 
 % memory usage.
 % ----------------------------------------------------------------
-if timerange(1)/1000~=EEG.xmin | timerange(2)/1000~=EEG.xmax
+if timerange(1)/1000~=EEG.xmin || timerange(2)/1000~=EEG.xmax
 	posi = round( (timerange(1)/1000-EEG.xmin)*EEG.srate )+1;
 	posf = min(round( (timerange(2)/1000-EEG.xmin)*EEG.srate )+1, EEG.pnts );
 	pointrange = posi:posf;
-	if posi == posf, error('pop_spectopo(): empty time range'); end;
+	if posi == posf, error('pop_spectopo(): empty time range'); end
 	fprintf('pop_spectopo(): selecting time range %6.2f ms to %6.2f ms (points %d to %d)\n', ...
 			timerange(1), timerange(2), posi, posf);
-end;
+end
 if isempty(EEG.icachansind) || dataflag == 1, chaninds = 1:EEG.nbchan;
 else                                          chaninds = EEG.icachansind;
-end;
+end
 if exist('pointrange') == 1, SIGTMP = EEG.data(chaninds,pointrange,:); totsiz = length( pointrange);
 else                         SIGTMP = EEG.data(chaninds,:,:); totsiz = EEG.pnts;
-end;
+end
 
 % add boundaries if continuous data
 % ----------------------------------
-if EEG.trials == 1 & ~isempty(EEG.event) & isfield(EEG.event, 'type') & isstr(EEG.event(1).type)
+if EEG.trials == 1 && ~isempty(EEG.event) && isfield(EEG.event, 'type') && ischar(EEG.event(1).type)
 	tmpevent = EEG.event;
     boundaries = strmatch('boundary', {tmpevent.type});
 	if ~isempty(boundaries)
@@ -297,23 +308,23 @@ if EEG.trials == 1 & ~isempty(EEG.event) & isfield(EEG.event, 'type') & isstr(EE
 			boundaries = [0 boundaries pointrange(end)-pointrange(1)];
 		else
 			boundaries = [0 [ tmpevent(boundaries).latency ]-0.5 EEG.pnts ];
-		end;
+		end
 		spectopooptions = [ spectopooptions ',''boundaries'',[' int2str(round(boundaries)) ']']; 
 	end;		
 	fprintf('Pop_spectopo: finding data discontinuities\n');
-end;
+end
 
 % outputs
 % -------
 outstr = '';
 if nargin >= 2
-	for io = 1:nargout, outstr = [outstr 'varargout{' int2str(io) '},' ]; end;
-	if ~isempty(outstr), outstr = [ '[' outstr(1:end-1) '] =' ]; end;
-end;
+	for io = 1:nargout, outstr = [outstr 'varargout{' int2str(io) '},' ]; end
+	if ~isempty(outstr), outstr = [ '[' outstr(1:end-1) '] =' ]; end
+end
 
 % plot the data and generate output and history commands
 % ------------------------------------------------------
-popcom = sprintf('figure; pop_spectopo(%s, %d, [%s], ''%s'' %s);', inputname(1), dataflag, num2str(timerange), processflag, options);
+popcom = sprintf('figure; pop_spectopo(EEG, %d, [%s], ''%s'' %s);', dataflag, num2str(timerange), processflag, options);
 switch processflag
 	case { 'EEG' 'eeg' }, SIGTMP = reshape(SIGTMP, size(SIGTMP,1), size(SIGTMP,2)*size(SIGTMP,3));
 	            com = sprintf('%s spectopo( SIGTMP, totsiz, EEG.srate %s);', outstr, spectopooptions); 
@@ -323,11 +334,11 @@ switch processflag
 	case { 'BOTH' 'both' }, sbplot(2,1,1); com = sprintf('%s spectopo( mean(SIGTMP,3), totsiz, EEG.srate, ''title'', ''ERP'' %s);', outstr, spectopooptions); eval(com)
 	             SIGTMP = reshape(SIGTMP, size(SIGTMP,1), size(SIGTMP,2)*size(SIGTMP,3));
 				 sbplot(2,1,2); com = sprintf('%s spectopo( SIGTMP, totsiz, EEG.srate, ''title'', ''EEG'' %s);', outstr, spectopooptions); eval(com)
-end;
+end
 
-if nargout < 2 & nargin < 3
+if nargout < 2 && nargin < 3
 	varargout{1} = popcom;
-end;
+end
 
 return;
 

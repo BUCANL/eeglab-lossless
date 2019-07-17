@@ -9,17 +9,19 @@
 %               See >> topoplot example for file format.
 %
 % Optional ordered inputs:
-%  'limits'    = [minms maxms minval maxval] data limits for latency (in ms) and y-values
+%  'limits'      = [minms maxms minval maxval] data limits for latency (in ms) and y-values
 %                 (assumes uV) {default|0 -> use [0 npts-1 data_min data_max]; 
-%                 else [minms maxms] or [minms maxms 0 0] -> use
-%                [minms maxms data_min data_max]
-%  'plottimes' = [vector] latencies (in ms) at which to plot scalp maps 
-%                {default|NaN -> latency of maximum variance}
-% 'title'      = [string] plot title {default|0 -> none}
-% 'plotchans'  = vector of data channel(s) to plot. Note that this does not
-%                affect scalp topographies {default|0 -> all}
-% 'voffsets'   = vector of (plotting-unit) distances vertical lines should extend 
-%                above the data (in special cases) {default -> all = standard}
+%                  else [minms maxms] or [minms maxms 0 0] -> use
+%                  [minms maxms data_min data_max]
+%  'plottimes'   = [vector] latencies (in ms) at which to plot scalp maps 
+%                  {default|NaN -> latency of maximum variance}
+% 'title'        = [string] plot title {default|0 -> none}
+% 'plotchans'    = vector of data channel(s) to plot. Note that this does not
+%                  affect scalp topographies {default|0 -> all}
+% 'voffsets'     = vector of (plotting-unit) distances vertical lines should extend 
+%                  above the data (in special cases) {default -> all = standard}
+% 'plotenvelope' = [0 1] Flag to plot [1] or do not [0] the envelopes of all
+%                  the time series plotted {default |0 -> Do not plot envelopes}
 %
 % Optional keyword, arg pair inputs (must come after the above):
 % 'topokey','val' = optional topoplot() scalp map plotting arguments. See >> help topoplot 
@@ -30,19 +32,30 @@
 
 % Copyright (C) 1-10-98 Scott Makeig, SCCN/INC/UCSD, scott@sccn.ucsd.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 5-31-00 added o-time line and possibility of plotting 1 channel -sm & mw
 % 11-02-99 added maplimits arg -sm
@@ -69,40 +82,41 @@ icadefs;
 %         
 %     else
 %         varargin = { 'limits' limits 'plottimes' plottimes 'title' titl 'plotchans' plotchans 'voffsets' voffsets varargin{:} };        
-%     end;
-% end;
+%     end
+% end
 
 
 
 if nargin > 2 && ~ischar(varargin{1})
    options = {};
-   if length(varargin) > 0, options = { options{:} 'limits' varargin{1} }; end;
-   if length(varargin) > 1, options = { options{:} 'plottimes' varargin{2} }; end;
-   if length(varargin) > 2, options = { options{:} 'title'      varargin{3} }; end;
-   if length(varargin) > 3, options = { options{:} 'plotchans' varargin{4} }; end;
-   if length(varargin) > 4, options = { options{:} 'voffsets'     varargin{5} }; end;
-   if length(varargin) > 5, options = { options{:} varargin{6:end} }; end;
+   if length(varargin) > 0, options = { options{:} 'limits' varargin{1} }; end
+   if length(varargin) > 1, options = { options{:} 'plottimes' varargin{2} }; end
+   if length(varargin) > 2, options = { options{:} 'title'      varargin{3} }; end
+   if length(varargin) > 3, options = { options{:} 'plotchans' varargin{4} }; end
+   if length(varargin) > 4, options = { options{:} 'voffsets'     varargin{5} }; end
+   if length(varargin) > 5, options = { options{:} varargin{6:end} }; end
 else
    options = varargin;
-end;
+end
 
 fieldlist = { 'limits'        'real'     []                       0;
               'plottimes'     'real'     []                       [];
               'title'         'string'   []                       '';
               'plotchans'     'integer'  [1:size(data,1)]         0;
-              'voffsets'      'real'     []                       [] ;};
+              'voffsets'      'real'     []                       [];
+              'plotenvelope'  'real'     [0 1]                    0};
 [g topoargs] = finputcheck(options, fieldlist, 'timtopo', 'ignore');
 
-if ischar(g), error(g); end;
+if ischar(g), error(g); end
 %Set Defaults
-if isempty(g.title), g.title = ''; end;
-if isempty(g.voffsets) || g.voffsets == 0, g.voffsets = zeros(1,MAX_TOPOS); end;
-if isempty(g.plotchans) || isequal(g.plotchans,0), g.plotchans = 1:chans; end;
+if isempty(g.title), g.title = ''; end
+if isempty(g.voffsets) || g.voffsets == 0, g.voffsets = zeros(1,MAX_TOPOS); end
+if isempty(g.plotchans) || isequal(g.plotchans,0), g.plotchans = 1:chans; end
 plottimes_set=1;   % flag variable
-if isempty(g.plottimes) || any(isnan(g.plottimes)), plottimes_set = 0;end;
+if isempty(g.plottimes) || any(isnan(g.plottimes)), plottimes_set = 0;end
 limitset = 0; %flag variable
-if isempty(g.limits), g.limits = 0; end;
-if length(g.limits)>1, limitset = 1; end;
+if isempty(g.limits), g.limits = 0; end
+if length(g.limits)>1, limitset = 1; end
 
 
 % if nargin < 7 | voffsets == 0
@@ -144,7 +158,7 @@ end
   %
   %%%%%%%%%%%%%%%%%%%%%%% Read and adjust limits %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   % defaults: limits == 0 or [0 0 0 0]
-  if ( length(g.limits) == 1 & g.limits==0) | (length(g.limits)==4 & ~any(g.limits))  
+  if ( length(g.limits) == 1 && g.limits==0) || (length(g.limits)==4 && ~any(g.limits))  
     xmin=0;
     xmax=frames-1;
     ymin=min(min(data));
@@ -167,22 +181,22 @@ end
   else
     fprintf('timtopo(): limits format not correct. See >> help timtopo.\n');
     return
-  end;
+  end
 
-  if xmax == 0 & xmin == 0,
+  if xmax == 0 && xmin == 0,
     x = (0:1:frames-1);
     xmin = 0;
     xmax = frames-1;
   else
     dx = (xmax-xmin)/(frames-1);
     x=xmin*ones(1,frames)+dx*(0:frames-1); % compute x-values
-  end;
+  end
   if xmax<=xmin,
       fprintf('timtopo() - in limits, maxms must be > minms.\n')
       return
   end
 
-  if ymax == 0 & ymin == 0,
+  if ymax == 0 && ymin == 0,
       ymax=max(max(data));
       ymin=min(min(data));
   end
@@ -200,13 +214,13 @@ x = xmin:sampint:xmax;   % make vector of x-values
 if plottimes_set == 0
   [mx plotframes] = max(sum(data.*data)); 
                   % default plotting frame has max variance
-  if nargin< 4 | isempty(g.plottimes)
+  if nargin< 4 || isempty(g.plottimes)
 	  g.plottimes = x(plotframes);
   else
 	  g.plottimes(find(isnan(g.plottimes))) = x(plotframes);
-  end;
+  end
   plottimes_set = 1;
-end;
+end
 
 if plottimes_set == 1
   ntopos = length(g.plottimes);
@@ -216,7 +230,7 @@ if plottimes_set == 1
     ntopos = MAX_TOPOS;
   end
 
-  if max(g.plottimes) > xmax | min(g.plottimes)< xmin
+  if max(g.plottimes) > xmax || min(g.plottimes)< xmin
     fprintf(...
 'timtopo(): at least one plottimes value outside of epoch latency range - cannot plot.\n');
     return
@@ -280,7 +294,7 @@ else % even number of topos
 end
 topoleft = topoleft - 0.01; % adjust left a bit for colorbar
 
-if max(plotframes) > frames |  min(plotframes) < 1
+if max(plotframes) > frames ||  min(plotframes) < 1
     fprintf('Requested map frame %d is outside data range (1-%d)\n',max(plotframes),frames);
     return
 end
@@ -329,10 +343,17 @@ axis([xmin xmax ymin ymax]);
 hold on
 
 %
+%%%%%%%%%%%%%%%%%%%%%%%%% Compute and plot envelopes %%%%%%%%%%%%%%%%%%%
+%
+if g.plotenvelope
+    envelopes = minmax(data')';
+    plot(x,envelopes,'Tag','envelopes','Linewidth',2,'color',[0 0 0]);
+end
+%
 %%%%%%%%%%%%%%%%%%%%%%%%% Plot zero time line %%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 
-if xmin<0 & xmax>0
+if xmin<0 && xmax>0
    plot([0 0],[ymin ymax],'k:','linewidth',1.5);
 else
   fprintf('xmin %g and xmax %g do not cross time 0.\n',xmin,xmax)
@@ -345,7 +366,7 @@ height = ymax-ymin;
 lwidth = 1.5;  % increment line thickness
 
 for t=1:ntopos % dfraw vertical lines through the data at topoplot frames
- if length(g.plotchans)>1 | g.voffsets(t)
+ if length(g.plotchans)>1 || g.voffsets(t)
   l1 = plot([g.plottimes(t) g.plottimes(t)],...
        [min(data(g.plotchans,plotframes(t))) ...
        g.voffsets(t) + max(data(g.plotchans,plotframes(t)))],'w'); % white underline behind
@@ -455,8 +476,8 @@ end
     try,
 		if ~isempty( strmatch( 'absmax', varargin))
 			text(0.86,0.624,'0','FontSize',axfont,'HorizontalAlignment','Center');
-		end;
-	catch, end;
+		end
+	catch, end
   end
 
 %

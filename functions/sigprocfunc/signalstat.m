@@ -18,7 +18,7 @@
 %
 % Optional inputs:
 %   plotlab     - 1: default->plot  |  0: ->no plot
-%   dlabel      - A label for the data ([]: default->'Potential [µV]')
+%   dlabel      - A label for the data ([]: default->'Potential [V]')
 %   percent     - percentage of data to exclude for trimmed mean & SD ([]:default->5)
 %                 Excluded is 'percent'/2 high % and 'percent'/2 low %
 %   dlabel2     - A title label for the statistics table
@@ -52,37 +52,48 @@
 % figure; qqdiagram(X, Y,  2);
 % figure; plot(prctile(X,2), prctile(Y,2));
 
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [M,SD,sk,k,med,zlow,zhi,tM,tSD,tndx,ksh] = signalstat( data, plotlab, dlabel, percent, dlabel2, map, chan_locs);
 
 M=[]; SD=[]; sk=[]; k=[]; med=[]; zlow=[]; zhi=[]; tM=[]; tSD=[]; tndx=[]; ksh=[]; 
 
 istats=1;	
-hs = help('stats');
-toolbx = ver;
-if isempty(hs) || all([~any(strcmpi({toolbx.Name},'statistics toolbox')), ~any(strcmpi({toolbx.Name},'statistics and machine learning toolbox'))])
-    disp('signalstat() note: the boxplot (not shown) requires the MATLAB Statistics Toolbox or Statistics and Machine Learning Toolbox');
-    istats=0;
-end
+%hs = help('stats');
+% toolbx = ver;
+% if isempty(hs) || all([~any(strcmpi({toolbx.Name},'statistics toolbox')), ~any(strcmpi({toolbx.Name},'statistics and machine learning toolbox'))])
+%     disp('signalstat() note: the boxplot (not shown) requires the MATLAB Statistics Toolbox or Statistics and Machine Learning Toolbox');
+%     istats=0;
+% end
 
-if (nargin<8 & nargin>5) & min(size(map))~=1
+if (nargin<8 && nargin>5) && min(size(map))~=1
 		error('signalstat(): the map input must be a vector')
 end
 
-if nargin<7 & nargin>5
+if nargin<7 && nargin>5
 	disp('signalstat(): no location file for the topographic map')
 	help signalstat;
 	return
@@ -100,7 +111,7 @@ if nargin>3
 	if isempty(percent)
 		percent=5;
 	end
-	if any(percent > 100) | any(percent < 0)
+	if any(percent > 100) || any(percent < 0)
 		error('signalstat(): percent must be between 0 and 100');
 	end
 end
@@ -109,8 +120,8 @@ if nargin < 4
 	percent = 5;
 end
 
-if (nargin < 3 | isempty(dlabel))
-	dlabel='Potential [µV]';
+if (nargin < 3 || isempty(dlabel))
+	dlabel='Potential [V]';
 end
 		
 if nargin < 2
@@ -119,11 +130,11 @@ end;
 	
 if ~isnumeric(plotlab)
 	error('signalstat(): plotlab must be numeric');
-end;
+end
 
-if plotlab ~= 0 & plotlab ~= 1
+if plotlab ~= 0 && plotlab ~= 1
 		error('signalstat(): plotlab must be 0 or 1');
-end;
+end
 if nargin < 1
 	help signalstat;
 	return;
@@ -232,7 +243,7 @@ end
 
 if plotlab
   figure
-  try, icadefs; set(gcf, 'color', BACKCOLOR); catch, end;
+  try, icadefs; set(gcf, 'color', BACKCOLOR); catch, end
   COLOR = [0.56 .66 .9];
   set(gcf,'NumberTitle','off','Name','Signal statistics -- signalstat()')
   fwidth=800;  % figure size in pixels
@@ -284,12 +295,12 @@ if plotlab
   
   if istats
 	  set(gca,'XTick',[])	  
-  elseif ~istats & strcmp(dlabel,'Potential [µV]')
+  elseif ~istats && strcmp(dlabel,'Potential [V]')
 	  set(gca,'XTick',[-125, -75, -25, 0, 25, 75,  125],...
 			  'XTickLabel',['-125' ; ' -75' ; ' -25' ; '  0 ' ; ' 25 ' ; ' 75 ' ; ' 125'])
   end
   
-  if strcmp(dlabel,'Potential [µV]')
+  if strcmp(dlabel,'Potential [V]')
 	  set(gca,'XLim',[-125 125])
   end
 
@@ -316,7 +327,7 @@ if plotlab
 	  set(gca,'FontSize',14,'XMinorTick','on') 
       set(gca,'XLim',xlim)
 	  
-      if strcmp(dlabel,'Potential [µV]')
+      if strcmp(dlabel,'Potential [V]')
 		  set(gca,'XTick',[-125 -75 -25 0 25 75  125],...
 				  'XTickLabel',['-125' ; ' -75' ; ' -25' ; '  0 ' ; ' 25 ' ; ' 75 ' ; ' 125'],...
 				  'XLim',[-125 125])
@@ -344,10 +355,10 @@ if plotlab
   %plot([0 0],ymin,'k--')
   set(gca,'FontSize',14)
   xlabel('Standard Normal Quantiles [Std.Dev.]')
-  if strcmp(dlabel,'Potential [µV]')
-	  ylabel('Ordered Observations [µV]')
+  if strcmp(dlabel,'Potential [V]')
+	  ylabel('Ordered Observations [V]')
   elseif strcmp(dlabel,'Component Activity')
-	  ylabel('Ordered Observations [rel. µV]')
+	  ylabel('Ordered Observations [rel. V]')
   else
 	  ylabel('Ordered Observations')
   end
@@ -367,7 +378,7 @@ if plotlab
 				   'style', 'blank', 'emarkersize1chan', 10);
 	  else
 		  topoplot(map,chan_locs,'electrodes','off');
-	  end;
+	  end
 	  axis('square')
   end 
 
@@ -435,12 +446,12 @@ if length(mymean) < length(myvals)
 	tmpmean = mymean;
 	mymean = zeros(size(myvals));
 	mymean(:) = tmpmean;
-end;
+end
 if length(mystd) < length(myvals)
 	tmpmean = mystd;
 	mystd = zeros(size(myvals));
 	mystd(:) = tmpmean;
-end;
+end
 mymean(1:10);
 mystd(1:10);
 

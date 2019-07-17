@@ -21,25 +21,36 @@
 
 % Copyright (C) Colin Humphries, CNL, Salk Institute 3/97 from eegplotold()
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 05-01-97 added xstart argument -sm
 % 05-20-97 added read of icadefs.m
 % 06-12-97 EPOCH -> epoch line 71 below -sm
 % 8-10-97 Clarified chanfile type -sm
-% 12-08-97 Added isstr(titleval) test -sm
+% 12-08-97 Added ischar(titleval) test -sm
 % 02-09-98 legnth(data)->size(data,2) -sm
 % 01-25-02 reformated help & license, added links -ad 
 
@@ -105,7 +116,7 @@ end
 if nargin < 4
    titleval = DEFAULT_TITLE;
 end
-if ~isstr(titleval)
+if ~ischar(titleval)
   if titleval == 0
     titleval = DEFAULT_TITLE;
   else
@@ -121,7 +132,7 @@ if nargin < 2
 end
 if srate == 0,
 	srate = DEFAULT_SRATE;
-end;
+end
 if PLOT_TIME == 0
    PLOT_TIME = ceil(frames/srate);
    if PLOT_TIME > DEFAULT_EPOCH
@@ -147,7 +158,7 @@ maxtime = frames / srate;       %size of matrix in seconds
 		channamefile = 0;
 	else
 		% fprintf('Chan info file %s opened\n',channamefile);
-	end;
+	end
 	if errorcode==0,
 		channames = fscanf(chid,'%d %f %f %s',[7 MAXEEGPLOTCHANS]);
 		channames = channames';
@@ -157,18 +168,18 @@ maxtime = frames / srate;       %size of matrix in seconds
 			for j=1:c
 				if channames(i,j)=='.',
 					channames(i,j)=' '; % convert dots to spaces
-				end;
-			end;
-		end;
+				end
+			end
+		end
 		% fprintf('%d channel names read from file.\n',r);
 		if (r>chans)
 			fprintf('Using first %d names.\n',chans);
 			channames = channames(1:chans,:);
-		end;
+		end
 		if (r<chans)
 			fprintf('Only %d channel names read.\n',r);
-		end;
-	end;
+		end
+	end
   end
   if channamefile ==0, % plot channel numbers
 	channames = [];
@@ -179,10 +190,10 @@ maxtime = frames / srate;       %size of matrix in seconds
 			numeric = ['  '  int2str(c)];
 		end
 		channames = [channames;numeric];
-	end;
+	end
   end; % setting channames
 
-channames = str2mat(channames, ' ');	% add padding element to Y labels
+channames = char(channames, ' ');	% add padding element to Y labels
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Make matrix of x-tick labels
@@ -190,7 +201,7 @@ channames = str2mat(channames, ' ');	% add padding element to Y labels
 % Xlab = num2str(0);
 % for j = 1:1:PLOT_TIME
 %    Q = num2str(0+j);
-%    Xlab = str2mat(Xlab, Q);
+%    Xlab = char(Xlab, Q);
 % end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -220,7 +231,7 @@ for i = 1:chans
    F = F - mean(F) + i*spacing_var;  % add offset to y-values
    plot (xx,F,'clipping','off','Color',linecolor); % channel plot with x-values
 end 
-if xstart<0 & xstart+PLOT_TIME > 0
+if xstart<0 && xstart+PLOT_TIME > 0
    linetime = round(-xstart/srate);
    line ([linetime linetime],[1e10,-1e10]);
 end

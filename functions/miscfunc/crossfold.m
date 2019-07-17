@@ -64,19 +64,30 @@
 
 % Copyright (C) 8/1/98 Sigurd Enghoff & Scott Makeig, SCCN/INC/UCSD
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 11-20-98 defined LINEWIDTH constant -sm
 % 04-01-99 made number of frequencies consistent -se
@@ -128,10 +139,10 @@ if (nargin < 2)
 	return
 end
 
-if (min(size(X))~=1 | length(X)<2)
+if (min(size(X))~=1 || length(X)<2)
 	fprintf('crossf(): xdata must be a row or column vector.\n');
     return
-elseif (min(size(Y))~=1 | length(Y)<2)
+elseif (min(size(Y))~=1 || length(Y)<2)
 	fprintf('crossf(): ydata must be a row or column vector.\n');
     return
 elseif (length(X) ~= length(Y))
@@ -141,7 +152,7 @@ end
 
 if (nargin < 3)
 	epoch = DEFAULT_EPOCH;
-elseif (~isnumeric(epoch) | length(epoch)~=1 | epoch~=round(epoch))
+elseif (~isnumeric(epoch) || length(epoch)~=1 || epoch~=round(epoch))
 	fprintf('crossf(): Value of frames must be an integer.\n');
     return
 elseif (epoch <= 0)
@@ -154,7 +165,7 @@ end
 
 if (nargin < 4)
 	timelim = DEFAULT_TIMELIM;
-elseif (~isnumeric(timelim) | sum(size(timelim))~=3)
+elseif (~isnumeric(timelim) || sum(size(timelim))~=3)
 	error('crossf(): Value of tlimits must be a vector containing two numbers.');
 elseif (timelim(1) >= timelim(2))
 	error('crossf(): tlimits interval must be [min,max].');
@@ -168,7 +179,7 @@ end
 
 if (nargin < 6)
 	Fs = DEFAULT_FS;
-elseif (~isnumeric(Fs) | length(Fs)~=1)
+elseif (~isnumeric(Fs) || length(Fs)~=1)
 	error('crossf(): Value of srate must be a number.');
 elseif (Fs <= 0)
 	error('crossf(): Value of srate must be positive.');
@@ -176,7 +187,7 @@ end
 
 if (nargin < 7)
 	varwin = DEFAULT_VARWIN;
-elseif (~isnumeric(varwin) | length(varwin)~=1)
+elseif (~isnumeric(varwin) || length(varwin)~=1)
 	error('crossf(): Value of cycles must be a number.');
 elseif (varwin < MAX_BASELN)
 	error('crossf(): Value of cycles must be either zero or positive.');
@@ -184,11 +195,11 @@ end
 
 if (nargin < 8)
 	winsize = max(pow2(nextpow2(epoch)-3),4);
-elseif (~isnumeric(winsize) | length(winsize)~=1 | winsize~=round(winsize))
+elseif (~isnumeric(winsize) || length(winsize)~=1 || winsize~=round(winsize))
 	error('crossf(): Value of winsize must be an integer number.');
 elseif (winsize <= 0)
 	error('crossf(): Value of winsize must be positive.');
-elseif (varwin == 0 & pow2(nextpow2(winsize)) ~= winsize)
+elseif (varwin == 0 && pow2(nextpow2(winsize)) ~= winsize)
 	error('crossf(): Value of winsize must be an integer power of two [1,2,4,8,16,...]');
 elseif (winsize > epoch)
 	error('crossf(): Value of winsize must be less than epoch length.');
@@ -196,7 +207,7 @@ end
 
 if (nargin < 9)
 	nwin = DEFAULT_NWIN;
-elseif (~isnumeric(nwin) | length(nwin)~=1 | nwin~=round(nwin))
+elseif (~isnumeric(nwin) || length(nwin)~=1 || nwin~=round(nwin))
 	error('crossf(): Value of nwin must be an integer number.');
 elseif (nwin <= 0)
 	error('crossf(): Value of nwin must be positive.');
@@ -207,7 +218,7 @@ end
 
 if (nargin < 10)
 	oversmp = DEFAULT_OVERSMP;
-elseif (~isnumeric(oversmp) | length(oversmp)~=1 | oversmp~=round(oversmp))
+elseif (~isnumeric(oversmp) || length(oversmp)~=1 || oversmp~=round(oversmp))
 	error('crossf(): Value of oversmp must be an integer number.');
 elseif (oversmp <= 0)
 	error('crossf(): Value of oversmp must be positive.');
@@ -217,7 +228,7 @@ end
 
 if (nargin < 11)
 	maxfreq = DEFAULT_MAXFREQ;
-elseif (~isnumeric(maxfreq) | length(maxfreq)~=1)
+elseif (~isnumeric(maxfreq) || length(maxfreq)~=1)
 	error('crossf(): Value of maxfreq must be a number.');
 elseif (maxfreq <= 0)
 	error('crossf(): Value of maxfreq must be positive.');
@@ -225,9 +236,9 @@ end
 
 if (nargin < 12)
 	alpha = DEFAULT_ALPHA;
-elseif (~isnumeric(alpha) | length(alpha)~=1)
+elseif (~isnumeric(alpha) || length(alpha)~=1)
 	error('crossf(): Value of alpha must be a number.');
-elseif (round(NACCU*alpha) < 2 | alpha > .5)
+elseif (round(NACCU*alpha) < 2 || alpha > .5)
 	fprintf('crossf(): Value of alpha must be in the range (~0,0.5]');
     return 
 else
@@ -349,7 +360,7 @@ for t=1:trials,
            s = ceil(rand([1 2])*nwin); % random ints [1,nwin]
            tmpX = tmpsX(:,s(1));
            tmpY = tmpsY(:,s(2));
-           if ~any(isnan(tmpX)) & ~any(isnan(tmpY))
+           if ~any(isnan(tmpX)) && ~any(isnan(tmpY))
 		      RR = tmpX.*conj(tmpY) ./ (abs(tmpX).*abs(tmpY)); % complex coher.
 		      Rboot(:,j) = Rboot(:,j) + RR;
               j = j+1;
@@ -431,7 +442,7 @@ hold on
 plot([0 0],[0 freqs(max(dispf))],'--m','LineWidth',LINEWIDTH)
 for i=1:length(verts)
   plot([verts(i) verts(i)],[0 freqs(max(dispf))],'--m','LineWidth',LINEWIDTH);
-end;
+end
 hold off
 set(h(6),'YTickLabel',[],'YTick',[])
 set(h(6),'XTickLabel',[],'XTick',[])
@@ -452,7 +463,7 @@ plot([times(1) times(length(times))],[0 0],'LineWidth',0.7);
 plot([0 0],[-500 500],'--m','LineWidth',LINEWIDTH);
 for i=1:length(verts)
   plot([verts(i) verts(i)],[-500 500],'--m','LineWidth',LINEWIDTH);
-end;
+end
 axis([min(times) max(times) 0 max(Emax)*1.2])
 tick = get(h(10),'YTick');
 set(h(10),'YTick',[tick(1) ; tick(length(tick))])
@@ -516,7 +527,7 @@ if nargout>5
    plot([0 0],[0 freqs(max(dispf))],'--m','LineWidth',LINEWIDTH); % zero-time line
    for i=1:length(verts)
      plot([verts(i) verts(i)],[0 freqs(max(dispf))],'--m','LineWidth',LINEWIDTH);
-   end;
+   end
 
    pos13 = get(h(13),'Position');
    set(h(13),'Position',[pos13(1) pos13(2) midpos(3) pos13(4)]);

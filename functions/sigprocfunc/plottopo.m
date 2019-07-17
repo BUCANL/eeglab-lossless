@@ -51,19 +51,30 @@
 % Copyright (C) 3-2-98 from plotdata() Scott Makeig, SCCN/INC/UCSD,
 % scott@sccn.ucsd.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 5-11-98 added channels arg -sm
 % 7-15-98 added ydir arg, made pos-up the default -sm
@@ -122,25 +133,25 @@ if nargin < 1
 end
 
 if length(varargin) > 0
-    if length(varargin) == 1 | ~isstr(varargin{1}) | isempty(varargin{1}) | ...
-        (length(varargin)>2 &  ~isstr(varargin{3}))
+    if length(varargin) == 1 || ~ischar(varargin{1}) || isempty(varargin{1}) || ...
+        (length(varargin)>2 &  ~ischar(varargin{3}))
         options = { 'chanlocs' varargin{1} };
-        if nargin > 2, options = { options{:} 'frames' varargin{2} }; end;
-        if nargin > 3, options = { options{:} 'limits' varargin{3} }; end;
-        if nargin > 5, options = { options{:} 'chans'  varargin{5} }; end;
-        if nargin > 6, options = { options{:} 'axsize' varargin{6} }; end;
-        if nargin > 7, options = { options{:} 'colors' varargin{7} }; end;
-        if nargin > 8, options = { options{:} 'ydir'   varargin{8} }; end;
-        if nargin > 9, options = { options{:} 'vert'   varargin{9} }; end;
-        if nargin > 10,options = { options{:} 'hori'  varargin{10} }; end;
-        if nargin > 4 & ~isequal(varargin{4}, 0), options = {options{:} 'title'  varargin{4} }; end;
+        if nargin > 2, options = { options{:} 'frames' varargin{2} }; end
+        if nargin > 3, options = { options{:} 'limits' varargin{3} }; end
+        if nargin > 5, options = { options{:} 'chans'  varargin{5} }; end
+        if nargin > 6, options = { options{:} 'axsize' varargin{6} }; end
+        if nargin > 7, options = { options{:} 'colors' varargin{7} }; end
+        if nargin > 8, options = { options{:} 'ydir'   varargin{8} }; end
+        if nargin > 9, options = { options{:} 'vert'   varargin{9} }; end
+        if nargin > 10,options = { options{:} 'hori'  varargin{10} }; end
+        if nargin > 4 && ~isequal(varargin{4}, 0), options = {options{:} 'title'  varargin{4} }; end
         %    , chan_locs,frames,limits,plottitle,channels,axsize,colors,ydr,vert)
     else
         options = varargin;
-    end;
+    end
 else
     options = varargin;
-end;
+end
 g = finputcheck(options, { 'chanlocs'  ''    []          '';
                     'frames'    'integer'               [1 Inf]     size(data,2);
                     'chans'     { 'integer','string' }  { [1 Inf] [] }    0;
@@ -158,9 +169,9 @@ g = finputcheck(options, { 'chanlocs'  ''    []          '';
                     'ydir'      'integer'               [-1 1]      DEFAULT_SIGN;
                     'vert'      'float'                 []          [];
                     'hori'      'float'                 []          []});
-if isstr(g), error(g); end;
+if ischar(g), error(g); end
 data = reshape(data, size(data,1), size(data,2), size(data,3));    
-%if length(g.chans) == 1 & g.chans(1) ~= 0, error('can not plot a single ERP'); end;
+%if length(g.chans) == 1 & g.chans(1) ~= 0, error('can not plot a single ERP'); end
 
 [chans,framestotal]=size(data);           % data size
 
@@ -173,36 +184,36 @@ if length(g.axsize) < 2
     axheight = NaN;
 else 
     axheight = g.axsize(2);
-end;
-if isempty(g.chans) | g.chans == 0
+end
+if isempty(g.chans) || g.chans(1) == 0
    g.chans = 1:size(data,1);
-elseif ~isstr(g.chans)
+elseif ~ischar(g.chans)
    g.chans = g.chans;
 end
 
 nolegend = 0;
-if isempty(g.legend), nolegend = 1; end;
+if isempty(g.legend), nolegend = 1; end
 
 if ~isempty(g.ylim)
     g.limits(3:4) = g.ylim;
-end;
+end
 plotgrid = 0;
 if isempty(g.chanlocs) % plot in a rectangular grid
     plotgrid = 1;
 elseif ~isfield(g.chanlocs, 'theta')
     plotgrid = 1;
-end;
-if length(g.chans) < 4 & ~plotgrid
+end
+if length(g.chans) < 4 && ~plotgrid
     disp('Not enough channels, does not use channel coordinate to plot axis');
     plotgrid = 1;
-end;
-if plotgrid & isempty(g.geom)
+end
+if plotgrid && isempty(g.geom)
   n = ceil(sqrt(length(g.chans)));
   g.geom = [n ceil(length(g.chans)/n)];
 end
 if ~isempty(g.geom)
     plotgrid = 1;
-end;
+end
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%% Test parameters %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -216,7 +227,7 @@ end;
     datasets=1;
   else
     datasets = fix(framestotal/g.frames);        % number of traces to overplot
-  end;
+  end
 
   if max(g.chans) > chans
     fprintf('plottopo(): max channel index > %d channels in data.\n',...
@@ -227,22 +238,22 @@ end;
     fprintf('plottopo(): min channel index (%g) < 1.\n',...
                        min(g.chans));
     return
-  end;
+  end
   if length(g.chans)>MAXPLOTDATACHANS,
     fprintf('plottopo(): not set up to plot more than %d traces.\n',...
                        MAXPLOTDATACHANS);
     return
-  end;
+  end
 
   if datasets>MAXPLOTDATAEPOCHS 
       fprintf('plottopo: not set up to plot more than %d epochs.\n',...
                        MAXPLOTDATAEPOCHS);
     return
-  end;
+  end
   if datasets<1
       fprintf('plottopo: cannot plot less than 1 epoch!\n');
       return
-  end;
+  end
 
   if ~isempty(g.geom)
       if isnan(axheight) % if not specified
@@ -252,7 +263,7 @@ end;
       % if chan_locs(2) > 5
       %     axwidth = 0.66/(chan_locs(2)+1);
       % end
-  else
+  elseif isnan(axwidth)
       axheight = DEFAULT_AXHEIGHT;
       axwidth =  DEFAULT_AXWIDTH;
   end
@@ -278,28 +289,28 @@ end;
 %     %%%%%%%%%%%%%%%%%%%% Read the channel names %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %     %
 %     if isempty(g.channames)
-%         if ~isstr(g.chans) 
+%         if ~ischar(g.chans) 
 %             % g.channames = zeros(MAXPLOTDATACHANS,4);
 %             % for c=1:length(g.chans),
 %             %     g.channames(c,:)= sprintf('%4d',g.chans(c));
-%             % end;
+%             % end
 %             if length(g.chans) > 1 | g.chans(1) ~= 0
 %                 g.channames = num2str(g.chans(:));                   %%CJH
-%             end;
-%         else % isstr(g.chans)
+%             end
+%         else % ischar(g.chans)
 %             chid = fopen(g.chans,'r');
 %             if chid <3,
 %                 fprintf('plottopo(): cannot open file %s.\n',g.chans);
 %                 return
 %             else
 %                 fprintf('plottopo(): opened file %s.\n',g.chans);
-%             end;
+%             end
 % 
 %             %%%%%%%
 %             % fid=fopen('fgetl.m');
 %             % while 1
 %             %   line = fgetl(fid);
-%             %   if ~isstr(line), break, end
+%             %   if ~ischar(line), break, end
 %             %     disp(line)
 %             %   end
 %             % end
@@ -313,11 +324,11 @@ end;
 %                 for j=1:c
 %                     if g.channames(i,j)=='.',
 %                         g.channames(i,j)=' ';
-%                     end;
-%                 end;
-%             end;
+%                     end
+%                 end
+%             end
 %         end; % setting g.channames
-%     end;
+%     end
 %     
     %
     %%%%%%%%%%%%%%%%%%%%%%%%% Plot and label specified channels %%%%%%%%%%%%%%%%%%
@@ -328,13 +339,13 @@ end;
     %
     %%%%%%%%%%%%%%%%%%%%%%%%% Read the color names %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %
-    if isstr(g.colors) % filename for backward compatibility but not documented
+    if ischar(g.colors) % filename for backward compatibility but not documented
         cid = fopen(g.colors,'r');
         % fprintf('cid = %d\n',cid);
         if cid <3,
             fprintf('plottopo: cannot open file %s.\n',g.colors);
             return
-        end;
+        end
         g.colors = fscanf(cid,'%s',[3 MAXPLOTDATAEPOCHS]);
         g.colors = g.colors';
         [r c] = size(g.colors);
@@ -342,12 +353,12 @@ end;
             for j=1:c
                 if g.colors(i,j)=='.',
                     g.colors(i,j)=' ';
-                end;
-            end;
-        end;
+                end
+            end
+        end
         g.colors = cellstr(g.colors);
         for c=1:length(g.colors)   % make white traces black unless axis color is white
-            if g.colors{c}(1)=='w' & axcolor~=[1 1 1]
+            if g.colors{c}(1)=='w' && axcolor~=[1 1 1]
                 g.colors{c}(1)='k';
             end
         end
@@ -355,7 +366,7 @@ end;
         tmpcolors = { 'b' 'r' 'g' 'c' 'm' 'r' 'b' 'g' 'c' 'm' 'r' 'b' 'g' 'c' 'm' 'r' 'b' ...
                       'g' 'c' 'm' 'r' 'b' 'g' 'c' 'm' 'r' 'b' 'g' 'c' 'm' 'r' 'b' 'g' 'c' 'm'};
         g.colors = {g.colors{:} tmpcolors{:}};  % make > 64 available
-    end;
+    end
     %
     %%%%%%%%%%%%%%%%%%%%%%% Read and adjust limits %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
     %
@@ -371,27 +382,27 @@ end;
     else
         if length(g.limits)~=4,
             error('plottopo: limits should be 0 or an array [xmin xmax ymin ymax].\n');
-        end;
+        end
         xmin = g.limits(1);
         xmax = g.limits(2);
         ymin = g.limits(3);
         ymax = g.limits(4);
-    end;
+    end
 
-    if xmax == 0 & xmin == 0,
+    if xmax == 0 && xmin == 0,
         x = (0:1:g.frames-1);
         xmin = 0;
         xmax = g.frames-1;
     else
         dx = (xmax-xmin)/(g.frames-1);
         x=xmin*ones(1,g.frames)+dx*(0:g.frames-1); % compute x-values
-    end;
+    end
     if xmax<=xmin,
         fprintf('plottopo() - xmax must be > xmin.\n')
         return
     end
 
-    if ymax == 0 & ymin == 0,
+    if ymax == 0 && ymin == 0,
         % for abs max scaling:
         ymax=max(max(abs(data)));
         ymin=ymax*-1;
@@ -429,7 +440,7 @@ end;
             msg = [msg  '''' g.colors{cind}{1} ''' ' ];
         else
             msg = [msg  '''' g.colors{cind} ''' ' ];
-        end;
+        end
     end
     msg = [msg '\n'];    % print starting info on screen . . .
     fprintf('limits: [xmin,xmax,ymin,ymax] = [%4.1f %4.1f %4.2f %4.2f]\n',...
@@ -478,7 +489,7 @@ end;
             [tmp g.channames Th Rd] = readlocs(g.chanlocs);
             g.channames = strvcat(g.channames);
             nonemptychans = [1:length(g.channames)];
-        end;
+        end
         Th = pi/180*Th;                 % convert degrees to radians
         Rd = Rd; 
         
@@ -498,7 +509,7 @@ end;
         for index = 1:length(emptychans)
             xvals(emptychans(index)) = 0.7+0.2*floor((index-1)/totalchans);
             yvals(emptychans(index)) = -0.4+mod(index-1,totalchans)/totalchans;
-        end;
+        end
         g.channames = g.channames(g.chans,:);
         xvals     = xvals(g.chans);
         yvals     = yvals(g.chans);
@@ -513,8 +524,8 @@ end;
             xvals = (xvals-mean([max(xvals) min(xvals)]))/(max(xvals)-min(xvals)); % recenter
             xvals = gcapos(1)+gcapos(3)/2+PLOT_WIDTH*xvals;   % controls width of plot 
                                                               % array on current axes
-        end;
-    end;
+        end
+    end
     yvals = gcapos(2)+gcapos(4)/2+PLOT_HEIGHT*yvals;  % controls height of plot 
                                                       % array on current axes
                                                       %
@@ -542,7 +553,7 @@ end;
                     ycenter = yvals(c);
                     Axes = [Axes axes('Units','Normal','Position', ...
                                       [xcenter-axwidth/2 ycenter-axheight/2 axwidth axheight])];
-                end;
+                end
                 %axes(Axes(c))
                 axis('off')
                 
@@ -561,7 +572,7 @@ end;
                 %
                 NAME_OFFSET = -.25;
                 NAME_OFFSETY = .2;
-                if ymin <= 0 & ymax >= 0,
+                if ymin <= 0 && ymax >= 0,
                     yht = 0;
                 else
                     yht = mean(data(c,1+P*g.frames:1+P*g.frames+g.frames-1));
@@ -591,9 +602,9 @@ end;
                             tmph = patch([tmpreg(1) tmpreg(2) tmpreg(2) tmpreg(1)], ...
                                          [-100 -100 100 100], [0.9 0.9 0.9]); hold on;
                             set(tmph, 'edgecolor', [0.9 0.9 0.9]); %,'facealpha',0.5,'edgealpha',0.5);
-                        end;
-                    end;
-                end;
+                        end
+                    end
+                end
                 
             end; % P=0 
             
@@ -603,23 +614,23 @@ end;
             Pind = mod(P+1-1, length(g.colors))+1;
             if ~iscell( g.colors{Pind} ), tmpcolor = { g.colors{Pind} 'linewidth' LINEWIDTH };
             else                          tmpcolor = g.colors{Pind};
-            end;
+            end
             ymn = min([ymax ymin]);
             ymx = max([ymax ymin]);
             if isempty(g.plotfunc)
-                if isstr(tmpcolor{1}) & length(tmpcolor) > 1
+                if ischar(tmpcolor{1}) && length(tmpcolor) > 1
                     plot(x,data(c,1+P*g.frames:1+P*g.frames+g.frames-1), tmpcolor{1}, tmpcolor{2:end});   
                 else
                     plot(x,data(c,1+P*g.frames:1+P*g.frames+g.frames-1), 'color', tmpcolor{:});   
                 end; 
                 if g.ydir == -1
                     set(gca, 'ydir', 'reverse');
-                end;
+                end
                 axis([xmin xmax ymn ymx]);          % set axis bounds
             elseif P == 1
                 func = eval( [ '@' g.plotfunc{1} ] );
                 feval(func, data(c,:), g.plotfunc{2:end});
-            end;
+            end
             
             if P == datasets-1 % last pass
                                %
@@ -662,12 +673,12 @@ end;
                     end
                 end
 
-            end;
+            end
             
             fprintf(' %d',c); % finished with channel plot
         end; % c, chans / subplot
              % handle legend
-        if nolegend, g.legend{P+1} = ['Data ' int2str(P) ]; end;
+        if nolegend, g.legend{P+1} = ['Data ' int2str(P) ]; end
         
         fprintf('\n');
     end; % P / epoch
@@ -686,7 +697,7 @@ end;
     end
     if g.ydir == -1
         set(gca, 'ydir', 'reverse');
-    end;
+    end
     axis([xmin xmax ymn ymx]);        % set axis values
     hold on
     %set(p, 'Clipping','off');        % center text
@@ -742,16 +753,16 @@ end;
     set(h,'HorizontalAlignment','center',...
           'Clipping','off');  % center text
 
-    if length(g.legend) > 1 & strcmpi(g.showleg, 'on')
+    if length(g.legend) > 1 && strcmpi(g.showleg, 'on')
         tmpleg = vararg2str(g.legend);
         quotes = find(tmpleg == '''');
         for index = length(quotes):-1:1
             tmpleg(quotes(index)+1:end+1) = tmpleg(quotes(index):end);
             tmpleg(quotes(index)) = '''';
-        end;
+        end
         tmpleg = [ 'legend(' tmpleg ');' ];
     else tmpleg = '';
-    end;
+    end
     com = [ 'axis on;' ...
             'clear xlabel ylabel;' tmpleg ...
             'xlabel(''''Time (ms)'''');' ...

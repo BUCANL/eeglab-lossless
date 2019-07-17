@@ -12,6 +12,11 @@
 %                 automatically unchecks the checkbox above, allowing reference 
 %                 channel indices to be entered in the text edit box to its right
 %                 (No commandline equivalent).
+%   "Interpolate removed channel(s)"  - [checkbox] Enable the interpolation
+%                 of removed channels to compute the re-referencing.
+%                 Checking this option is equivalent to use the command
+%                 line option 'interpchan' with argument '[]'
+%                 (see optional input 'interpchan')
 %   "Retain old reference channels in data" - [checkbox] When re-referencing the 
 %                 data, checking this checkbox includes the data for the 
 %                 previous reference channel.
@@ -20,16 +25,27 @@
 %   "Add current reference channel back to the data" - [edit box] When 
 %                 re-referencing the data, checking this checkbox
 %                 reconstitutes the data for the previous reference
-%                 channel. If the location for this channel  was not 
-%                 defined, it can be specified using the text box below.
+%                 channel. If the location for this channel or the channel is
+%                 not present, it first needs to be defined in the channel
+%                 editor (additional channel defined as reference and not 
+%                 associated with data).
 % Inputs:
 %   EEG         - input dataset
-%   ref         - reference: []            = convert to average reference
-%                            [int vector]  = new reference electrode number(s)
+%   ref         - reference: []             = convert to average reference
+%                            [int vector]   = new reference electrode number(s)
+%                            'Cz'           = string
+%                            { 'P09' 'P10 } = cell array of strings
 % Optional inputs:
-%   'exclude'   - [integer array] List of channels to exclude. Default: none.
-%   'keepref'   - ['on'|'off'] keep the reference channel. Default: 'off'.
-%   'refloc'    - [structure] Previous reference channel structure. Default: none.
+%   'interpchan'  - [channel location structure | integer array | [] | 'off']
+%                   Channels to interpolate prior to re-referencing the data. If [],
+%                   channels will be found by comparing all the channels (type = EEG) 
+%                   in the current EEG.chanlocs structure against EEG.urchanlocs. A channel 
+%                   location  structure of the channels to be interpolated can be provided 
+%                   as an input, as well as the index of the channels into the EEG.urchanlocs.
+%                   Default:'off'
+%   'exclude'     - [integer array] List of channels to exclude. Default: none.
+%   'keepref'     - ['on'|'off'] keep the reference channel. Default: 'off'.
+%   'refloc'      - [structure] Previous reference channel structure. Default: none.
 %
 % Outputs:
 %   EEGOUT      - re-referenced output dataset
@@ -43,19 +59,30 @@
 
 % Copyright (C) 2002 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [EEG, com] = pop_reref( EEG, ref, varargin);
 
@@ -64,23 +91,21 @@ if nargin < 1
    help pop_reref;
    return;
 end;   
-if isempty(EEG.data)
+if isempty(EEG(1).data)
     error('Pop_reref: cannot process empty data');
-end;
+end
 
 % gui inputs
 % ----------
-orichanlocs = EEG.chanlocs;
-orinbchan   = EEG.nbchan;
 if nargin < 2
     
     % find initial reference
     % ----------------------
-    if length(EEG.chanlocs) == EEG.nbchan+1
+    if length(EEG(1).chanlocs) == EEG(1).nbchan+1
         includeref = 1;
-    end;
+    end
     
-    geometry = { [1] [1] [1.8 1 0.3] [1] [1] [1.8 1 0.3] [1.8 1 0.3] };
+    geometry = { [1] [1] [1.8 1 0.3] [1] [1] [1] [1.8 1 0.3] [1.8 1 0.3] };
     cb_setref = [ 'set(findobj(''parent'', gcbf, ''tag'', ''refbr'')    , ''enable'', ''on'');' ...
                   'set(findobj(''parent'', gcbf, ''tag'', ''reref'')    , ''enable'', ''on'');' ...
                   'set(findobj(''parent'', gcbf, ''tag'', ''keepref'')  , ''enable'', ''on'');' ];
@@ -104,23 +129,24 @@ if nargin < 2
                     'else,' ...
                     '   tmpchaninfo = EEG(1).chaninfo; [tmp tmpval] = pop_chansel({tmpchaninfo.nodatchans.labels}, ''withindex'', ''on''); set(findobj(gcbf, ''tag'', ''refloc''  ), ''string'',tmpval); clear tmpchanlocs tmp tmpval;' ...
                     'end;' ];
-    if isempty(EEG.chanlocs), cb_chansel1 = ''; cb_chansel2 = ''; cb_chansel3 = ''; end;
+    if isempty(EEG(1).chanlocs), cb_chansel1 = ''; cb_chansel2 = ''; cb_chansel3 = ''; end
     
     % find current reference (= reference most used)
     % ----------------------------------------------
     if isfield(EEG(1).chanlocs, 'ref')
         tmpchanlocs = EEG(1).chanlocs;
-        [curref tmp allinds] = unique_bc( { tmpchanlocs.ref });
+        [curref,~,allinds] = unique_bc( { tmpchanlocs.ref });
         maxind = 1;
         for ind = unique_bc(allinds)
             if length(find(allinds == ind)) > length(find(allinds == maxind))
                 maxind = ind;
-            end;
-        end;
+            end
+        end
         curref = curref{maxind};
-        if isempty(curref), curref = 'unknown'; end;
-    else curref = 'unknown';
-    end;
+        if isempty(curref), curref = 'unknown'; end
+    else
+        curref = 'unknown';
+    end
     
     uilist = { { 'style' 'text' 'string' [ 'Current data reference state is: ' curref] } ...
                ...
@@ -129,6 +155,7 @@ if nargin < 2
                { 'style' 'checkbox' 'tag' 'rerefstr' 'value' 0 'string' 'Re-reference data to channel(s):' 'callback'  cb_ref } ...
                { 'style' 'edit' 'tag' 'reref' 'string' '' 'enable' 'off' } ...
                { 'style' 'pushbutton' 'string' '...' 'callback' cb_chansel1 'enable' 'off' 'tag' 'refbr' } ...
+               { 'style' 'checkbox' 'tag' 'interp' 'value' 0 'string' 'Interpolate removed channel(s)'} ...
                ...
                {} ...
                ...
@@ -142,40 +169,140 @@ if nargin < 2
                { 'style' 'edit' 'tag' 'refloc' 'string' '' } ...
                { 'style' 'pushbutton' 'string' '...' 'callback' cb_chansel3 } };
     
-    [result tmp tmp2 restag] = inputgui(geometry, uilist, 'pophelp(''pop_reref'')', 'pop_reref - average reference or re-reference data');
-    if isempty(result), return; end;
+    [result,~,~,restag] = inputgui(geometry, uilist, 'pophelp(''pop_reref'')', 'pop_reref - average reference or re-reference data');
+    if isempty(result), return; end
 
     % decode inputs
     % -------------
     options = {};
-    if ~isempty(restag.refloc),
+    if ~isempty(restag.refloc)
          try
-             tmpchaninfo = EEG.chaninfo;
+             tmpchaninfo = EEG(1).chaninfo;
              tmpallchans = lower({ tmpchaninfo.nodatchans.labels });
              allelecs = parsetxt(lower(restag.refloc));
              chanind  = [];
              for iElec = 1:length(allelecs)
                  chanind = [chanind strmatch( allelecs{iElec}, tmpallchans, 'exact') ];
-             end;
-             options = { options{:} 'refloc' EEG.chaninfo.nodatchans(chanind) }; 
+             end
+             options = { options{:} 'refloc' EEG(1).chaninfo.nodatchans(chanind) }; 
          catch, disp('Error with old reference: ignoring it');
-         end;
-    end;
-    if ~isempty(restag.exclude), options = { options{:} 'exclude' eeg_chaninds(EEG, restag.exclude) }; end;
-    if restag.keepref,           options = { options{:} 'keepref' 'on' }; end;
-    if restag.ave,               ref = []; end;
+         end
+    end
+    if ~isempty(restag.exclude), options = { options{:} 'exclude' eeg_chaninds(EEG, restag.exclude) }; end
+    if restag.keepref,           options = { options{:} 'keepref' 'on' }; end
+    if restag.ave,               ref = []; end
     if restag.rerefstr           
         if isempty(restag.reref)
-            warndlg2('Abording: you must enter one or more reference channels'); 
+            warndlg2('Aborting: you must enter one or more reference channels'); 
             return;
         else
             ref = eeg_chaninds(EEG, restag.reref); 
-        end;
-    end;
+        end
+    end
+    if restag.interp == 1, options = { options{:} 'interpchan' [] }; end
 else
     options = varargin;
-end;
+end
+if ischar(ref), ref = { ref }; end
+
+% process multiple datasets
+% -------------------------
+if length(EEG) > 1
+    if nargin < 2
+        [ EEG, com ] = eeg_eval( 'pop_reref', EEG, 'warning', 'on', 'params', {ref options{:} } );
+    else
+        [ EEG, com ] = eeg_eval( 'pop_reref', EEG, 'params', {ref options{:} } );
+    end
+    return;
+end
+
+orichanlocs = EEG.chanlocs;
+orinbchan   = EEG.nbchan;
+if iscell(ref), ref = eeg_chaninds(EEG, ref); end
 optionscall = options;
+
+g = struct(optionscall{:});
+if ~isfield(g, 'exclude'),       g.exclude       = [];    end
+if ~isfield(g, 'keepref'),       g.keepref       = 'off'; end
+if ~isfield(g, 'refloc') ,       g.refloc        = [];    end
+if ~isfield(g, 'interpchan') ,   g.interpchan    = 'off'; end
+if ~isfield(g, 'addrefchannel'), g.addrefchannel = 0;     end
+if ~isfield(g, 'enforcetype'),   g.enforcetype   = 0;     end
+%--- Interpolation code START
+interpflag = 0;
+if ~isequal('off', g.interpchan )
+    
+    % Case no channel provided, infering them from urchanlocs field
+    if isempty(g.interpchan) 
+        try
+            urchantype  = {EEG.urchanlocs.type};
+            chanloctype = {EEG.chanlocs.type};
+            if  any(cellfun(@isempty,urchantype)) || any(cellfun(@isempty,chanloctype))
+                eegtypeindx0 = [1:length(EEG.urchanlocs)]';
+                eegtypeindx1 = [1:length(EEG.chanlocs)]';
+                % Excluding fiducials if exist
+                try
+                    indxfid_urch = find(strcmpi({'fid'},urchantype));
+                    indxfid_ch   = find(strcmpi({'fid'},chanloctype));
+                    if ~isempty(indxfid_urch), eegtypeindx0(indxfid_urch) = []; end
+                    if ~isempty(indxfid_ch),   eegtypeindx1(indxfid_ch)   = []; end
+                catch
+                    fprintf('pop_reref message: Unable to find fiducials...\n');
+                end
+            else   
+                eegtypeindx0 = strmatch('EEG',urchantype);
+                eegtypeindx1 = strmatch('EEG',chanloctype);    
+            end     
+        catch
+            fprintf(2,'pop_reref error: Unable to check for deleted channels. Missing field ''type'' in channel location \n');
+            return;
+        end
+        
+        if isempty(eegtypeindx0) || isempty(eegtypeindx1)
+            fprintf(2,'pop_reref error: Unable to get channel type from this data. Check field ''type'' on EEG.urchanlocs or EEG.chanlocs. \n');
+            return;
+        end
+        
+        chan2interp = setdiff_bc({EEG.urchanlocs(eegtypeindx0).labels}, {EEG.chanlocs(eegtypeindx1).labels});       
+        if isempty(chan2interp)
+            fprintf('pop_reref message: No removed channel found. Halting interpolation and moving forward...\n');
+        else
+           chan2interpindx = find(cell2mat(cellfun(@(x) ismember(x, chan2interp), {EEG.urchanlocs.labels}, 'UniformOutput', 0)));  
+           
+           % Checking validity of channels selected for interpolation by assessing X ccordinate
+           for ichan = 1:length(chan2interpindx)
+               validchan(ichan) = ~isempty(EEG.urchanlocs(chan2interpindx(ichan)).X);
+           end
+           if all(validchan == 0)
+               fprintf('pop_reref message: Invalid channel(s) for interpolation. Halting interpolation and moving forward...\n');
+           else
+               chanlocs2interp =  EEG.urchanlocs(chan2interpindx(find(validchan)));
+               interpflag = 1;
+           end
+        end
+    
+    % Case where channel loc structure is provided    
+    elseif isstruct(g.interpchan) 
+        chanlocs2interp = g.interpchan;
+        interpflag = 1;
+    
+    % Case where channel index is provided    
+    elseif isreal(g.interpchan)
+        chanlocs2interp = EEG.urchanlocs(g.interpchan);
+        interpflag = 1;
+        
+    % invalid case    
+    else
+        error('pop_reref error: Invalid arguments for option ''interpchan'' ');
+    end
+    
+    if interpflag
+        EEG = pop_interp(EEG, chanlocs2interp, 'spherical');
+        interpindx = find(cell2mat(cellfun(@(x) ismember(x, {chanlocs2interp.labels}), {EEG.chanlocs.labels}, 'UniformOutput', 0))); 
+        % EEG.icaweights = [];
+    end
+end
+%--- interpolation code END
 
 % include channel location file
 % -----------------------------
@@ -183,14 +310,15 @@ if ~isempty(EEG.chanlocs)
     optionscall = { optionscall{:} 'elocs' EEG.chanlocs }; 
 end;    
 
-nchans = EEG.nbchan;
 fprintf('Re-referencing data\n');
-oldchanlocs = EEG.chanlocs;
 [EEG.data EEG.chanlocs refchan ] = reref(EEG.data, ref, optionscall{:});
-g = struct(optionscall{:});
-if ~isfield(g, 'exclude'), g.exclude = []; end;
-if ~isfield(g, 'keepref'), g.keepref = 'off'; end;
-if ~isfield(g, 'refloc') , g.refloc  = []; end;
+
+% If interpolation was done... then remove channels
+if interpflag
+    EEG = pop_select(EEG, 'nochannel', interpindx);
+end
+
+nchans = EEG.nbchan; % retrieve number of channels for ICA bussines
 
 % deal with reference
 % -------------------
@@ -205,17 +333,20 @@ if ~isempty(refchan)
         for ind = 1:length(allf)
             EEG.chaninfo.nodatchans = setfield(EEG.chaninfo.nodatchans, { n }, ...
                 allf{ind}, getfield(refchan, allf{ind}));
-        end;
-    end;
-end;
+        end
+    end
+end
 if ~isempty(g.refloc)
     allinds = [];
     tmpchaninfo = EEG.chaninfo;
     for iElec = 1:length(g.refloc)
-         allinds = [allinds strmatch( g.refloc(iElec).labels, { tmpchaninfo.nodatchans.labels }) ];
-    end;
+        if isempty(tmpchaninfo) || isempty(tmpchaninfo.nodatchans)
+            error('There is no such reference channel');
+        end
+        allinds = [allinds strmatch( g.refloc(iElec).labels, { tmpchaninfo.nodatchans.labels }) ];
+    end
     EEG.chaninfo.nodatchans(allinds) = [];
-end;
+end
     
 % legacy EEG.ref field
 % --------------------
@@ -224,8 +355,8 @@ if isfield(EEG, 'ref')
         EEG.ref = 'averef';
     elseif strcmpi(EEG.ref, 'averef') && ~isempty(ref)
         EEG.ref = 'common';
-    end;
-end;
+    end
+end
 
 EEG.nbchan = size(EEG.data,1);
 EEG = eeg_checkset(EEG);
@@ -248,7 +379,7 @@ if ~isempty(EEG.icaweights)
         fprintf('Re-referencing ICA matrix\n');
         if isempty(orichanlocs)
             error('Cannot re-reference ICA decomposition without channel locations')
-        end;
+        end
         
         newICAchaninds = zeros(orinbchan, size(EEG.icawinv,2));
         newICAchaninds(EEG.icachansind,:) = EEG.icawinv;
@@ -268,8 +399,8 @@ if ~isempty(EEG.icaweights)
                 rminds(find(icachansind(i) == rminds)) = [];
             else
                 icachansind(i) = [];
-            end;
-        end;
+            end
+        end
         newICAchaninds(rminds,:) = [];
         EEG.icawinv = newICAchaninds;
         
@@ -282,10 +413,10 @@ if ~isempty(EEG.icaweights)
             EEG.icaweights = pinv(EEG.icawinv);
             EEG.icasphere  = eye(length(icachansind));
         end;    
-    end;
+    end
     EEG = eeg_checkset(EEG);
-end;
+end
 
 % generate the output command
 % ---------------------------
-com = sprintf('%s = pop_reref( %s, %s);', inputname(1), inputname(1), vararg2str({ref, options{:}}));
+com = sprintf('EEG = pop_reref( EEG, %s);', vararg2str({ref, options{:}}));

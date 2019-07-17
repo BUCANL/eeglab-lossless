@@ -21,10 +21,36 @@
 % Example:
 % EEG = eeg_addnewevents(EEG, {[100 200] [300 400 500]}, {'type1' 'type2'}, {'field1' 'field2'}, {[1 2 3 4 5] [6 7 8 9]});
 %
-%  Author: Nima Bigdely Shamlo, SCCN/INC/UCSD, 2008
-function EEG = eeg_addnewevents(EEG, eventLatencyArrays, types, fieldNames, fieldValues);
+% Author: Nima Bigdely Shamlo, SCCN/INC/UCSD, 2008
 
+% Copyright (C) Nima Bigdely Shamlo, SCCN/INC/UCSD, 2008
+%
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
+%
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
+%
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
+function EEG = eeg_addnewevents(EEG, eventLatencyArrays, types, fieldNames, fieldValues)
 
 if ~isfield(EEG, 'event')
     EEG.event = [];
@@ -38,38 +64,38 @@ if ~isfield(EEG, 'event')
     EEG.urevent(1).type = 'dummy';
     EEG.urevent(1).latency = 1;
     EEG.urevent(1).duration = 0;
-end;
+end
 
 % add duration field if it does not exist
 if length(EEG.event)>0 && ~isfield(EEG.event(1),'duration')
     EEG.event(1).duration = 0;
     EEG.urevent(1).duration = 0;
-end;
+end
 
 if nargin<4
     fieldNames = [];
     fieldValues = [];
-end;
+end
 
 newEventLatency = [];
 for i=1:length(eventLatencyArrays)
     newEventLatency = [newEventLatency eventLatencyArrays{i}];
-end;
+end
 
 
 newEventType = [];
 
 for i=1:length(eventLatencyArrays{1})
     newEventType{i}  = types{1};
-end;
+end
 
 
 for j=2:length(eventLatencyArrays)
     startIndex = length(newEventType);
     for i=1:length(eventLatencyArrays{j})
         newEventType{startIndex+i}  = types{j};
-    end;
-end;
+    end
+end
 
 % mix new and old events, sort them by latency and put them back in EEG
 originalEventLatency = [];
@@ -79,7 +105,7 @@ for i=1:length(EEG.event)
     originalEventLatency(i) = EEG.event(i).latency;
     originalEventType{i} = EEG.event(i).type;
     originalEventFields(i) = EEG.event(i);
-end;
+end
 
 
 % make sure that originalEventFields has all the new field names
@@ -88,14 +114,14 @@ if ~isempty(EEG.event)
     for f= 1:length(fieldNames)
         if ~isfield(originalEventFields, fieldNames{f})
             originalEventFields(length(originalEventFields)).(fieldNames{f}) = NaN;
-        end;
-    end;
-end;
+        end
+    end
+end
 
 % make sure that newEventFields has all the original field names
 for i=1:length(originalFieldNames)
     newEventFields(length(newEventLatency)).(originalFieldNames{i}) = NaN;
-end;
+end
 
 for i=1:length(newEventLatency)
     newEventFields(i).latency = newEventLatency(i);
@@ -103,8 +129,8 @@ for i=1:length(newEventLatency)
     newEventFields(i).duration = 0;
     for f= 1:length(fieldNames)
         newEventFields(i).(fieldNames{f}) = fieldValues{f}(i);
-    end;
-end;
+    end
+end
 
 if ~isempty(EEG.event)
     %newEventFields = struct('latency', num2cell(newEventLatency), 'type', newEventType);
@@ -134,7 +160,7 @@ for i=1:length(sortedEventLatency)
 
     EEG.event(i) = combinedFields(i);
     %    EEG.event(i).urevent = i;
-end;
+end
 
 %% adding new urevents
 
@@ -145,7 +171,7 @@ originalUreventFields= cell(1, length(EEG.urevent));
 for i=1:length(EEG.urevent)
     originalUreventLatency(i) = EEG.urevent(i).latency;
     originalUreventFields{i} =  EEG.urevent(i);
-end;
+end
 
 newUreventLatency = [];
 newUreventType = [];
@@ -159,12 +185,12 @@ for i=1:length(EEG.event)
         newUreventLatency = [newUreventLatency eeg_urlatency(EEG.event, EEG.event(i).latency)];
     else
         newUreventLatency = [newUreventLatency EEG.urevent(EEG.event(i).urevent).latency];
-    end;
+    end
   
     newUreventFields{i} = EEG.event(i);
     
     newUreventEventNumber(i) = i;
-end;
+end
 
 combinedEventNumber = newUreventEventNumber;%[NaN(1,length(EEG.urevent)) newUreventEventNumber];
 combinedUrEventLatencies = newUreventLatency;%[originalUreventLatency newUreventLatency];
@@ -181,25 +207,25 @@ for i=1:length(order)
     
     EEG.urevent(i).latency = combinedUrEventLatencies(order(i));
     EEG.event(newUreventEventNumber(i)).urevent = i;
-    %end;
-end;
+    %end
+end
 
 if isfield(EEG.urevent,'urevent')
     EEG.urevent = rmfield(EEG.urevent,'urevent'); % remove urevent field
-end;
+end
 
 % turn empty event durations into 0
 for i=1:length(EEG.event)
     if isempty(EEG.event(i).duration)
         EEG.event(i).duration = 0;
-    end;
-end;
+    end
+end
 
 for i=1:length(EEG.urevent)
     if isempty(EEG.urevent(i).duration)
         EEG.urevent(i).duration = 0;
-    end;
-end;
+    end
+end
 
 %
 % function latency = newEventUrEventLatency(EEG, combinedFields, i)
@@ -212,7 +238,7 @@ end;
 %     currentEventNumber = currentEventNumber - 1;
 %     if ~(~isfield(combinedFields(currentEventNumber),'urevent') || isempty(combinedFields(currentEventNumber).urevent) || isnan(combinedFields(currentEventNumber).urevent))
 %         urlatencyBefore = EEG.urevent(combinedFields(currentEventNumber).urevent).latency;
-%     end;
+%     end
 % end
 %
 % %% if no event with urevent is found before, look for an event with urvent after the new event
@@ -224,9 +250,9 @@ end;
 %         currentEventNumber = currentEventNumber + 1;
 %         if ~(~isfield(combinedFields(currentEventNumber),'urevent') ||  isempty(combinedFields(currentEventNumber).urevent) || isnan(combinedFields(currentEventNumber).urevent))
 %             urlatencyAfter = EEG.urevent(combinedFields(currentEventNumber).urevent).latency;
-%         end;
+%         end
 %     end
-% end;
+% end
 % %%
 % if ~isempty(urlatencyBefore)
 %     latency = urlatencyBefore + combinedFields(i).latency - combinedFields(currentEventNumber).latency;
@@ -234,4 +260,4 @@ end;
 %     latency = urlatencyAfter + combinedFields(currentEventNumber).latency - combinedFields(i).latency;
 % else
 %     latency = [];
-% end;
+% end

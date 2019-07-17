@@ -33,19 +33,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 01-25-02 reformated help & license -ad 
 % 03-08-02 remove ica activity resampling (now set to []) -ad
@@ -70,10 +81,10 @@ if nargin < 2
 	promptstr    = {['New sampling rate']};
 	inistr       = { num2str(EEG(1).srate) };
 	result       = inputdlg2( promptstr, 'Resample current dataset -- pop_resample()', 1,  inistr, 'pop_resample');
-	if length(result) == 0 return; end;
+	if length(result) == 0 return; end
 	freq         = eval( result{1} );
 
-end;
+end
 
 % Default cutoff frequency (pi rad / smp)
 if nargin < 3 || isempty(fc)
@@ -91,9 +102,13 @@ end
 % process multiple datasets
 % -------------------------
 if length(EEG) > 1
-    [ EEG command ] = eeg_eval( 'pop_resample', EEG, 'warning', 'on', 'params', { freq } );
+    if nargin < 2
+        [ EEG command ] = eeg_eval( 'pop_resample', EEG, 'warning', 'on', 'params', { freq } );
+    else
+        [ EEG command ] = eeg_eval( 'pop_resample', EEG, 'params', { freq } );
+    end
     return;
-end;
+end
 
 % finding the best ratio
 % [p,q] = rat(freq/EEG.srate, 0.0001) % not used right now 
@@ -106,7 +121,7 @@ oldpnts  = EEG.pnts;
 
 % resample for multiple channels
 % -------------------------
-if isfield(EEG, 'event') & isfield(EEG.event, 'type') & isstr(EEG.event(1).type)
+if isfield(EEG, 'event') && isfield(EEG.event, 'type') && ischar(EEG.event(1).type)
     tmpevent = EEG.event;
     bounds = strmatch('boundary', { tmpevent.type });
     if ~isempty(bounds),
@@ -114,12 +129,12 @@ if isfield(EEG, 'event') & isfield(EEG.event, 'type') & isstr(EEG.event(1).type)
         bounds = [ tmpevent(bounds).latency ];
         bounds(bounds <= 0 | bounds > size(EEG.data,2)) = []; % Remove out of range boundaries
         bounds(mod(bounds, 1) ~= 0) = round(bounds(mod(bounds, 1) ~= 0) + 0.5); % Round non-integer boundary latencies
-    end;
+    end
     bounds = [1 bounds size(EEG.data, 2) + 1]; % Add initial and final boundary event
     bounds = unique(bounds); % Sort (!) and remove doublets
 else 
     bounds = [1 size(EEG.data,2) + 1]; % [1:size(EEG.data,2):size(EEG.data,2)*size(EEG.data,3)+1];
-end;
+end
 
 eeglab_options;
 if option_donotusetoolboxes
@@ -129,7 +144,7 @@ elseif exist('resample') == 2
 else usesigproc = 0;
     disp('Signal Processing Toolbox absent: using custom interpolation instead of resample() function.');
     disp('This method uses cubic spline interpolation after anti-aliasing (see >> help spline)');    
-end;
+end
 
 fprintf('resampling data %3.4f Hz\n', EEG.srate*p/q);
 eeglab_options;
@@ -143,71 +158,100 @@ for index1 = 1:size(EEG.data,1)
         for ind = 1:length(bounds)-1
             tmpres  = [ tmpres; myresample( double( sigtmp(bounds(ind):bounds(ind+1)-1,:)), p, q, usesigproc, fc, df ) ];
             indices = [ indices size(tmpres,1)+1 ];
-        end;
+        end
         if size(tmpres,1) == 1, EEG.pnts  = size(tmpres,2);
         else                    EEG.pnts  = size(tmpres,1);
-        end;
+        end
         if option_memmapdata == 1
              tmpeeglab = mmo([], [EEG.nbchan, EEG.pnts, EEG.trials]);
         else tmpeeglab = zeros(EEG.nbchan, EEG.pnts, EEG.trials);
-        end;
+        end
     else
         for ind = 1:length(bounds)-1
             tmpres(indices(ind):indices(ind+1)-1,:) = myresample( double( sigtmp(bounds(ind):bounds(ind+1)-1,:) ), p, q, usesigproc, fc, df);
-        end;
+        end
     end; 
     tmpeeglab(index1,:, :) = tmpres;
-end;
+end
 fprintf('\n');	
 EEG.srate   = EEG.srate*p/q;
 EEG.data = tmpeeglab;
+EEG.pnts    = size(EEG.data,2);
+EEG.xmax    = EEG.xmin + (EEG.pnts-1)/EEG.srate; % cko: recompute xmax, since we may have removed a few of the trailing samples
+EEG.times   = linspace(EEG.xmin*1000, EEG.xmax*1000, EEG.pnts);
 
 % recompute all event latencies
 % -----------------------------
 if isfield(EEG.event, 'latency')
     fprintf('resampling event latencies...\n');
-
-    for iEvt = 1:length(EEG.event)
-
-        % From >> help resample: Y is P/Q times the length of X (or the
-        % ceiling of this if P/Q is not an integer).
-        % That is, recomputing event latency by pnts / oldpnts will give
-        % inaccurate results in case of multiple segments and rounded segment
-        % length. Error is accumulated and can lead to several samples offset.
-        % Blocker for boundary events.
-        % Old version EEG.event(index1).latency = EEG.event(index1).latency * EEG.pnts /oldpnts;
-
-        % Recompute event latencies relative to segment onset
-        if strcmpi(EEG.event(iEvt).type, 'boundary') && mod(EEG.event(iEvt).latency, 1) == 0.5 % Workaround to keep EEGLAB style boundary events at -0.5 latency relative to DC event; actually incorrect
-            iBnd = sum(EEG.event(iEvt).latency + 0.5 >= bounds);
-            EEG.event(iEvt).latency = indices(iBnd) - 0.5;
-        else
-            iBnd = sum(EEG.event(iEvt).latency >= bounds);
-            EEG.event(iEvt).latency = (EEG.event(iEvt).latency - bounds(iBnd)) * p / q + indices(iBnd);
+    
+    if EEG.trials > 1 % Epoched data; not recommended
+        
+        warning( 'Resampling of epoched data is not recommended (due to anti-aliasing filtering)! Note: For epoched datasets recomputing urevent latencies is not supported. The urevent structure will be cleared.' )
+        
+        for iEvt = 1:length( EEG.event )
+            
+            EEG.event( iEvt ).latency = ( EEG.event( iEvt ).latency - ( EEG.event(iEvt).epoch - 1 ) * oldpnts - 1 ) * p / q + ( EEG.event(iEvt).epoch - 1 ) * EEG.pnts + 1;
+            
+            % % Recompute event latencies
+            if isfield(EEG.event, 'duration') && ~isempty(EEG.event(iEvt).duration)
+                EEG.event( iEvt ).duration = EEG.event( iEvt ).duration * p/q;
+            end
         end
         
-    end
+        EEG.urevent = [];
+        
+    else % Continuous data
 
-    if isfield(EEG, 'urevent') & isfield(EEG.urevent, 'latency')
-        try
-            for iUrevt = 1:length(EEG.urevent)
-                % Recompute urevent latencies relative to segment onset
-                if strcmpi(EEG.urevent(iUrevt).type, 'boundary') && mod(EEG.urevent(iUrevt).latency, 1) == 0.5 % Workaround to keep EEGLAB style boundary events at -0.5 latency relative to DC event; actually incorrect
-                    iBnd = sum(EEG.urevent(iUrevt).latency + 0.5 >= bounds);
-                    EEG.urevent(iUrevt).latency = indices(iBnd) - 0.5;
-                else
-                    iBnd = sum(EEG.urevent(iUrevt).latency >= bounds);
-                    EEG.urevent(iUrevt).latency = (EEG.urevent(iUrevt).latency - bounds(iBnd)) * p / q + indices(iBnd);
+        for iEvt = 1:length(EEG.event)
+
+            % From >> help resample: Y is P/Q times the length of X (or the
+            % ceiling of this if P/Q is not an integer).
+            % That is, recomputing event latency by pnts / oldpnts will give
+            % inaccurate results in case of multiple segments and rounded segment
+            % length. Error is accumulated and can lead to several samples offset.
+            % Blocker for boundary events.
+            % Old version EEG.event(index1).latency = EEG.event(index1).latency * EEG.pnts /oldpnts;
+
+            % Recompute event latencies relative to segment onset
+            if strcmpi(EEG.event(iEvt).type, 'boundary') && mod(EEG.event(iEvt).latency, 1) == 0.5 % Workaround to keep EEGLAB style boundary events at -0.5 latency relative to DC event; actually incorrect
+                iBnd = sum(EEG.event(iEvt).latency + 0.5 >= bounds);
+                EEG.event(iEvt).latency = indices(iBnd) - 0.5;
+            else
+                iBnd = sum(EEG.event(iEvt).latency >= bounds);
+                EEG.event(iEvt).latency = (EEG.event(iEvt).latency - bounds(iBnd)) * p / q + indices(iBnd);
+            end
+            
+            % Recompute event duration relative to segment onset
+            if isfield(EEG.event, 'duration') && ~isempty(EEG.event(iEvt).duration)
+                EEG.event( iEvt ).duration = EEG.event( iEvt ).duration * p/q;
+            end
+
+        end
+
+        if isfield(EEG, 'urevent') && isfield(EEG.urevent, 'latency')
+            try
+                for iUrevt = 1:length(EEG.urevent)
+                    % Recompute urevent latencies relative to segment onset
+                    if strcmpi(EEG.urevent(iUrevt).type, 'boundary') && mod(EEG.urevent(iUrevt).latency, 1) == 0.5 % Workaround to keep EEGLAB style boundary events at -0.5 latency relative to DC event; actually incorrect
+                        iBnd = sum(EEG.urevent(iUrevt).latency + 0.5 >= bounds);
+                        EEG.urevent(iUrevt).latency = indices(iBnd) - 0.5;
+                    else
+                        iBnd = sum(EEG.urevent(iUrevt).latency >= bounds);
+                        EEG.urevent(iUrevt).latency = (EEG.urevent(iUrevt).latency - bounds(iBnd)) * p / q + indices(iBnd);
+                    end
+
                 end
-
-            end;
-        catch
-            disp('pop_resample warning: ''urevent'' problem, reinitializing urevents');
-            EEG = rmfield(EEG, 'urevent');
-        end;
-    end;
+            catch
+                disp('pop_resample warning: ''urevent'' problem, reinitializing urevents');
+                EEG = rmfield(EEG, 'urevent');
+            end
+        end
+    
+    end
+    
     EEG = eeg_checkset(EEG, 'eventconsistency');
-end;
+end
 
 % resample for multiple channels ica
 EEG.icaact = [];
@@ -216,11 +260,8 @@ EEG.icaact = [];
 fprintf('resampling finished\n');
 
 EEG.setname = [EEG.setname ' resampled'];
-EEG.pnts    = size(EEG.data,2);
-EEG.xmax    = EEG.xmin + (EEG.pnts-1)/EEG.srate; % cko: recompute xmax, since we may have removed a few of the trailing samples
-EEG.times   = linspace(EEG.xmin*1000, EEG.xmax*1000, EEG.pnts);
 
-command = sprintf('EEG = pop_resample( %s, %d);', inputname(1), freq);
+command = sprintf('EEG = pop_resample( EEG, %d);', freq);
 return;
 
 % resample if resample is not present
@@ -230,8 +271,8 @@ function tmpeeglab = myresample(data, p, q, usesigproc, fc, df)
     if length(data) < 2
         tmpeeglab = data;
         return;
-    end;
-    %if size(data,2) == 1, data = data'; end;
+    end
+    %if size(data,2) == 1, data = data'; end
     if usesigproc
         % padding to avoid artifacts at the beginning and at the end
         % Andreas Widmann May 5, 2011
@@ -314,3 +355,88 @@ function tmpeeglab = myresample(data, p, q, usesigproc, fc, df)
         end
 
     end
+    
+% firfiltdcpadded() - Pad data with DC constant and filter
+%
+% Usage:
+%   >> data = firfiltdcpadded(data, b, causal);
+%
+% Inputs:
+%   data      - raw data
+%   b         - vector of filter coefficients
+%   causal    - boolean perform causal filtering {default 0}
+%
+% Outputs:
+%   data      - smoothed data
+%
+% Note:
+%   firfiltdcpadded always operates (pads, filters) along first dimension.
+%   Not memory optimized.
+%
+% Author: Andreas Widmann, University of Leipzig, 2013
+%
+% See also:
+%   firfiltsplit
+
+%123456789012345678901234567890123456789012345678901234567890123456789012
+
+% Copyright (C) 2013 Andreas Widmann, University of Leipzig, widmann@uni-leipzig.de
+%
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
+%
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
+%
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
+
+function [ data ] = firfiltdcpadded(b, data, causal)
+
+% Defaults
+if nargin < 3 || isempty(causal)
+    causal = 0;
+end
+
+% Check arguments
+if nargin < 2
+    error('Not enough input arguments.');
+end
+
+% Filter's group delay
+if mod(length(b), 2) ~= 1
+    error('Filter order is not even.');
+end
+groupDelay = (length(b) - 1) / 2;
+b = double(b); % Filter with double precision
+
+% Pad data with DC constant
+if causal
+    startPad = repmat(data(1, :), [2 * groupDelay 1]);
+    endPad = [];
+else
+    startPad = repmat(data(1, :), [groupDelay 1]);
+    endPad = repmat(data(end, :), [groupDelay 1]);
+end
+
+% Filter data
+data = filter(b, 1, double([startPad; data; endPad])); % Pad and filter with double precision
+
+% Remove padded data
+data = data(2 * groupDelay + 1:end, :);

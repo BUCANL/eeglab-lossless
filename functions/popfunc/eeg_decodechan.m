@@ -7,7 +7,10 @@
 % Inputs:
 %   chanlocs  - channel location structure
 %   chanlist  - list of channels, numerical indices [1 2 3 ...] or string 
-%               'cz pz fz' or cell array { 'cz' 'pz' 'fz' }
+%               'cz pz fz' or cell array { 'cz' 'pz' 'fz' }. Can also be 
+%               a list of channel types (see below)
+%   field     - ['labels'|'type'] channel field to match. Default is
+%               'labels'
 %
 % Outputs:
 %   chaninds  - integer array with the list of channel indices
@@ -19,34 +22,48 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
-function [ chaninds chanlist ] = eeg_decodechan(chanlocs, chanstr);
+function [ chaninds, chanlist ] = eeg_decodechan(chanlocs, chanstr, field)
 
 if nargin < 2
     help eeg_decodechan;
     return;
-end;
+end
+if nargin < 3
+    field = 'labels';
+end
 
-if isempty(chanlocs) && isstr(chanstr)
+if isempty(chanlocs) && ischar(chanstr)
     chaninds = str2num(chanstr);
     chanlist = chaninds;
     return;
-end;
+end
     
-if isstr(chanstr)
+if ischar(chanstr)
     % convert chanstr
     % ---------------
     chanstr(find(chanstr == ']')) = [];
@@ -59,26 +76,26 @@ if isstr(chanstr)
         c = chanstr(sp(i)+1:sp(i+1)-1);
         if ~isempty(c)
             chanlist{end+1} = c;
-            if isnan(str2double(chanlocs(1).labels)) % channel labels are not numerical
+            if isnan(str2double(chanlocs(1).(field))) % channel labels are not numerical
                 if ~isnan(str2double(c))
                     chanlistnum(end+1) = str2double(c);
-                end;
-            end;
-        end;
-    end;
+                end
+            end
+        end
+    end
     if length(chanlistnum) == length(chanlist)
         chanlist = chanlistnum;
-    end;
+    end
 else
     chanlist = chanstr;
-end;
+end
 
 % convert to values
 % -----------------
 chanval = 0;
 if isnumeric(chanlist)
     chanval = chanlist;
-end;
+end
 % chanval  = [];
 % if iscell(chanlist)
 %     for ind = 1:length(chanlist)
@@ -87,11 +104,11 @@ end;
 %         if ~isnan(valtmp)
 %              chanval(end+1) = valtmp;
 %         else chanval(end+1) = 0;
-%         end;
-%     end;
+%         end
+%     end
 % else
 %     chanval = chanlist;
-% end;
+% end
 
 % convert to numerical
 % --------------------
@@ -100,30 +117,30 @@ if all(chanval) > 0
     chanlist = chanval;
 else
     chaninds = [];
-    alllabs  = lower({ chanlocs.labels });
+    alllabs  = lower({ chanlocs.(field) });
     chanlist = lower(chanlist);
     for ind = 1:length(chanlist)
         indmatch = find(strcmp(alllabs,chanlist{ind})); %#ok<STCI>
         if ~isempty(indmatch)
             for tmpi = 1:length(indmatch)
                 chaninds(end+1) = indmatch(tmpi);
-            end;
+            end
         else
             try,
                 eval([ 'chaninds = ' chanlist{ind} ';' ]);
                 if isempty(chaninds)
                      error([ 'Channel ''' chanlist{ind} ''' not found' ]);
                 else 
-                end;
+                end
             catch
                 error([ 'Channel ''' chanlist{ind} ''' not found' ]);
-            end;
-        end;
-    end;
-end;
+            end
+        end
+    end
+end
 chaninds = sort(chaninds);
 if ~isempty(chanlocs)
-    chanlist = { chanlocs(chaninds).labels };
+    chanlist = { chanlocs(chaninds).(field) };
 else
     chanlist = {};
-end;
+end

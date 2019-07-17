@@ -22,25 +22,36 @@
 
 % Copyright (C) 12 Nov 2002 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [EEG, command] = pop_readegi(filename, datachunks, forceversion, fileloc);
 
 EEG = [];
 command = '';
-if nargin < 4, fileloc = 'auto'; end;
+if nargin < 4, fileloc = 'auto'; end
 disp('Warning: This function can only import continuous files or');
 disp('         epoch files with only one length for data epochs');
 
@@ -49,7 +60,7 @@ if nargin < 1
     [filename, filepath] = uigetfile('*.RAW;*.raw', ...
         'Choose an EGI RAW file -- pop_readegi()');
     drawnow;
-    if filename == 0 return; end;
+    if filename == 0 return; end
     filename = [filepath filename];
     
     fid = fopen(filename, 'rb', 'b');
@@ -64,7 +75,7 @@ if nargin < 1
             case { 64 65 }, fileloc =  {floc{2} floc{3:4} floc{1}};
             case { 128 129 }, fileloc = {floc{3} floc{4} floc{1:2}};
             case { 256 257 }, fileloc = {floc{4} floc{1:3}};
-        end;
+        end
         uilist = { { 'style' 'text' 'string' sprintf('Segment/frame number (default: 1:%d)', head.segments) } ...
                    { 'style' 'edit' 'string' '' } ...
                    { 'style' 'text' 'string' 'Channel location file (in eeglab/sample_locs)' } ...
@@ -83,14 +94,14 @@ if nargin < 1
 %         promptstr    = { sprintf('Segment/frame number (default: 1:%d)', head.segments) 'Channel location file (in eeglab/sample_locs)' };
 %         inistr       = { '' fileloc(res{2})};
 %         result       = inputdlg2( promptstr, 'Import EGI file -- pop_readegi()', 1,  inistr, 'pop_readegi');
-        if length(result) == 0 return; end;
+        if length(result) == 0 return; end
         datachunks   = eval( [ '['  result{1} ']' ] );
         fileloc      = char(fileloc(result{2}));
     else
         datachunks   = [];
         disp('Only one segment, cannot read portion of the file');
-    end;
-end;
+    end
+end
 
 % load data
 % ----------
@@ -106,9 +117,9 @@ else
     [Head EEG.data Eventdata SegCatIndex] = readegi( filename);
     forceversion = [];
 end
-if ~isempty(Eventdata) & size(Eventdata,2) == size(EEG.data,2)
+if ~isempty(Eventdata) && size(Eventdata,2) == size(EEG.data,2)
     EEG.data(end+1:end+size(Eventdata,1),:) = Eventdata;
-end;
+end
 EEG.comments        = [ 'Original file: ' filename ];
 EEG.setname 		= 'EGI file';
 EEG.nbchan          = size(EEG.data,1);
@@ -127,35 +138,35 @@ if ~isempty(Eventdata)
             'delevent', 'off', 'typename', Head.eventcode(index,:), ...
             'nbtype', 1, 'delchan', 'on');
         Head.eventcode(end,:) = [];
-    end;
+    end
     
     % renaming event codes
     % --------------------
     try,
         tmpevent = EEG.event;
         alltypes = { tmpevent.type };
-        if isstr(alltypes{1})
+        if ischar(alltypes{1})
             indepoc = strmatch('epoc', lower(alltypes), 'exact');
             indtim  = strmatch('tim0', lower(alltypes), 'exact');
             
             % if epoc but no tim0 then epoc represent pauses in recording
-            if isempty(indtim) & ~isempty(indepoc)
+            if isempty(indtim) && ~isempty(indepoc)
                 for index = indepoc
                     EEG.event(index).type = 'boundary';
-                end;
-            end;
+                end
+            end
             % other wise if both non-empty data epochs
-            if ~isempty(indtim) & ~isempty(indepoc)
+            if ~isempty(indtim) && ~isempty(indepoc)
                 if rem(size(EEG.data,2) / (length(indepoc)+1),1) == 0
                     EEG.event(index) = []; % remove epoch events
                     EEG.trials       = length(indepoc)+1;
                 else
                     disp('Warning: data epochs detected but wrong data size');
-                end;
-            end;
-        end;
-    catch, disp('Warning: event renaming failed'); end;
-end;
+                end
+            end
+        end
+    catch, disp('Warning: event renaming failed'); end
+end
 
 % adding segment category indices
 % -------------------------------
@@ -164,20 +175,20 @@ if ~isempty(SegCatIndex) && EEG.trials > 1
         if ~isempty(EEG.event)
             for index = 1:length(EEG.event)
                 EEG.event(index).category = Head.catname{SegCatIndex(EEG.event(index).epoch)};
-            end;
+            end
         else % create time-locking events
             for trial = 1:EEG.trials
                 EEG.event(trial).epoch    = trial;
                 EEG.event(trial).type     = 'TLE';
                 EEG.event(trial).latency  = -EEG.xmin*EEG.srate+1+(trial-1)*EEG.pnts;
                 EEG.event(trial).category = Head.catname{SegCatIndex(trial)};
-            end;
-        end;
+            end
+        end
     catch,
         disp('Warning: error while importing trial categories');
         EEG.event = rmfield(EEG.event, 'category');
-    end;
-end;
+    end
+end
 EEG = eeg_checkset(EEG, 'makeur');
 EEG = eeg_checkset(EEG, 'eventconsistency');
 
@@ -189,23 +200,23 @@ if nargin < 1
         'to your montage as EGI has different versions of caps.' 10 ...
         'Check your montage in the channel editor and import' 10 ...
         'the correct location file if necessary.' ]);
-end;
+end
 if all(EEG.data(end,1:10) == 0)
     disp('Deleting empty data reference channel (reference channel location is retained)');
     EEG.data(end,:)   = [];
     EEG.nbchan        = size(EEG.data,1);
     EEG = eeg_checkset(EEG);
-end;
+end
 if ~isempty(fileloc)
     if strcmpi(fileloc, 'auto')
         EEG = readegilocs(EEG);
     else
         EEG = readegilocs(EEG, fileloc);
-    end;
-end;
+    end
+end
 
 if nargin < 1
     command = sprintf('EEG = pop_readegi(''%s'', %s);', filename, vararg2str({datachunks forceversion fileloc }) );
-end;
+end
 
 return;

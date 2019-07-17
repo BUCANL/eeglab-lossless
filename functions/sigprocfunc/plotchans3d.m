@@ -19,19 +19,32 @@
 % See also: topoplot(), readlocs(), readelp(), 
 %           polhemus2topo(), pop_chanedit()
         
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% Copyright (C) 2002 UCSD
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
+%
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 04/01/02 changed header for help2html compatibility -ad
 % 04/01/02 debuging zs -ad
@@ -42,12 +55,12 @@ function  plotchans3d(elpfile, arg2, arg3)
 if nargin<1
     help plotchans3d;
     return;
-end;
+end
 zs = [];
-if isstr(elpfile)
+if ischar(elpfile)
     if nargin > 1
         zs = arg2;
-    end;
+    end
     [elocstruct, elocname, X, Y, Z ] =readelp([elpfile]);
 else
     X = elpfile(:,1)';
@@ -57,15 +70,15 @@ else
         elocname = arg2;
     else 
         elocname = [];
-    end;
+    end
     if nargin > 2
         zs = arg3;
-    end;
-end;
+    end
+end
 
 if isempty(zs)
    zs = [1:length(elocname)];
-end;
+end
 
 %zs =[3 7 15 26 36 46 56 64 69 71 72];
 
@@ -77,7 +90,7 @@ hold on
 
 if ~isempty(elocname)
     plot3(X(zs),Y(zs),Z(zs),'b*')
-end;
+end
 
 plot3([0.08 0.12],[0 0],[0 0],'r','LineWidth',4) % nose
 plot3([0 lim],[0 0],[0 0],'b--')                 % axis
@@ -100,9 +113,9 @@ if ~isempty(elocname)
              'VerticalAlignment','middle','Color',[0 0 0],...
              'FontSize',10)
     end
-end;
+end
 %axis(repmat([-lim lim],1,3))
 axis([-lim lim -lim lim -lim*0.5 lim])
 axis equal;
 rotate3d on
-try, icadefs; set(gcf, 'color', BACKCOLOR); catch, end
+try icadefs; set(gcf, 'color', BACKCOLOR); catch, end

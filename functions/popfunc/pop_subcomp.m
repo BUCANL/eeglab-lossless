@@ -1,9 +1,12 @@
 % pop_subcomp() - remove specified components from an EEG dataset.
 %                 and subtract their activities from the data. Else,
-%                 remove components already marked for rejection.
+%                 remove components already marked for rejection. When used
+%                 with the options 'keepcomp', the function will retain [1]
+%                 or reject[0] the components provided as input.
 % Usage:
 %   >> OUTEEG = pop_subcomp( INEEG ); % pop-up window mode
-%   >> OUTEEG = pop_subcomp( INEEG, components, confirm);
+%   >> OUTEEG = pop_subcomp( INEEG, components, plotag);
+%   >> OUTEEG = pop_subcomp( INEEG, components, plotag, keepcomp);
 %
 % Pop-up window interface:
 %   "Component(s) to remove ..." - [edit box] Array of components to 
@@ -12,15 +15,21 @@
 %   "Component(s) to retain ..." - [edit box] Array of components to
 %                to retain in the data. Sets the 'components' parameter in
 %                the command line call. Then, comp_to_remove = ...
-%                    setdiff([1:size(EEG.icaweights,1)], comp_to_keep)
+%                    setdiff([1:size(EEG.icaweights,1)], comp_to_keep). See
+%                    option 'keepcomp' for command line call.
 %                Overwrites "Component(s) to remove" (above).
 % Command line inputs:
 %   INEEG      - Input EEG dataset.
 %   components - Array of components to remove from the data. If empty, 
 %                 remove components previously marked for rejection (e.g., 
 %                 EEG.reject.gcompreject).
-%   confirm    - [0|1] Display the difference between original and processed
+%   plotag     - [0|1] Display the difference between original and processed
 %                dataset. 1 = Ask for confirmation. 0 = Do not ask. {Default: 0}
+%   keepcomp   - [0|1] If [1] will retain the components provided by the
+%                input variable 'components', [0] will reject them. Option
+%                intended to be used only with the components provided in 
+%                'components', and not with components marked for rejection
+%                {Default: 0}
 % Outputs:
 %   OUTEEG     - output dataset.
 %
@@ -30,33 +39,45 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 01-25-02 reformated help & license -ad 
 % 02-15-02 propagate ica weight matrix -ad sm jorn 
 
-function [EEG, com] = pop_subcomp( EEG, components, plotag )
+function [EEG, com] = pop_subcomp( EEG, components, plotag, keepcomp)
 
 com='';
 if nargin < 1
    help pop_subcomp;
    return;
-end;
+end
 if nargin < 3
 	plotag = 0;
-end;	
+end
+if nargin == 4 && ismember(keepcomp,[1 0]); keep_flag = keepcomp; if isempty(plotag) plotag = 0; end;  else keep_flag = 0; end
 if nargin < 2
 	% popup window parameters
 	% -----------------------
@@ -68,7 +89,7 @@ if nargin < 2
     else
         components = [];
         promptstr    = { ['Component(s) to remove from data:'] };
-    end;
+    end
     uilist    = { { 'style' 'text' 'string' ['Component(s) to remove from data:'] } ...
                   { 'style' 'edit' 'string' int2str(components) } ...
                   { 'style' 'text' 'string' 'Component(s) to retain (overwrites "Component(s) to remove")' } ...
@@ -77,13 +98,13 @@ if nargin < 2
     geom = { [2 0.7] [2 0.7] };
 	result       = inputgui( 'uilist', uilist, 'geometry', geom, 'helpcom', 'pophelp(''pop_subcomp'')', ...
                                      'title', 'Remove components from data -- pop_subcomp()');
-	if length(result) == 0 return; end;
+	if length(result) == 0 return; end
 	components   = eval( [ '[' result{1} ']' ] );
     if ~isempty(result{2}), 
         components   = eval( [ '[' result{2} ']' ] );
-        components  = setdiff_bc([1:size(EEG.icaweights,1)], components);
-    end;
-end;
+        keep_flag = 1; %components  = setdiff_bc([1:size(EEG.icaweights,1)], components); 
+    end
+end
  
 if isempty(components)
 	if ~isempty(EEG.reject.gcompreject)
@@ -91,12 +112,13 @@ if isempty(components)
    	else
         	fprintf('Warning: no components specified, no rejection performed\n');
          	return;
-   	end;
+   	end
 else
+    if keep_flag == 1; components  = setdiff_bc([1:size(EEG.icaweights,1)], components); end
     if (max(components) > size(EEG.icaweights,1)) || min(components) < 1
         error('Component index out of range');
-    end;
-end;
+    end
+end
 
 fprintf('Computing projection ....\n');
 component_keep = setdiff_bc(1:size(EEG.icaweights,1), components);
@@ -105,7 +127,7 @@ compproj = reshape(compproj, size(compproj,1), EEG.pnts, EEG.trials);
 
 %fprintf( 'The ICA projection accounts for %2.2f percent of the data\n', 100*varegg);
 	
-if nargin < 2 | plotag ~= 0
+if nargin < 2 || plotag ~= 0
 
     ButtonName = 'continue';
     while ~strcmpi(ButtonName, 'Cancel') & ~strcmpi(ButtonName, 'Accept')
@@ -113,17 +135,17 @@ if nargin < 2 | plotag ~= 0
                              'Confirmation', 'Cancel', 'Plot ERPs', 'Plot single trials', 'Accept', 'Accept');
         if strcmpi(ButtonName, 'Plot ERPs')
             if EEG.trials > 1
-                tracing  = [ squeeze(mean(EEG.data(EEG.icachansind,:,:),3)) squeeze(mean(compproj,3))];
+                tracing  = [ squeeze(mean(compproj,3)) squeeze(mean(EEG.data(EEG.icachansind,:,:),3))];
                 figure;   
                 plotdata(tracing, EEG.pnts, [EEG.xmin*1000 EEG.xmax*1000 0 0], ...
-                    'Trial ERPs (red) with and (blue) without these components');
+                    'Trial ERPs (blue) with and (red) without these components');
             else
                 warndlg2('Cannot plot ERPs for continuous data');
-            end;
+            end
         elseif strcmpi(ButtonName, 'Plot single trials')  
         	eegplot( EEG.data(EEG.icachansind,:,:), 'srate', EEG.srate, 'title', 'Black = channel before rejection; red = after rejection -- eegplot()', ...
             	 'limits', [EEG.xmin EEG.xmax]*1000, 'data2', compproj); 
-        end;
+        end
     end;    
     switch ButtonName,
         case 'Cancel', 
@@ -132,7 +154,7 @@ if nargin < 2 | plotag ~= 0
         case 'Accept',
        		disp('Components removed');
     end % switch
-end;
+end
 EEG.data(EEG.icachansind,:,:) = compproj;
 EEG.setname = [ EEG.setname ' pruned with ICA'];
 EEG.icaact  = [];
@@ -145,8 +167,7 @@ EEG.reject      = [];
 
 try,
     EEG.dipfit.model = EEG.dipfit.model(goodinds);
-catch, end;
+catch, end
 
-com = sprintf('%s = pop_subcomp( %s, [%s], %d);', inputname(1), inputname(1), ...
-   int2str(components), plotag);
+com = sprintf('EEG = pop_subcomp( EEG, [%s], %d);', int2str(components), plotag);
 return;

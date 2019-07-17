@@ -13,7 +13,10 @@
 %                      an array of indices
 %   'select'         - selection of channel. Can take as input all the
 %                      outputs of this function.
-%   'selectionmode' - selection mode 'multiple' or 'single'. See listdlg2().
+%   'field'          - ['type'|'labels'] information to select. Default is 
+%                      'labels'
+%   'handle'         - [handle] update handle (GUI)
+%   'selectionmode'  - selection mode 'multiple' or 'single'. See listdlg2().
 %
 % Output:
 %   chanlist      - indices of selected channels
@@ -25,63 +28,78 @@
 
 % Copyright (C) 3 March 2003 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [chanlist,chanliststr, allchanstr] = pop_chansel(chans, varargin); 
     
     if nargin < 1
         help pop_chansel;
         return;
-    end;
-    if isempty(chans), disp('Empty input'); return; end;
+    end
+    if isempty(chans), disp('Empty input'); return; end
     if isnumeric(chans),
         for c = 1:length(chans)
             newchans{c} = num2str(chans(c));
-        end;
+        end
         chans = newchans;
-    end;
+    end
     chanlist    = [];
     chanliststr = {};
     allchanstr  = '';
     
-    g = finputcheck(varargin, { 'withindex'     {  'integer';'string' } { [] {'on' 'off'} }   'off';
-                                'select'        { 'cell';'string';'integer' } [] [];
+    g = finputcheck(varargin, { 'withindex'     '' [] 'off';
+                                'select'        '' [] [];
+                                'handle'        '' [] [];
+                                'field'         'string' [] 'labels';
                                 'selectionmode' 'string' { 'single';'multiple' } 'multiple'});
-    if isstr(g), error(g); end;
-    if ~isstr(g.withindex), chan_indices = g.withindex; g.withindex = 'on';
+    if ischar(g), error(g); end
+    if ~ischar(g.withindex), chan_indices = g.withindex; g.withindex = 'on';
     else                    chan_indices = 1:length(chans);
-    end;
-    
+    end
+    if isstruct(chans), chans = { chans.(g.field) }; end
+    if strcmpi(g.field, 'type'), chans = unique_bc(chans); end
+        
     % convert selection to integer
     % ----------------------------
-    if isstr(g.select) & ~isempty(g.select)
+    if ischar(g.select) && ~isempty(g.select)
         g.select = parsetxt(g.select);
-    end;
-    if iscell(g.select) & ~isempty(g.select)
-        if isstr(g.select{1})
+    end
+    if iscell(g.select) && ~isempty(g.select)
+        if ischar(g.select{1})
             tmplower = lower( chans );
             for index = 1:length(g.select)
                 matchind = strmatch(lower(g.select{index}), tmplower, 'exact');
                 if ~isempty(matchind), g.select{index} = matchind;
                 else error( [ 'Cannot find ''' g.select{index} '''' ] );
-                end;
-            end;
-        end;
+                end
+            end
+        end
         g.select = [ g.select{:} ];
-    end;
-    if ~isnumeric( g.select ), g.select = []; end;
+    end
+    if ~isnumeric( g.select ), g.select = []; end
     
     % add index to channel name
     % -------------------------
@@ -94,16 +112,16 @@ function [chanlist,chanliststr, allchanstr] = pop_chansel(chans, varargin);
                 tmpfieldnames{index} = [ num2str(chan_indices(index)) '  -  ' num2str(tmpstr(index)) ]; 
             else
                 tmpfieldnames{index} = num2str(tmpstr(index)); 
-            end;
-        end;
+            end
+        end
     else
         tmpfieldnames = chans;
         if strcmpi(g.withindex, 'on')
             for index=1:length(tmpfieldnames), 
                 tmpfieldnames{index} = [ num2str(chan_indices(index)) '  -  ' tmpfieldnames{index} ]; 
-            end;
-        end;
-    end;
+            end
+        end
+    end
     [chanlist,tmp,chanliststr] = listdlg2('PromptString',strvcat('(use shift|Ctrl to', 'select several)'), ...
                 'ListString', tmpfieldnames, 'initialvalue', g.select, 'selectionmode', g.selectionmode);   
     if tmp == 0
@@ -112,21 +130,21 @@ function [chanlist,chanliststr, allchanstr] = pop_chansel(chans, varargin);
         return;
     else
         allchanstr = chans(chanlist);
-    end;
+    end
     
     % test for spaces
     % ---------------
     spacepresent = 0;
     if ~isnumeric(chans{1})
         tmpstrs = [ allchanstr{:} ];
-        if ~isempty( find(tmpstrs == ' ')) | ~isempty( find(tmpstrs == 9))
+        if ~isempty( find(tmpstrs == ' ')) || ~isempty( find(tmpstrs == 9))
             spacepresent = 1;
-        end;
-    end;
+        end
+    end
     
     % get concatenated string (if index)
     % -----------------------
-    if strcmpi(g.withindex, 'on') | spacepresent
+    if strcmpi(g.withindex, 'on') || spacepresent
         if isnumeric(chans{1})
             chanliststr = num2str(celltomat(allchanstr));
         else
@@ -136,10 +154,14 @@ function [chanlist,chanliststr, allchanstr] = pop_chansel(chans, varargin);
                     chanliststr = [ chanliststr '''' allchanstr{index} ''' ' ];
                 else
                     chanliststr = [ chanliststr allchanstr{index} ' ' ];
-                end;
-            end;
+                end
+            end
             chanliststr = chanliststr(1:end-1);
-        end;
-    end;
+        end
+    end
+    
+    if ~isempty(g.handle)
+        set(g.handle, 'string', chanliststr);
+    end
        
     return;

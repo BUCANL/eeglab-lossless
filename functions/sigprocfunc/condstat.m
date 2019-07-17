@@ -41,53 +41,64 @@
 
 % Copyright (C) 2002  Arnaud Delorme, Lars Kai Hansen & Scott Makeig, SCCN/INC/UCSD
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [diffres, accres, res1, res2] = condstat(formula, naccu, alpha, bootside, condboot, varargin);
 
 if nargin < 6
 	help condstat;
 	return;
-end;
+end
 
-if ~ischar(formula) & ~iscell(formula)
+if ~ischar(formula) && ~iscell(formula)
 	error('The first argument must be a string formula or cell array of string');
-end;
+end
 if ischar(formula)
 	formula = { formula };
-end;
+end
 if ischar(bootside)
 	bootside = { bootside };
-end;
+end
 for index = 1:length(bootside)
-	if ~strcmpi(bootside, 'both') & ~strcmpi(bootside, 'upper')
+	if ~strcmpi(bootside, 'both') && ~strcmpi(bootside, 'upper')
 		error('Bootside must be either ''both'' or ''upper''');
-	end;
+	end
 end;	
 if ischar(condboot)
 	condboot = { condboot };
-end;
+end
 for index = 1:length(condboot)
-	if isempty(condboot{index}), condboot{index} = 'complex'; end;
+	if isempty(condboot{index}), condboot{index} = 'complex'; end
 end;	
 		
 for index = 1:length(varargin)
-	if ~iscell(varargin) | length(varargin{index}) ~=2
+	if ~iscell(varargin) || length(varargin{index}) ~=2
 		error('Except for the first arguments, all other arguments given to the function must be cell arrays of two numerical array');
-	end;
-end;
+	end
+end
 
 % accumulate coherence images (all arrays [nb_points x timesout x trials])
 % ---------------------------
@@ -99,8 +110,8 @@ for index=1:length(varargin)
 		cond2trials = size(tmpvar2,ndims(tmpvar2));
 		for tmpi = 1:length(formula) 
 			accres{tmpi} = zeros(size(tmpvar1,1), size(tmpvar1,2), naccu);
-		end;
-	end;
+		end
+	end
 	
 	if ndims(tmpvar1) == 2
 		eval( [ 'arg' int2str(index) '=zeros(size(tmpvar1,1), cond1trials+cond2trials);' ] );
@@ -110,8 +121,8 @@ for index=1:length(varargin)
 		eval( [ 'arg' int2str(index) '=zeros(size(tmpvar1,1), size(tmpvar1,2), cond1trials+cond2trials);' ] );
 		eval( [ 'arg' int2str(index) '(:,:,1:cond1trials)=tmpvar1;' ] );
 		eval( [ 'arg' int2str(index) '(:,:,cond1trials+1:end)=tmpvar2;' ] );
-	end;
-end;
+	end
+end
 
 fprintf('Accumulating permutation statistics:');
 alltrials = [1:cond1trials+cond2trials];
@@ -129,7 +140,7 @@ for index = 1:length(formula)
 	 case 'angle', formula{index} = [ 'angle(' formula{index} ')/(2*pi)' ];
 	 case 'complex', ;
 	 otherwise, condboot, error('condstat argument must be either ''abs'', ''angle'', ''complex'' or empty');
-	end;
+	end
 
 	% computing difference (non-shuffled)
 	% -----------------------------------
@@ -148,8 +159,8 @@ for index = 1:length(formula)
 	else % 3 dimensions
 		formula1 = [ formula1 arrayname '(:,:,index) = ' formula{index}  ';'];
 		formula2 = [ formula2 arrayname '(:,:,index) = ' arrayname '(:,:,index) - ' formula{index}  ';'];	
-	end;
-end;
+	end
+end
 
 % accumulating (shuffling)
 % -----------------------
@@ -162,7 +173,7 @@ for index=1:naccu
 	eval( formula1 );
 	X = alltrials(cond1trials+1:end);
 	eval( formula2 );
-end;
+end
 
 % significance level
 % ------------------
@@ -178,7 +189,7 @@ for index= 1:length(formula)
                             % think of a meaningful warning though...
                             % TF 2007.06.04
 		accarray = sqrt(accarray .* conj(accarray)); % faster than abs()
-    end;
+    end
 	
     % compute bootstrap significance level
     i = round(naccu*alpha);
@@ -192,7 +203,7 @@ for index= 1:length(formula)
 			 accarraytmp(:,:,2) = mean(accarray(:,:,1:i),3);
 			 accarraytmp(:,:,1) = mean(accarray(:,:,naccu-i+1:naccu),3);
 			 accarray = accarraytmp;
-		 end;
+		 end
 	 
 	 case 2, 
 	     accarray = sort(accarray,2); % always sort on naccu (when 3D, naccu is the second dim)
@@ -202,7 +213,7 @@ for index= 1:length(formula)
 			 accarraytmp(:,2) = mean(accarray(:,1:i),2);
 			 accarraytmp(:,1) = mean(accarray(:,naccu-i+1:naccu),2);
 			 accarray = accarraytmp;
-		 end;
+		 end
 	 case 1, 
 	     accarray = sort(accarray,1); % always sort on naccu (when 3D, naccu is the second dim)
          if strcmpi(bootside{min(length(bootside), index)}, 'upper');
@@ -211,17 +222,17 @@ for index= 1:length(formula)
 			 accarraytmp(2) = mean(accarray(1:i),1);
 			 accarraytmp(1) = mean(accarray(naccu-i+1:naccu),1);
 			 accarray = accarraytmp;
-		 end;
-    end;
+		 end
+    end
     accres{index} = accarray;
-end;
+end
 
 if length(res1) == 1
 	res1 = res1{1};
 	res2 = res2{1};
 	diffres = diffres{1};
 	accres = accres{1};
-end;
+end
 fprintf('\n');
 return;
 
@@ -231,8 +242,8 @@ return;
 % $$$ fprintf(fid, 'function [accres] = tmpfunc(alltrials, cond1trials, naccu,'); 
 % $$$ for index=1:length(varargin)
 % $$$ 	fprintf(fid, 'arg%d', index);
-% $$$ 	if index ~=length(varargin), fprintf(fid,','); end;
-% $$$ end;
+% $$$ 	if index ~=length(varargin), fprintf(fid,','); end
+% $$$ end
 % $$$ fprintf(fid, ')\n');
 % $$$ commandstr = [ 'for index=1:naccu, ' ]
 % $$$ % 			   'if rem(index,10) == 0,  disp(index); end;' ];

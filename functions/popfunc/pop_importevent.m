@@ -97,19 +97,30 @@
 
 % Copyright (C) Arnaud Delorme, CNL / Salk Institute, 9 Feb 2002, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [EEG, com] = pop_importevent(EEG, varargin);
 
@@ -127,17 +138,17 @@ I = [];
 
 % warning if data epochs
 % ----------------------
-if nargin<2 & EEG.trials > 1
+if nargin<2 && EEG.trials > 1
 		questdlg2(strvcat('Though epoch information is defined in terms of the event structure,', ...
 				  'this function is usually used to import events into continuous data.', ...
 				  'For epoched data, use menu item ''File > Import epoch info'''), ...
 				'pop_importevent warning', 'OK', 'OK');
-end;
+end
 	
 % remove the event field
 % ----------------------
 if ~isempty(EEG.event), allfields = fieldnames(EEG.event);
-else                    allfields = {}; end;
+else                    allfields = {}; end
     
 if nargin<2
         commandload = [ '[filename, filepath] = uigetfile(''*'', ''Select a text file'');' ...
@@ -172,34 +183,34 @@ if nargin<2
 					  { 'Style', 'checkbox', 'value' 1 } { },...
                };
         results = inputgui( geometry, uilist, 'pophelp(''pop_importevent'');', 'Import event info -- pop_importevent()' );
-        if length(results) == 0, return; end;
+        if length(results) == 0, return; end
 
 	    % decode top inputs
 	    % -----------------
 	    args = {};
-	    if ~isempty( results{1} ), args = { args{:}, 'indices', eval( [ '[' results{1} ']' ]) }; end;
-	    if results{2} == 0 & ~isempty(EEG.event), args = { args{:}, 'append', 'no' }; end;
+	    if ~isempty( results{1} ), args = { args{:}, 'indices', eval( [ '[' results{1} ']' ]) }; end
+	    if results{2} == 0 && ~isempty(EEG.event), args = { args{:}, 'append', 'no' }; end
 	    if ~isempty( results{3} ), 
-            if isstr( results{3} ) && ~exist(results{3})
+            if ischar( results{3} ) && ~exist(results{3})
                 args = { args{:}, 'event', evalin('base', results{3}) }; 
             else
                 args = { args{:}, 'event', results{3} }; 
-            end;
-        end;
-	    if ~isempty( results{4} ), args = { args{:}, 'fields', parsetxt(results{4}) }; end;
+            end
+        end
+	    if ~isempty( results{4} ), args = { args{:}, 'fields', parsetxt(results{4}) }; end
         
 	    % handle skipline 
 	    % ---------------     
-	    if ~isempty(eval(results{end-3})), if eval(results{end-3}) ~= 0,  args = { args{:}, 'skipline', eval(results{end-3}) }; end; end;
+	    if ~isempty(eval(results{end-3})), if eval(results{end-3}) ~= 0,  args = { args{:}, 'skipline', eval(results{end-3}) }; end; end
 
 	    % handle timeunit 
 	    % -------------     
-	    if ~isempty(eval(results{end-2})), if eval(results{end-2}) ~= 0,  args = { args{:}, 'timeunit', eval(results{end-2}) }; end; end;
+	    if ~isempty(eval(results{end-2})), if eval(results{end-2}) ~= 0,  args = { args{:}, 'timeunit', eval(results{end-2}) }; end; end
 
 	    % handle alignment 
 	    % ----------------     
-	    if ~isempty(eval(results{end-1})), if ~isnan(eval(results{end-1})),  args = { args{:}, 'align', eval(results{end-1}) }; end; end;
-	    if ~results{end} ~= 0,  args = { args{:}, 'optimalign', 'off' }; end;
+	    if ~isempty(eval(results{end-1})), if ~isnan(eval(results{end-1})),  args = { args{:}, 'align', eval(results{end-1}) }; end; end
+	    if ~results{end} ~= 0,  args = { args{:}, 'optimalign', 'off' }; end
         
 else % no interactive inputs
     args = varargin;
@@ -210,12 +221,12 @@ else % no interactive inputs
     % --------------------------------------------------------------
     for index=1:2:length(args)
         if iscell(args{index+1}), if iscell(args{index+1}{1}) args{index+1} = args{index+1}{1}; end; end; % double nested 
-        if isstr(args{index+1}) & length(args{index+1}) > 2 & args{index+1}(1) == '''' & args{index+1}(end) == ''''             
-            args{index+1} = args{index+1}(2:end-1); end;
-        %else if ~isempty( inputname(index+2) ), args{index+1} = inputname(index+2); end;
-        %end;
+        if ischar(args{index+1}) && length(args{index+1}) > 2 && args{index+1}(1) == '''' && args{index+1}(end) == ''''             
+            args{index+1} = args{index+1}(2:end-1); end
+        %else if ~isempty( inputname(index+2) ), args{index+1} = inputname(index+2); end
+        %end
     end;                
-end;
+end
 
 EEG.event = importevent( [], EEG.event, EEG.srate, args{:});
 
@@ -226,4 +237,4 @@ EEG = eeg_checkset(EEG, 'makeur');
 
 % generate the output command
 % ---------------------------
-com = sprintf('%s = pop_importevent( %s, %s);', inputname(1), inputname(1), vararg2str(args));
+com = sprintf('EEG = pop_importevent( EEG, %s);', vararg2str(args));

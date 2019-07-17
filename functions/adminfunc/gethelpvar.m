@@ -22,33 +22,44 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [alltext, allvars] = gethelpvar( filename, varlist )
 
 if nargin < 1
 	help gethelpvar;
 	return;
-end;
+end
 
 % input file
 % ---------- 
 fid = fopen( filename, 'r');
 if fid == -1
 	error('File not found');
-end;
+end
 
 cont = 1;
 % scan file
@@ -86,9 +97,9 @@ while (str(1) == '%')
 	  	 switch lower(str(1:i2d))
 	  		case { 'usage:' 'authors:' 'author:' 'notes:' 'note:' 'input:' ...
 	  		'inputs:' 'outputs:' 'output' 'example:' 'examples:' 'see also:' }, newtitle = 1;
-		 end;
-		 if (i2d == length(str)) & (str(1) ~= '%'), newtitle = 1; end;	
-   	  end;
+		 end
+		 if (i2d == length(str)) && (str(1) ~= '%'), newtitle = 1; end;	
+   	  end
       if newtitle
   			tilehtml = str(1:i2d); 
   			newtitle = 1;
@@ -107,7 +118,7 @@ while (str(1) == '%')
          [tok1 strrm] = strtok( str );
          [tok2 strrm] = strtok( strrm );
 
-         if ~isempty(tok2) & ( isequal(tok2,'-') | isequal(tok2,'=')) % new variable 
+         if ~isempty(tok2) && ( isequal(tok2,'-') || isequal(tok2,'=')) % new variable 
             newvar = 1;
             oldvarname = varname;
             oldvartext = vartext;
@@ -129,16 +140,16 @@ while (str(1) == '%')
                if ~isempty(varname) 
                	    vartext = [ vartext 10 str]; % espace if in array
                else 
-               		if length(vartext)>3 & all(vartext(	end-2:end) == '.')
+               		if length(vartext)>3 && all(vartext(	end-2:end) == '.')
                			vartext = [ deblank2(vartext(1:end-3)) 10 str]; % espace if '...'
                		else
                     	vartext = [ vartext 10 str];    % CR otherwise
                     end;	
                end;		
-            end;
+            end
          end;	 
          newtitle = 0;		
-      end;
+      end
 	  % --- END OF DECODING 	
       
    	  str = fgets( fid );
@@ -156,7 +167,7 @@ while (str(1) == '%')
        	 	else
        			if ~isempty(oldvartext)
            			%fprintf( fo, [ g.normcol2 g.tabtext '</td></tr>\n' ], oldvartext);	
-       			end;
+       			end
          	end;	 	
          	newvar = 1;
          	oldvarname = varname;
@@ -166,7 +177,7 @@ while (str(1) == '%')
 
       % test if new input for an array
       % ------------------------------
-      if newvar | newtitle
+      if newvar || newtitle
          if maindescription
             if ~isempty(oldvartext) % FUNCTION TITLE
                maintext = oldvartext;
@@ -181,7 +192,7 @@ while (str(1) == '%')
 					%fprintf(fo, [ g.normrow g.doublecol ...
 					%			'<CENTER><BR><A HREF="' imagename '" target="_blank"><img SRC=' imagename ...
 					%			' height=150 width=200></A></CENTER></td></tr>' ]);
-		       %end;
+		       %end
             end;             
    		elseif ~isempty(oldvarname)
 			allvars{indexout} = oldvarname;
@@ -192,7 +203,7 @@ while (str(1) == '%')
    	 	else
    			if ~isempty(oldvartext)
        			%fprintf( fo, [ g.normcol2 g.text '</td></tr>\n' ], oldvartext);	
-   			end;
+   			end
          end;      
       end;	
       
@@ -205,21 +216,21 @@ while (str(1) == '%')
          end;		
          oldvarname = [];
          oldvartext = [];
-      end;
+      end
    else
       str = fgets( fid );
-   end;
-end;
+   end
+end
 fclose( fid );
 
 % remove quotes of variables
 % --------------------------
 for index = 1:length(allvars)
-	if allvars{index}(1) == '''', allvars{index} = eval( allvars{index} ); end;
-end;
+	if allvars{index}(1) == '''', allvars{index} = eval( allvars{index} ); end
+end
 
 if exist('varlist') == 1
-	if ~iscell(varlist), varlist = { varlist }; end;
+	if ~iscell(varlist), varlist = { varlist }; end
         newtxt = mat2cell(zeros(length(varlist), 1), length(varlist), 1); % preallocation
 	for index = 1:length(varlist)
 		loc = strmatch( varlist{index}, allvars);
@@ -228,10 +239,10 @@ if exist('varlist') == 1
 		else
 			disp([ 'warning: variable ''' varlist{index} ''' not found']);
 			newtxt{index} = '';
-		end;
-	end;
+		end
+	end
 	alltext = newtxt;
-end;
+end
 	
 return;
 
@@ -254,21 +265,21 @@ function strout = formatstr( str, refcall );
 				strout = [strout ' ' tokout ]; 	
 			end;	
 			[tok1 strrm] = strtok( strrm );
-		end;
+		end
 return;	
  
 function tokout = functionformat( tokin, refcall );
 	tokout = tokin;	% default
 	[test, realtokin, tail] = testfunc1( tokin );
-	if ~test,  [test, realtokin, tail] = testfunc2( tokin ); end;
+	if ~test,  [test, realtokin, tail] = testfunc2( tokin ); end
 	if test
 		i1 = findstr( refcall, '%s');
 		i2 = findstr( refcall(i1(1):end), '''');
-		if isempty(i2) i2 = length( refcall(i1(1):end) )+1; end;
+		if isempty(i2) i2 = length( refcall(i1(1):end) )+1; end
 		filename  = [ realtokin refcall(i1+2:i1+i2-2)];
 		if exist( filename ) % do not make link if the file does not exist 
 			tokout =  sprintf( [ '<A HREF="' refcall '">%s</A>' tail ' ' ], realtokin, realtokin );
-		end;
+		end
 	end;		
 return;
 
@@ -276,9 +287,9 @@ function [test, realtokin, tail] = testfunc1( tokin ) % test if is string is 'fu
 	test = 0; realtokin = ''; tail = '';
 	if ~isempty( findstr( tokin, '()' ) )
 		realtokin = tokin( 1:findstr( tokin, '()' )-1);
-		if length(realtokin) < (length(tokin)-2) tail = tokin(end); else tail = []; end;
+		if length(realtokin) < (length(tokin)-2) tail = tokin(end); else tail = []; end
 		test = 1;
-	end;
+	end
 return;
 
 function [test, realtokin, tail] = testfunc2( tokin ) % test if is string is 'FUNCTION[,]'  
@@ -289,13 +300,13 @@ function [test, realtokin, tail] = testfunc2( tokin ) % test if is string is 'FU
 			tail = ',';
 		else
 			realtokin = tokin;
-		end;
+		end
 		testokin = realtokin;
 		testokin(findstr(testokin, '_')) = 'A';
 		testokin(findstr(testokin, '2')) = 'A';
-		if all(double(testokin) > 64) & all(double(testokin) < 91)
+		if all(double(testokin) > 64) && all(double(testokin) < 91)
 			test = 1;
 		end;				
 		realtokin = lower(realtokin);
-	end;
+	end
 return;	

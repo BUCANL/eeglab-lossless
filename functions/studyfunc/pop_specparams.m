@@ -34,19 +34,30 @@
 
 % Copyright (C) Arnaud Delorme, CERCO
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [ STUDY, com ] = pop_specparams(STUDY, varargin);
 
@@ -55,16 +66,18 @@ TMPSTUDY = STUDY;
 com = '';
 if isempty(varargin)
     
-    enablecond         = fastif(length(STUDY.design(STUDY.currentdesign).variable(1).value)>1, 'on', 'off');
-    enablegroup        = fastif(length(STUDY.design(STUDY.currentdesign).variable(2).value)>1, 'on', 'off');
+    enablecond  = 'off';
+    enablegroup = 'off';
+    if length(STUDY.design(STUDY.currentdesign).variable) > 0 && length(STUDY.design(STUDY.currentdesign).variable(1).value)>1, enablecond  = 'on'; end
+    if length(STUDY.design(STUDY.currentdesign).variable) > 1 && length(STUDY.design(STUDY.currentdesign).variable(2).value)>1, enablegroup = 'on'; end;   
     detachplots        = fastif(strcmpi(STUDY.etc.specparams.detachplots,'on'), 1, 0);
     plotconditions     = fastif(strcmpi(STUDY.etc.specparams.plotconditions, 'together'), 1, 0);
     plotgroups         = fastif(strcmpi(STUDY.etc.specparams.plotgroups,'together'), 1, 0);
     submean            = fastif(strcmpi(STUDY.etc.specparams.subtractsubjectmean,'on'), 1, 0);
     radio_averagechan  = fastif(strcmpi(STUDY.etc.specparams.averagechan,'on'), 1, 0);
     radio_scalptopo    = fastif(isempty(STUDY.etc.specparams.topofreq), 0, 1);
-    if radio_scalptopo, radio_averagechan = 0; end;
-    if radio_scalptopo+radio_averagechan == 0, radio_scalparray = 1; else radio_scalparray = 0; end;
+    if radio_scalptopo, radio_averagechan = 0; end
+    if radio_scalptopo+radio_averagechan == 0, radio_scalparray = 1; else radio_scalparray = 0; end
         
     cb_radio = [ 'set(findobj(gcbf, ''userdata'', ''radio''), ''value'', 0);' ...
                  'set(gcbo, ''value'', 1);' ...
@@ -102,43 +115,43 @@ if isempty(varargin)
         geometry(end-4:end) = []; 
         geomvert(end-4:end) = []; 
         uilist(end-10:end) = [];
-    end;
+    end
     
     [out_param userdat tmp res] = inputgui( 'geometry' , geometry, 'uilist', uilist, 'geomvert', geomvert, ...
                                             'title', 'Spectrum plotting options -- pop_specparams()');
-    if isempty(res), return; end;
+    if isempty(res), return; end
     
     % decode inputs
     % -------------
-    %if res.plotgroups & res.plotconditions, warndlg2('Both conditions and group cannot be plotted on the same panel'); return; end;
-    if res.submean   , res.submean    = 'on'; else res.submean    = 'off'; end;
-    if res.plotgroups, res.plotgroups = 'together'; else res.plotgroups = 'apart'; end;
-    if res.plotconditions , res.plotconditions  = 'together'; else res.plotconditions  = 'apart'; end;
+    %if res.plotgroups && res.plotconditions, warndlg2('Both conditions and group cannot be plotted on the same panel'); return; end
+    if res.submean   , res.submean    = 'on'; else res.submean    = 'off'; end
+    if res.plotgroups, res.plotgroups = 'together'; else res.plotgroups = 'apart'; end
+    if res.plotconditions , res.plotconditions  = 'together'; else res.plotconditions  = 'apart'; end
     if res.detachtag, res.detachtag = 'on'; else res.detachtag = 'off'; end; 
     if ~isfield(res, 'topofreq'), res.topofreq = STUDY.etc.specparams.topofreq;
     else res.topofreq  = str2num( res.topofreq );
-    end;
+    end
     if ~isfield(res, 'averagechan'), res.averagechan = STUDY.etc.specparams.averagechan;
     elseif res.averagechan, res.averagechan = 'on'; else res.averagechan = 'off';
-    end;
+    end
     res.freqrange = str2num( res.freqrange );
     res.ylim      = str2num( res.ylim );
     
     % build command call
     % ------------------
     options = {};
-    if ~strcmpi( res.plotgroups, STUDY.etc.specparams.plotgroups), options = { options{:} 'plotgroups' res.plotgroups }; end;
-    if ~strcmpi( res.plotconditions , STUDY.etc.specparams.plotconditions ), options = { options{:} 'plotconditions'  res.plotconditions  }; end;
-    if ~strcmpi( res.detachtag, STUDY.etc.specparams.detachplots), options = { options{:} 'detachplots' res.detachtag}; end;
-    if ~strcmpi( res.submean   , STUDY.etc.specparams.subtractsubjectmean ), options = { options{:} 'subtractsubjectmean'  res.submean  }; end;
-    if ~isequal(res.topofreq, STUDY.etc.specparams.topofreq),       options = { options{:} 'topofreq' res.topofreq }; end;
-    if ~isequal(res.ylim, STUDY.etc.specparams.ylim),               options = { options{:} 'ylim' res.ylim      }; end;
-    if ~isequal(res.freqrange, STUDY.etc.specparams.freqrange),     options = { options{:} 'freqrange' res.freqrange }; end;
-    if ~isequal(res.averagechan, STUDY.etc.specparams.averagechan), options = { options{:} 'averagechan' res.averagechan }; end;
+    if ~strcmpi( res.plotgroups, STUDY.etc.specparams.plotgroups), options = { options{:} 'plotgroups' res.plotgroups }; end
+    if ~strcmpi( res.plotconditions , STUDY.etc.specparams.plotconditions ), options = { options{:} 'plotconditions'  res.plotconditions  }; end
+    if ~strcmpi( res.detachtag, STUDY.etc.specparams.detachplots), options = { options{:} 'detachplots' res.detachtag}; end
+    if ~strcmpi( res.submean   , STUDY.etc.specparams.subtractsubjectmean ), options = { options{:} 'subtractsubjectmean'  res.submean  }; end
+    if ~isequal(res.topofreq, STUDY.etc.specparams.topofreq),       options = { options{:} 'topofreq' res.topofreq }; end
+    if ~isequal(res.ylim, STUDY.etc.specparams.ylim),               options = { options{:} 'ylim' res.ylim      }; end
+    if ~isequal(res.freqrange, STUDY.etc.specparams.freqrange),     options = { options{:} 'freqrange' res.freqrange }; end
+    if ~isequal(res.averagechan, STUDY.etc.specparams.averagechan), options = { options{:} 'averagechan' res.averagechan }; end
     if ~isempty(options)
         STUDY = pop_specparams(STUDY, options{:});
         com = sprintf('STUDY = pop_specparams(STUDY, %s);', vararg2str( options ));
-    end;
+    end
 else
     
     if strcmpi(varargin{1}, 'default')
@@ -147,33 +160,33 @@ else
         for index = 1:2:length(varargin)
             if ~isempty(strmatch(varargin{index}, fieldnames(STUDY.etc.specparams), 'exact'))
                 STUDY.etc.specparams = setfield(STUDY.etc.specparams, varargin{index}, varargin{index+1});
-            end;
-        end;
-    end;
-end;
+            end
+        end
+    end
+end
 
 % scan clusters and channels to remove specdata info if freqrange has changed
 % ----------------------------------------------------------
-if ~isequal(STUDY.etc.specparams.freqrange, TMPSTUDY.etc.specparams.freqrange) | ...
+if ~isequal(STUDY.etc.specparams.freqrange, TMPSTUDY.etc.specparams.freqrange) || ...
     ~isequal(STUDY.etc.specparams.subtractsubjectmean, TMPSTUDY.etc.specparams.subtractsubjectmean)
     rmfields = { 'specdata' 'specfreqs' };
     for iField = 1:length(rmfields)
         if isfield(STUDY.cluster, rmfields{iField})
             STUDY.cluster = rmfield(STUDY.cluster, rmfields{iField});
-        end;
+        end
         if isfield(STUDY.changrp, rmfields{iField})
             STUDY.changrp = rmfield(STUDY.changrp, rmfields{iField});
-        end;
+        end
     end;   
-end;
+end
 
 function STUDY = default_params(STUDY)
-    if ~isfield(STUDY.etc, 'specparams'), STUDY.etc.specparams = []; end;
-    if ~isfield(STUDY.etc.specparams, 'topofreq'),             STUDY.etc.specparams.topofreq = []; end;
-    if ~isfield(STUDY.etc.specparams, 'freqrange'),            STUDY.etc.specparams.freqrange = []; end;
-    if ~isfield(STUDY.etc.specparams, 'ylim'     ),            STUDY.etc.specparams.ylim      = []; end;
-    if ~isfield(STUDY.etc.specparams, 'subtractsubjectmean' ), STUDY.etc.specparams.subtractsubjectmean  = 'off'; end;
-    if ~isfield(STUDY.etc.specparams, 'plotgroups'),           STUDY.etc.specparams.plotgroups = 'apart'; end;
-    if ~isfield(STUDY.etc.specparams, 'plotconditions'),       STUDY.etc.specparams.plotconditions  = 'apart'; end;
-    if ~isfield(STUDY.etc.specparams, 'averagechan') ,         STUDY.etc.specparams.averagechan  = 'off'; end;
-    if ~isfield(STUDY.etc.specparams, 'detachplots') ,         STUDY.etc.specparams.detachplots  = 'on'; end;
+    if ~isfield(STUDY.etc, 'specparams'), STUDY.etc.specparams = []; end
+    if ~isfield(STUDY.etc.specparams, 'topofreq'),             STUDY.etc.specparams.topofreq = []; end
+    if ~isfield(STUDY.etc.specparams, 'freqrange'),            STUDY.etc.specparams.freqrange = []; end
+    if ~isfield(STUDY.etc.specparams, 'ylim'     ),            STUDY.etc.specparams.ylim      = []; end
+    if ~isfield(STUDY.etc.specparams, 'subtractsubjectmean' ), STUDY.etc.specparams.subtractsubjectmean  = 'off'; end
+    if ~isfield(STUDY.etc.specparams, 'plotgroups'),           STUDY.etc.specparams.plotgroups = 'apart'; end
+    if ~isfield(STUDY.etc.specparams, 'plotconditions'),       STUDY.etc.specparams.plotconditions  = 'apart'; end
+    if ~isfield(STUDY.etc.specparams, 'averagechan') ,         STUDY.etc.specparams.averagechan  = 'off'; end
+    if ~isfield(STUDY.etc.specparams, 'detachplots') ,         STUDY.etc.specparams.detachplots  = 'on'; end

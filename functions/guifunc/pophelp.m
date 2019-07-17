@@ -14,38 +14,49 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function pophelp( funct, nonmatlab );
 
 if nargin <1
 	help pophelp;
 	return;
-end;
+end
 if nargin <2
 	nonmatlab = 0;
-end;
+end
 
 if exist('help2html')
     if length(funct) > 3 && strcmpi(funct(end-3:end), '.txt')
         web(funct);
     else
         pathHelpHTML = fileparts(which('help2html'));
-        if ~isempty(findstr('NFT', pathHelpHTML)), rmpath(pathHelpHTML); end;
+        if ~isempty(findstr('NFT', pathHelpHTML)), rmpath(pathHelpHTML); end
         text1 = help2html(funct);
-        if length(funct) > 4 & strcmpi(funct(1:4), 'pop_')
+        if length(funct) > 4 && strcmpi(funct(1:4), 'pop_')
             try,
                 text2 = help2html(funct(5:end));
                 text1 = [text1 '<br><pre>___________________________________________________________________' 10 ...
@@ -53,15 +64,15 @@ if exist('help2html')
                                ' The ''pop'' function above calls the eponymous Matlab function below' 10 ...
                                ' and could use some of its optional parameters' 10 ...
                                '___________________________________________________________________</pre><br><br>' text2 ];
-            catch, end;
-        end;
+            catch, end
+        end
 
         web([ 'text://' text1 ]);
-    end;
+    end
 else
-    if isempty(funct), return; end;
+    if isempty(funct), return; end
     doc1 = readfunc(funct, nonmatlab);
-    if length(funct) > 4 & strcmpi(funct(1:4), 'pop_')
+    if length(funct) > 4 && strcmpi(funct(1:4), 'pop_')
         try,
             doc2 = readfunc(funct(5:end), nonmatlab);
             doc1 = { doc1{:} ' _________________________________________________________________ ' ...
@@ -72,31 +83,30 @@ else
                            ' _________________________________________________________________ ' ...
                            ' ' ...
                     doc2{:} };
-        catch, end;
-    end;
+        catch, end
+    end
 
     textgui(doc1);1000
     h = findobj('parent', gcf, 'style', 'slider');
     try, icadefs; catch, 
         GUIBUTTONCOLOR = [0.8 0.8 0.8]; 
         GUITEXTCOLOR   = 'k'; 
-    end;
+    end
     set(h, 'backgroundcolor', GUIBUTTONCOLOR);
     h = findobj('parent', gcf, 'style', 'pushbutton');
     set(h, 'backgroundcolor', GUIBUTTONCOLOR);
     h = findobj('parent', gca);
     set(h, 'color', GUITEXTCOLOR);
     set(gcf, 'color', BACKCOLOR);
-end;
+end
 return;
 
 function [doc] = readfunc(funct, nonmatlab)
 
 doc = {};
 if iseeglabdeployed
-    if isempty(find(funct == '.')), funct = [ funct '.m' ]; end;
-    funct = fullfile(eeglabexefolder, 'help', funct);
-end;
+    warndlg2([ 'Some help menus not available in compiled version.' 10 'Look up help online.' ] );
+end
 if nonmatlab	
 	fid = fopen( funct, 'r');
 else
@@ -104,17 +114,17 @@ else
 		fid = fopen( funct, 'r');
 	else
 		fid = fopen( [funct '.m'], 'r');
-	end;
-end;
+	end
+end
 
 if fid == -1
 	error('File not found');
-end;
+end
 
 sub = 1;
 try, 
-    if ~isunix, sub = 0; end;
-catch, end;
+    if ~isunix, sub = 0; end
+catch, end
 
 if nonmatlab
 	str = fgets( fid );
@@ -122,13 +132,13 @@ if nonmatlab
 		str = deblank(str(1:end-sub));
         doc = { doc{:} str(1:end) };    
         str = fgets( fid );
-	end;
+	end
 else
 	str = fgets( fid );
 	while (str(1) == '%')
 		str = deblank(str(1:end-sub));
         doc = { doc{:} str(2:end) };    
 		str = fgets( fid );
-	end;
-end;
+	end
+end
 fclose(fid);

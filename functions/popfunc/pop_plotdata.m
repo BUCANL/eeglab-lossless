@@ -26,19 +26,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 01-25-02 reformated help & license -ad 
 % 03-08-02 add eeglab options -ad
@@ -57,13 +68,13 @@ com = '';
 if nargin < 1
    help pop_plotdata;
    return;
-end;
+end
 if nargin < 2
 	typeplot = 1; % 1=signal; 0=component
-end;
+end
 if exist('plottitle') ~= 1
 	plottitle = '';
-end;
+end
 
 if nargin <3
 	if typeplot % plot signal channels
@@ -83,7 +94,7 @@ if nargin <3
                                    {   ['1:' int2str(size(EEG.icawinv,2))] [fastif(isempty(EEG.setname), '',[EEG.setname ' ERP'])] ['0 0'] }, ...
                                    'pop_plotdata' );
 	end;		
-	if length(result) == 0 return; end;
+	if length(result) == 0 return; end
 
 	indices   	 = eval( [ '[' result{1} ']' ] );
 
@@ -106,7 +117,7 @@ if exist('singletrials') ~= 1
     singletrials = 0;
 end;    
 
-if EEG.trials > 1 & singletrials == 0
+if EEG.trials > 1 && singletrials == 0
     fprintf('Selecting trials and components...\n');
 	if typeplot == 1
 	   sigtmp = nan_mean(EEG.data(indices,:,trials),3);
@@ -117,7 +128,7 @@ if EEG.trials > 1 & singletrials == 0
        tmpdata = eeg_getdatact(EEG, 'component', indices, 'trialindices', trials);
 	   fprintf('Averaging...\n');
 	   sigtmp = nan_mean(tmpdata,3);
-	end;
+	end
 else
 	if typeplot == 1
 	   sigtmp = EEG.data(indices,:,trials);
@@ -126,10 +137,10 @@ else
 	      error('no ICA data for this set, first run ICA');
 	   end;  
        sigtmp = eeg_getdatact(EEG, 'component', indices, 'trialindices', trials);
-	end;
-end;
+	end
+end
 figure;
-try, icadefs; set(gcf, 'color', BACKCOLOR); catch, end;
+try, icadefs; set(gcf, 'color', BACKCOLOR); catch, end
 if exist('YDIR') ~= 1
      ydir = 1;
 else
@@ -156,7 +167,7 @@ if ~isempty(EEG.chanlocs) && typeplot == 1
     chanlabels = strvcat({ tmpchanlocs(indices).labels });
 else
     chanlabels = num2str(indices(:));
-end;
+end
 plottopo( sigtmp, 'frames', EEG.pnts, 'limits', [EEG.xmin*1000 EEG.xmax*1000 ymin ymax], 'title', plottitle, 'chans', 1:size(sigtmp,1), 'ydir', ydir, 'channames', chanlabels);
 %plotdata(sigtmp, EEG.pnts, [EEG.xmin*1000 EEG.xmax*1000 ymin ymax], plottitle, indices,0,0,ydir);
 
@@ -167,7 +178,7 @@ if typeplot == 1
 	set(gcf, 'name', 'Plot > Channel ERPs > In rect. array -- plotdata()');
 else
 	set(gcf, 'name', 'Plot > Component ERPs > In rect. array -- plotdata()');
-end;
+end
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%% set y-axis direction %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -186,9 +197,9 @@ else % ydir == -1
 end
 
 switch nargin
-	case {0, 1, 2, 3}, com = sprintf('pop_plotdata(%s, %d, %s, [1:%d], ''%s'', %d, %d, [%g %g]);', inputname(1), typeplot, vararg2str(indices), EEG.trials, plottitle, singletrials,ydir,ymin,ymax);
-	case 4, com = sprintf('pop_plotdata(%s, %d, %s, %s, ''%s'', %d, %d, [%g %g]);', inputname(1), typeplot, vararg2str(indices), vararg2str(trials), plottitle, singletrials,ydir,ymin,ymax);
-end;
+	case {0, 1, 2, 3}, com = sprintf('pop_plotdata(EEG, %d, %s, [1:%d], ''%s'', %d, %d, [%g %g]);', typeplot, vararg2str(indices), EEG.trials, plottitle, singletrials,ydir,ymin,ymax);
+	case 4, com = sprintf('pop_plotdata(EEG, %d, %s, %s, ''%s'', %d, %d, [%g %g]);', typeplot, vararg2str(indices), vararg2str(trials), plottitle, singletrials,ydir,ymin,ymax);
+end
 
 fprintf([com '\n']);
 return;

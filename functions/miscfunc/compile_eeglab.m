@@ -6,19 +6,30 @@
 
 % Copyright (C) 2009 Arnaud Delorme
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 disp('This function will compile EEGLAB in the output folder');
 disp('provided below. You may also enter a path relative to the EEGLAB');
@@ -32,24 +43,24 @@ cd(path_eeglab);
 % deal with VisEd plugin (VisEd is both the name of the folder and the
 % function inside and this creates a problem
 path_vised = fileparts(which('VisEd'))
-try, movefile( path_vised, [ path_vised '2' ]); catch, end;
+try, movefile( path_vised, [ path_vised '2' ]); catch, end
 addpath([ path_vised '2' ]);
 
 path_fileio = fileparts(which('chantype'));
-try, movefile( fullfile(path_fileio, '@uint64'), fullfile(path_fileio, 'uint64') ); catch, end;
-try, movefile( fullfile(path_fileio, 'private', 'buffer.m')      ,  fullfile(path_fileio, 'private', 'bufferold.m') ); catch, end;
-try, movefile( fullfile(path_fileio, 'private', 'read_24bit.m')  ,  fullfile(path_fileio, 'private', 'read_24bitold.m')); catch, end;
-try, movefile( fullfile(path_fileio, 'private', 'read_ctf_shm.m'),  fullfile(path_fileio, 'private', 'read_ctf_shmold.m')); catch, end;
-try, movefile( fullfile(path_fileio, 'private', 'write_ctf_shm.m'), fullfile(path_fileio, 'private', 'write_ctf_shmold.m')); catch, end;
+try, movefile( fullfile(path_fileio, '@uint64'), fullfile(path_fileio, 'uint64') ); catch, end
+try, movefile( fullfile(path_fileio, 'private', 'buffer.m')      ,  fullfile(path_fileio, 'private', 'bufferold.m') ); catch, end
+try, movefile( fullfile(path_fileio, 'private', 'read_24bit.m')  ,  fullfile(path_fileio, 'private', 'read_24bitold.m')); catch, end
+try, movefile( fullfile(path_fileio, 'private', 'read_ctf_shm.m'),  fullfile(path_fileio, 'private', 'read_ctf_shmold.m')); catch, end
+try, movefile( fullfile(path_fileio, 'private', 'write_ctf_shm.m'), fullfile(path_fileio, 'private', 'write_ctf_shmold.m')); catch, end
 path_fileio = path_fileio(length(path_eeglab)+2:end);
 files_fileio         = fullfile(path_fileio, '*.m');
 files_fileio_private = fullfile(path_fileio, 'private', '*.m');
 
 path_fieldtrip = fileparts(which('electroderealign'));
 addpath(fullfile(path_fieldtrip, 'public'));
-try, movefile( fullfile(path_fieldtrip, 'fileio', '@uint64'), fullfile(path_fieldtrip, 'fileio', 'uint64') ); catch, end;
-try, movefile( fullfile(path_fieldtrip, '@uint64'), fullfile(path_fieldtrip, 'uint64') ); catch, end;
-try, movefile( fullfile(path_fieldtrip, 'topoplot.m'), fullfile(path_fieldtrip, 'topoplotold.m') ); catch, end;
+try, movefile( fullfile(path_fieldtrip, 'fileio', '@uint64'), fullfile(path_fieldtrip, 'fileio', 'uint64') ); catch, end
+try, movefile( fullfile(path_fieldtrip, '@uint64'), fullfile(path_fieldtrip, 'uint64') ); catch, end
+try, movefile( fullfile(path_fieldtrip, 'topoplot.m'), fullfile(path_fieldtrip, 'topoplotold.m') ); catch, end
 path_fieldtrip = path_fieldtrip(length(path_eeglab)+2:end);
 files_fieldtrip         = fullfile(path_fieldtrip, '*.m');
 files_public            = fullfile(path_fieldtrip, 'public', '*.m');
@@ -62,7 +73,7 @@ files_inverse_private   = fullfile(path_fieldtrip, 'inverse', 'private', '*.m');
 
 try
     rmpath('C:\Documents and Settings\delorme\My Documents\eeglab\plugins\editevents_arno');
-catch, end;
+catch, end
 path_biosig = fileparts(which('install'));
 path_biosig = path_biosig(length(path_eeglab)+2:end);
 biosig  = ' sopen.m sclose.m sread.m ';
@@ -100,7 +111,7 @@ else
     copyfile( 'eeglab', fullfile(outputfolder, 'eeglab'), 'f');
     copyfile( 'eeglab', fullfile(outputfolder, 'eeglab'), 'f');
     copyfile( 'eeglab.ctf', fullfile(outputfolder, 'eeglab.ctf'), 'f');
-end;
+end
 
 % copy BESA files etc
 % -------------------
@@ -136,7 +147,7 @@ allfiles = { allfiles1{:} allfiles2{:} };
 for index = 1:length(allfiles)
     tmpp = which(allfiles{index});
     copyfile(tmpp, fullfile(outputfolder, 'help', allfiles{index}));
-end;
+end
 
 % copy MCR file and visual C++ librairies
 % ---------------------------------------
@@ -160,7 +171,7 @@ if strcmpi(comp(1:2), 'PC')
         fprintf(fid, 'echo To start EEGLAB in the future, simply click on the EEGLAB.EXE file\r\n');
         fprintf(fid, 'eeglab.exe\r\n');
         fclose(fid);
-    end;
+    end
     fid = fopen(fullfile(outputfolder, 'eeglab.exe.manifest'), 'w');
     if fid == -1, disp('Error: cannot create manifest file');
     else
@@ -173,20 +184,20 @@ if strcmpi(comp(1:2), 'PC')
         fprintf(fid, '  </dependency>\r\n');
         fprintf(fid, '</assembly>\r\n');
         fclose(fid);
-    end;
-end;
+    end
+end
 
 % cleaning up
 % -----------
-try, movefile( [ path_vised '2' ], path_vised); catch, end;
-try, movefile( fullfile(path_fileio, 'uint64'), fullfile(path_fileio, '@uint64') ); catch, end;
-try, movefile( fullfile(path_fileio, 'private', 'bufferold.m')      ,  fullfile(path_fileio, 'private', 'buffer.m') ); catch, end;
-try, movefile( fullfile(path_fileio, 'private', 'read_24bitold.m')  ,  fullfile(path_fileio, 'private', 'read_24bit.m')); catch, end;
-try, movefile( fullfile(path_fileio, 'private', 'read_ctf_shmold.m'),  fullfile(path_fileio, 'private', 'read_ctf_shm.m')); catch, end;
-try, movefile( fullfile(path_fileio, 'private', 'write_ctf_shmold.m'), fullfile(path_fileio, 'private', 'write_ctf_shm.m')); catch, end;
-try, movefile( fullfile(path_fieldtrip, 'fileio', 'uint64'), fullfile(path_fieldtrip, 'fileio', '@uint64') ); catch, end;
-try, movefile( fullfile(path_fieldtrip, 'uint64'), fullfile(path_fieldtrip, '@uint64') ); catch, end;
-try, movefile( fullfile(path_fieldtrip, 'topoplotold.m'), fullfile(path_fieldtrip, 'topoplot.m') ); catch, end;
+try, movefile( [ path_vised '2' ], path_vised); catch, end
+try, movefile( fullfile(path_fileio, 'uint64'), fullfile(path_fileio, '@uint64') ); catch, end
+try, movefile( fullfile(path_fileio, 'private', 'bufferold.m')      ,  fullfile(path_fileio, 'private', 'buffer.m') ); catch, end
+try, movefile( fullfile(path_fileio, 'private', 'read_24bitold.m')  ,  fullfile(path_fileio, 'private', 'read_24bit.m')); catch, end
+try, movefile( fullfile(path_fileio, 'private', 'read_ctf_shmold.m'),  fullfile(path_fileio, 'private', 'read_ctf_shm.m')); catch, end
+try, movefile( fullfile(path_fileio, 'private', 'write_ctf_shmold.m'), fullfile(path_fileio, 'private', 'write_ctf_shm.m')); catch, end
+try, movefile( fullfile(path_fieldtrip, 'fileio', 'uint64'), fullfile(path_fieldtrip, 'fileio', '@uint64') ); catch, end
+try, movefile( fullfile(path_fieldtrip, 'uint64'), fullfile(path_fieldtrip, '@uint64') ); catch, end
+try, movefile( fullfile(path_fieldtrip, 'topoplotold.m'), fullfile(path_fieldtrip, 'topoplot.m') ); catch, end
 
 return
 

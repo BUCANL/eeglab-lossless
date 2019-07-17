@@ -66,6 +66,10 @@
 %                  {default|[] -> standard Matlab color order}
 %  'fillcomp'  = int_vector>0 -> fill the numbered component envelope(s) with 
 %                  solid color. Ex: [1] or [1 5] {default|[]|0 -> no fill}
+% 'plotproj'   = [1|0] Plot channel projections if only one component projection is
+%                   plotted. {default: 0}
+% 'fillcolor'  = Three elements RGB vector of the color to fill the component envelope
+%                   if 'fillcomp' is set. {default|[.815 .94 1] %light blue} 
 %  'vert'      = vector of times (in ms) at which to plot vertical dashed lines 
 %                  {default|[] -> none}
 %  'icawinv'   = [float array] inverse weight matrix. Normally computed by inverting
@@ -84,7 +88,12 @@
 %                  individually using +/- max(abs(map value)) {default: 'off'}
 %  'dispmaps'  = ['on'|'off'] display component numbers and scalp maps {default: 'on'}
 %  'topoplotkey','val' = optional additional topoplot() arguments {default: none}
+%  'axisoff'   = [real] percent of the figure y-dimension to be covered by the axis
+%                 the envelopes. Values are restricted to the range [0.60.75]{default: 0.6}
 %
+% 'limcontribweight' = [real] lineweight of limonctrib vertical lines.{default: 1.2}
+% 'vertweight'       = [real] lineweight of specified vertical lines {default: 2}
+%                
 % Outputs:
 % 
 %  cmpvarorder = component numbers in decreasing order of max variance in data
@@ -108,19 +117,30 @@
 
 % Copyright (C) 3-10-98 from timtopo.m Scott Makeig, SCCN/INC/UCSD, scott@sccn.ucsd.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % Edit History:
 % 3-18-98 fixed bug in LineStyle for fifth component, topoplot maxproj with 
@@ -162,12 +182,11 @@ sortvar = [];
 all_bold = 0;
 BOLD_COLORS = 1;    % 1 = use solid lines for first 5 components plotted
                     % 0 = use std lines according to component rank only
-FILL_COMP_ENV = 0;  % default no fill
-FILLCOLOR   = [.815 .94 1]; % use lighter blue for better env visibility
-% FILLCOLOR = [.66 .76 1];
+% FILL_COMP_ENV = 0;  % default no fill
+%FILLCOLOR   = [.815 .94 1]; % use lighter blue for better env visibility
 MAXTOPOS = 20;      % max topoplots to plot
-VERTWEIGHT = 2.0;  % lineweight of specified vertical lines
-LIMCONTRIBWEIGHT = 1.2; % lineweight of limonctrib vertical lines
+% VERTWEIGHT = 2.0;  % lineweight of specified vertical lines
+% LIMCONTRIBWEIGHT = 1.2; % lineweight of limonctrib vertical lines
 MAX_FRAMES = 10000; % maximum frames to plot
 MAXENVPLOTCHANS = 10;  
 xmin = 0; xmax = 0;
@@ -177,7 +196,7 @@ if nargin < 2
    return
 end
 
-if nargin <= 2 | isstr(varargin{1})
+if nargin <= 2 || ischar(varargin{1})
 	% 'key' 'val' sequences
 	fieldlist = { 'chanlocs'      ''         []                       [] ;
 				  'title'         'string'   []                       '';
@@ -201,53 +220,59 @@ if nargin <= 2 | isstr(varargin{1})
 				  'sortvar'       'string'   {'mp','mv','rp','rv','pv','pvaf','pp'} 'mp';  
 				  'actscale'      'string'   {'on','off'}             'off'; 
 				  'limcontrib'    'real'     []                       0;  
-				  'topoarg'    'real'     []                       0;  
-				  'sumenv'        'string'    {'on','off','fill'}     'fill'};
+				  'topoarg'       'real'     []                       0;  
+				  'sumenv'        'string'   {'on','off','fill'}      'fill';
+                  'axisoff'       'real'     [0.6 0.75]               0.6;
+                  'fillcolor'     'real'     []                       [.815 .94 1];
+                  'limcontribweight'  'real' []                       1.2;
+                  'plotproj'          'real' [0 1]                    0;          
+                  'vertweight'        'real' []                       2};
 
 	% Note: Above, previous 'pvaf' arguments 'on' -> 'pv', 'off' -> 'rv'
 	%       for backwards compatibility 11/2004 -sm
 	
 	[g varargin] = finputcheck( varargin, fieldlist, 'envtopo', 'ignore');
-	if isstr(g), error(g); end;
+	if ischar(g), error(g); end
+    if g.plotproj && strcmp(g.sumenv, 'fill'), g.sumenv = 'on'; end
 
 else % dprecated - old style input args
 	if nargin > 3,    g.chanlocs = varargin{1};
 	else              g.chanlocs = [];
-	end;
-        if isstr(varargin{2}), help envtopo; return; end
+	end
+        if ischar(varargin{2}), help envtopo; return; end
 	if nargin > 4,	  g.limits = varargin{2};
 	else              g.limits = 0; % [];
-	end;
-        if isstr(varargin{3}), help envtopo; return; end
+	end
+        if ischar(varargin{3}), help envtopo; return; end
 	if nargin > 5,    g.compnums = varargin{3};
 	else              g.compnums = [];
-	end;
-        if ~isstr(varargin{4}), help envtopo; return; end
+	end
+        if ~ischar(varargin{4}), help envtopo; return; end
 	if nargin > 6,    g.title = varargin{4};
 	else              g.title = '';
-	end;
-        if isstr(varargin{5}), help envtopo; return; end
+	end
+        if ischar(varargin{5}), help envtopo; return; end
 	if nargin > 7,    g.plotchans = varargin{5};
 	else              g.plotchans = [];
-	end;
-        if isstr(varargin{6}), help envtopo; return; end
+	end
+        if ischar(varargin{6}), help envtopo; return; end
 	if nargin > 8,    g.voffsets = varargin{6};
 	else              g.voffsets = [];
-	end;
-        if isstr(varargin{7}), help envtopo; return; end
+	end
+        if ischar(varargin{7}), help envtopo; return; end
 	if nargin > 9,    g.colorfile = varargin{7};
 	else              g.colorfile = '';
 	                  g.colors = '';
-	end;
-        if isstr(varargin{8}), help envtopo; return; end
+	end
+        if ischar(varargin{8}), help envtopo; return; end
 	if nargin > 10,   g.fillcomp = varargin{8};
 	else              g.fillcom = 0;
-	end;
-        if isstr(varargin{9}), help envtopo; return; end
+	end
+        if ischar(varargin{9}), help envtopo; return; end
 	if nargin > 11,   g.vert = varargin{9};
 	else              g.vert = [];
-	end;
-    if nargin > 12, varargin =varargin(10:end); end;
+	end
+    if nargin > 12, varargin =varargin(10:end); end
     g.sumenv = 'on';
     g.sortvar = 'mp';
     g.pvaf = []; 
@@ -258,17 +283,17 @@ else % dprecated - old style input args
     g.subcomps = 0;
     g.envmode = 'avg';
     g.dispmaps = 'on';
-end;
+end
 if ~isempty(g.figure), figure(g.figure); end;        % remember the current figure (for Matlab 7.0.0 bug)
 
 if ~isempty(g.pvaf) 
 	g.sortvar = g.pvaf; % leave deprecated g.pvaf behind. 
 end
 
-if strcmpi(g.sortvar,'on') | strcmpi(g.sortvar,'pvaf') | strcmpi(g.sortvar,'mv')
+if strcmpi(g.sortvar,'on') || strcmpi(g.sortvar,'pvaf') || strcmpi(g.sortvar,'mv')
    g.sortvar = 'mp'; % update deprecated flags
 end
-if strcmpi(g.sortvar,'off') | strcmp(g.sortvar,'rv') 
+if strcmpi(g.sortvar,'off') || strcmp(g.sortvar,'rv') 
    g.sortvar = 'rp';
 end
 
@@ -278,14 +303,14 @@ end
 % 
 if ndims(data) == 3
     data = mean(data,3); % average the data if 3-D
-end;
+end
 [chans,frames] = size(data); 
 
 if frames > MAX_FRAMES
    error('number of data frames to plot too large!');
 end
 
-if isstr(g.chanlocs)
+if ischar(g.chanlocs)
     g.chanlocs = readlocs(g.chanlocs);  % read channel location information
     if length(g.chanlocs) ~= chans
      fprintf(...
@@ -332,24 +357,24 @@ if length(g.limits) == 1   % make g.limits at least of length 2
     g.limits(1) = 0; g.limits(2) = 0;
 else
     g.limits(2) = g.limits(2)/1000;  % 
-end;
+end
 g.limcontrib = g.limcontrib/1000; % the time range in which to select largest components
 
 %
 %%%%%%%%%%%% Collect time range information %%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-if length(g.limits) == 3 | length(g.limits) > 4 % if g.limits wrong length
+if length(g.limits) == 3 || length(g.limits) > 4 % if g.limits wrong length
    fprintf('envtopo: limits should be 0, [minms maxms], or [minms maxms minuV maxuV].\n');
 end
 
 xunitframes = 0; % flag plotting if xmin & xmax are in frames instead of sec
 if ~isempty(g.timerange)   % if 'timerange' given
-    if g.limits(1)==0 & g.limits(2)==0
+    if g.limits(1)==0 && g.limits(2)==0
          g.limits(1) = min(g.timerange); % if no time 'limits
          g.limits(2) = max(g.timerange); % plot whole data epoch
     end
 else % if no 'timerange' given
-    if g.limits(1)==0 & g.limits(2)==0 % if no time limits as well, 
+    if g.limits(1)==0 && g.limits(2)==0 % if no time limits as well, 
          fprintf('\nNOTE: No time limits given: using 0 to %d frames\n',frames-1);
          g.limits(1) = 0;
          g.limits(2) = frames-1;
@@ -398,7 +423,7 @@ if any(g.limcontrib ~= 0)
 else
     limframe1 = 1;
     limframe2 = frames;
-end;
+end
 
 %
 %%%%%%%%%%%%%%%%%%%%% Read line color information %%%%%%%%%%%%%%%%%%%%%
@@ -407,7 +432,7 @@ ENVCOLORS = strvcat('w..','r..','g..','b..','m..','c..','r..','g..','b..','m..',
 
 if isempty(g.colorfile)
     g.colorfile = ENVCOLORS; % use default color order above
-elseif ~isstr(g.colorfile)
+elseif ~ischar(g.colorfile)
       error('Color file name must be a string.');
 end
 if strcmpi(g.colorfile,'bold')
@@ -421,7 +446,7 @@ if exist(g.colorfile) == 2  % if an existing file
         else
             colors = fscanf(cid,'%s',[3 MAXENVPLOTCHANS]);
             colors = colors';
-        end;
+        end
 else
         colors = g.colorfile;
 end
@@ -435,10 +460,10 @@ end
               colors(i,j)='-';
             elseif j>2
               colors(i,j)=' ';
-            end;
-          end;
-        end;
-      end;
+            end
+          end
+        end
+      end
 colors(1,1) = 'k'; % make sure 1st color (for data envelope) is black
 
 %
@@ -453,13 +478,13 @@ if wtcomps ~= chans
    fprintf('  - component scalp maps and time courses may not be correct.\n');
 end
 
-if isempty(g.voffsets) | ( size(g.voffsets) == [1,1] & g.voffsets(1) == 0 )
+if isempty(g.voffsets) || ( size(g.voffsets) == [1,1] && g.voffsets(1) == 0 )
     g.voffsets = zeros(1,MAXTOPOS); 
 end
-if isempty(g.plotchans) | g.plotchans(1)==0
+if isempty(g.plotchans) || g.plotchans(1)==0
     g.plotchans = 1:chans;
 end
-if max(g.plotchans) > chans | min(g.plotchans) < 1
+if max(g.plotchans) > chans || min(g.plotchans) < 1
     error('invalid ''plotchan'' index');
 end
 
@@ -471,7 +496,7 @@ if g.compnums < 0 % legacy syntax
    g.compsplot = abs(g.compnums);
    g.compnums = [];
 end
-if isempty(g.compnums) | g.compnums(1) == 0
+if isempty(g.compnums) || g.compnums(1) == 0
     g.compnums = 1:wtcomps; % by default, select from all components
 end
 
@@ -482,7 +507,7 @@ else
     MAXTOPOS = g.compsplot;
 end
 
-if max(g.compnums) > wtcomps | min(g.compnums)< 1
+if max(g.compnums) > wtcomps || min(g.compnums)< 1
     error('Keyword ''compnums'' out of range (1 to %d)', wtcomps);
 end
 
@@ -524,7 +549,7 @@ if ~isempty(g.subcomps)
   end
   fprintf('\n');
   g.icaact(g.subcomps,:) = zeros(length(g.subcomps),size(data,2));
-end;
+end
 
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%% Process components %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -562,7 +587,7 @@ if ntopos > MAXTOPOS
       ntopos = MAXTOPOS; % limit the number of topoplots to display
 end
 
-if max(g.compnums) > wtcomps | min(g.compnums)< 1
+if max(g.compnums) > wtcomps || min(g.compnums)< 1
       fprintf(...
        'envtopo(): one or more compnums out of range (1,%d).\n',wtcomps);
       return
@@ -673,7 +698,7 @@ for c = 1:ncomps
           fprintf('IC%1.0f relative power of back-projection: %g\n',c,sortvar(c));
       else
           error('''sortvar'' argument unknown');
-      end;
+      end
 
 end % component c
 fprintf('\n');
@@ -798,7 +823,7 @@ else
                                   - sumproj(:,limframe1:limframe2)).^2)); 
     sumppaf = 100-100*sumppaf/rmsproj;
     ot   = 'ppaf';
-end;
+end
 
 if ~xunitframes
    fprintf('    Summed component ''%s'' in interval [%4g %4g] ms: %4.2f%%\n',...
@@ -810,7 +835,7 @@ end
 % Edited and moved here from 'Collect Y-axis information' section below -Jean
 %
 if length(g.limits) == 4 
-     if g.limits(3)~=0 | g.limits(4)~=0 % collect plotting limits from 'limits'
+     if g.limits(3)~=0 || g.limits(4)~=0 % collect plotting limits from 'limits'
 	 ymin = g.limits(3);
 	 ymax = g.limits(4);
          ylimset = 1;
@@ -832,12 +857,11 @@ FONTSIZEMED=10;
 FONTSIZESMALL=8;
 newaxes=axes('position',pos);
 axis off
-set(newaxes,'FontSize',FONTSIZE,'FontWeight','Bold','Visible','off');
-set(newaxes,'Color',BACKCOLOR); % set the background color
+set(newaxes,'FontSize',FONTSIZE,'FontWeight','Bold','Visible','off','Color',BACKCOLOR);
 delete(newaxes) %XXX
 
 % site the plot at bottom of the current axes
-axe = axes('Position',[pos(1) pos(2) pos(3) 0.6*pos(4)],...
+axe = axes('Position',[pos(1) pos(2) pos(3) g.axisoff*pos(4)],...
            'FontSize',FONTSIZE,'FontWeight','Bold');
 
 g.limits = get(axe,'Ylim');
@@ -856,18 +880,18 @@ else
   mapcolors = [1 maporder+1];
 end
 
-if strcmpi(g.sumenv,'on')  | strcmpi(g.sumenv,'fill') %%%%%%%% if 'sunvenv' %%%%%%%%%
+if strcmpi(g.sumenv,'on')  || strcmpi(g.sumenv,'fill') %%%%%%%% if 'sunvenv' %%%%%%%%%
  sumenv = envelope(sumproj(:,:), g.envmode);
- if ~ylimset & max(sumenv) > ymax, ymax = max(sumenv(1,:)); end
- if ~ylimset & min(sumenv) < ymin, ymin = min(sumenv(2,:)); end
+ if ~ylimset && max(sumenv(:)) > ymax, ymax = max(sumenv(1,:)); end
+ if ~ylimset && min(sumenv(:)) < ymin, ymin = min(sumenv(2,:)); end
  if strcmpi(g.sumenv,'fill')  
     %
     % Plot the summed projection filled 
     %
     mins = matsel(sumenv,frames,0,2,0);
     p=fill([times times(frames:-1:1)],...
-        [matsel(sumenv,frames,0,1,0) mins(frames:-1:1)],FILLCOLOR);
-    set(p,'EdgeColor',FILLCOLOR);
+        [matsel(sumenv,frames,0,1,0) mins(frames:-1:1)],g.fillcolor);
+    set(p,'EdgeColor',g.fillcolor);
     hold on
     %
     % Overplot the data envelope so it is not covered by the fill()'d component
@@ -878,15 +902,21 @@ if strcmpi(g.sumenv,'on')  | strcmpi(g.sumenv,'fill') %%%%%%%% if 'sunvenv' %%%%
     set(p,'LineWidth',2);                % component order (if BOLD_COLORS==0)
 
  else % if no 'fill'
+     if ntopos ==1 && g.plotproj
+         hold on; pproj = plot(times,sumproj);
+         set(pproj,'Tag','line_allprojections');
+     end
     tmp = matsel(sumenv,frames,0,2,0);
     p=plot(times,tmp);% plot the min
     hold on
-    set(p,'color',FILLCOLOR);
-    set(p,'linewidth',2);
+    set(p,'color',g.fillcolor,'Tag','line_envelope_2');
+    set(p,'linewidth',3);
     p=plot(times,matsel(sumenv,frames,0,1,0));% plot the max
-    set(p,'linewidth',2);
-    set(p,'color',FILLCOLOR);
+    set(p,'linewidth',3);
+    set(p,'color',g.fillcolor,'Tag','line_envelope_2');
  end
+ 
+ set(p,'Tag','patch_envelope');
 end
 
 if strcmpi(g.sortvar,'rp')
@@ -902,7 +932,7 @@ else
          double(ymin+0.1*(ymax-ymin)), ...
          ['ppaf ' num2str(sumppaf,'%4.2f') '%']);
 end
-set(t,'fontsize',FONTSIZESMALL,'fontweight','bold')
+set(t,'fontsize',FONTSIZESMALL,'fontweight','bold','Tag','text_inaxes')
 
 %
 % %%%%%%%%%%%%%%%%%%%%%%%% Plot the computed component envelopes %%%%%%%%%%%%%%%%%%
@@ -910,8 +940,8 @@ set(t,'fontsize',FONTSIZESMALL,'fontweight','bold')
     envx = [1;compx+1];
     for c = 1:ntopos+1   
         curenv = matsel(envdata,frames,0,1,envx(c));
-        if ~ylimset & max(curenv) > ymax, ymax = max(curenv); end
-        p=plot(times,curenv,colors(mapcolors(c),1));% plot the max
+        if ~ylimset && max(curenv) > ymax, ymax = max(curenv); end
+        p=plot(times,curenv,colors(mapcolors(c),1),'Tag',['line_envelope_' num2str(c)]);% plot the max
         set(gca,'FontSize',FONTSIZESMALL,'FontWeight','Bold')
         if c==1                                % Note: use colors in original
             set(p,'LineWidth',2);              %       component order (if BOLD_COLORS==0)
@@ -934,8 +964,8 @@ set(t,'fontsize',FONTSIZESMALL,'fontweight','bold')
         end
         hold on
         curenv = matsel(envdata,frames,0,2,envx(c));
-        if ~ylimset & min(curenv) < ymin, ymin = min(curenv); end
-        p=plot(times,curenv,colors(mapcolors(c),1));% plot the min
+        if ~ylimset && min(curenv) < ymin, ymin = min(curenv); end
+        p=plot(times,curenv,colors(mapcolors(c),1),'Tag',['line_envelope_' num2str(c)]);% plot the min
 
         if c==1
             set(p,'LineWidth',2);
@@ -956,27 +986,27 @@ set(t,'fontsize',FONTSIZESMALL,'fontweight','bold')
                 set(l1,'LineWidth',2);  % embolden dotted env lines
             end
         end
-        if c==1 & ~isempty(g.vert)
+        if c==1 && ~isempty(g.vert)
             for v=1:length(g.vert)
-                vl=plot([g.vert(v) g.vert(v)], [-1e10 1e10],'k--'); % plot specified vertical lines
-                if any(g.limcontrib ~= 0) & v>= length(g.vert)-1;
-                    set(vl,'linewidth',LIMCONTRIBWEIGHT);
+                vl=plot([g.vert(v) g.vert(v)], [-1e10 1e10],'k--','Tag','line_vertline'); % plot specified vertical lines
+                if any(g.limcontrib ~= 0) && v>= length(g.vert)-1;
+                    set(vl,'linewidth',g.limcontribweight);
                     set(vl,'linestyle',':');
                 else
-                    set(vl,'linewidth',VERTWEIGHT);
+                    set(vl,'linewidth',g.vertweight);
                     set(vl,'linestyle','--');
                 end
             end
         end
-        if g.limits(1) <= 0 & g.limits(2) >= 0    % plot vertical line at time zero
+        if g.limits(1) <= 0 && g.limits(2) >= 0    % plot vertical line at time zero
                 vl=plot([0 0], [-1e10 1e10],'k');
-                    set(vl,'linewidth',2);
+                    set(vl,'linewidth',2,'Tag','line_vertatzero');
         end
  
         %
         % plot the n-th component filled 
         %
-        if g.fillcomp(1)>0 & find(g.fillcomp==c-1) 
+        if g.fillcomp(1)>0 && find(g.fillcomp==c-1) 
             fprintf('filling the envelope of component %d\n',c-1);
             mins = matsel(envdata,frames,0,2,envx(c));
             p=fill([times times(frames:-1:1)],...
@@ -1013,9 +1043,9 @@ else % xunitframes == 1
 end
 set(l,'FontSize',FONTSIZEMED,'FontWeight','Bold');
 if strcmpi(g.envmode, 'avg')
-    l=ylabel('Potential (uV)');
+    l=ylabel('Potential (\muV)');
 else 
-    l=ylabel('RMS of uV');
+    l=ylabel('RMS of \muV');
 end;    
 set(l,'FontSize',FONTSIZEMED,'FontWeight','Bold');
 %
@@ -1048,14 +1078,14 @@ if strcmpi(g.dispmaps, 'on')
         set(axall,'Visible','off');
         maxenv = matsel(envdata,frames,plotframes(t),1,compx(t)+1); 
         % max env val
-        data_y = 0.6*(g.voffsets(t)+maxenv-ymin)/height;
-        if (data_y > pos(2)+0.6*pos(4)) 
-            data_y = pos(2)+0.6*pos(4);
+        data_y = g.axisoff*(g.voffsets(t)+maxenv-ymin)/height;
+        if (data_y > pos(2)+g.axisoff*pos(4)) 
+            data_y = pos(2)+g.axisoff*pos(4);
         end
         l1 = plot([(plottimes(t)-pmin)/pwidth  ...
-                   topoleft + 1/pos(3)*(t-1)*1.2*topowidth + (topowidth*0.6)],...
-                  [data_y 0.68], ...
-                  colors(linestyles(t)+1)); % 0.68 is bottom of topo maps
+                   topoleft + 1/pos(3)*(t-1)*1.2*topowidth + (topowidth*g.axisoff)],...
+                  [data_y (g.axisoff + 0.08)], ...
+                  colors(linestyles(t)+1),'Tag',['line_topoconnect_' num2str(t)]); % 0.68 is bottom of topo maps
         if all_bold > 0
                 set(l1,'LineStyle','-','LineWidth',3);
         elseif linestyles(t)>15                        % thin/dot 11th-> comp. envs.
@@ -1077,8 +1107,8 @@ if strcmpi(g.dispmaps, 'on')
         if g.voffsets(t) > 0                    
             l2 = plot([(plottimes(t)-xmin)/width  ...
                        (plottimes(t)-xmin)/width],...
-                      [0.6*(maxenv-ymin)/height ...
-                       0.6*(g.voffsets(t)+maxenv-ymin)/height],...
+                      [g.axisoff*(maxenv-ymin)/height ...
+                       g.axisoff*(g.voffsets(t)+maxenv-ymin)/height],...
                       colors(linestyles(t)+1));
             if all_bold > 0
                     set(l2,'LineStyle','-','LineWidth',3);
@@ -1112,17 +1142,21 @@ if strcmpi(g.dispmaps, 'on')
         maxvolt = 0;
         for n=1:ntopos
             maxvolt = max(max(abs(maxproj(:,n))), maxvolt);
-        end;
-    end;
+        end
+    end
     
     [tmp tmpsort] = sort(maporder);
     [tmp tmpsort] = sort(tmpsort);
 
     for t=1:ntopos % left to right order  (maporder)
                    % axt = axes('Units','Normalized','Position',...
+%         axt = axes('Units','Normalized','Position',...
+%                    [pos(3)*topoleft+pos(1)+(t-1)*head_sep*topowidth pos(2)+0.66*pos(4) ...
+%                     topowidth topowidth*head_sep]);
         axt = axes('Units','Normalized','Position',...
-                   [pos(3)*topoleft+pos(1)+(t-1)*head_sep*topowidth pos(2)+0.66*pos(4) ...
-                    topowidth topowidth*head_sep]);
+                   [pos(3)*topoleft+pos(1)+(t-1)*head_sep*topowidth  pos(2)+(g.axisoff+0.06)*pos(4) ...
+                    topowidth topowidth*head_sep],...
+                    'Tag',['axes_topo_' num2str(t)]);
         axes(axt)                             % topoplot axes
         cla
         
@@ -1138,14 +1172,14 @@ if strcmpi(g.dispmaps, 'on')
    ['text(-0.6, -0.6, ''' g.sortvar ': ' sprintf('%6.2f', sortvar(tmpsort(t))) ''');']);
         else 
 			axis off;
-        end;
+        end
 
         %
         %%%%%%%%%%%%% Scale colors %%%%%%%%%%%%%%%%%%%%%%%%%
         %
         if strcmpi(g.actscale, 'on')
             caxis([-maxvolt maxvolt]);
-        end;
+        end
         %
         %%%%%%%%%%%%%%%%%%%%%%%% label components %%%%%%%%%%%%%%%%%%%%%%%
         %
@@ -1163,9 +1197,9 @@ if strcmpi(g.dispmaps, 'on')
                     for j=1:c
                         if compnames(i,j)=='.',
                             compnames(i,j)=' ';
-                        end;
-                    end;
-                end;
+                        end
+                    end
+                end
                 numlabels=0;
             end
         end
@@ -1174,7 +1208,7 @@ if strcmpi(g.dispmaps, 'on')
         else
             complabel = compnames(t,:);              % use labels in file
         end
-        text(0.00,0.80,complabel,'FontSize',FONTSIZEMED,...
+        text(0.00,0.80,['IC ' complabel],'FontSize',FONTSIZEMED,...
              'FontWeight','Bold','HorizontalAlignment','Center');
         % axt = axes('Units','Normalized','Position',[0 0 1 1],...
         axt = axes('Position',[0 0 1 1],...
@@ -1186,7 +1220,9 @@ if strcmpi(g.dispmaps, 'on')
     %%%%%%%%%%%%%%%%%%%%%%%%%%% Plot a colorbar %%%%%%%%%%%%%%%%%%%%%%%%%%
     %
     % axt = axes('Units','Normalized','Position',[.88 .58 .03 .10]);
-    axt = axes('Position',[pos(1)+pos(3)*1.015 pos(2)+0.6055*pos(4) ...
+%     axt = axes('Position',[pos(1)+pos(3)*1.015 pos(2)+0.6055*pos(4) ...
+% 				pos(3)*.02 pos(4)*0.09]);
+   axt = axes('Position',[pos(1)+pos(3)*1.015 pos(2)+(g.axisoff)*pos(4) ...
 				pos(3)*.02 pos(4)*0.09]);
     if strcmpi(g.actscale, 'on')
         h=cbar(axt, [1:64],[-maxvolt maxvolt],3);
@@ -1200,15 +1236,17 @@ if strcmpi(g.dispmaps, 'on')
 						'HorizontalAlignment','Center',...
 						'FontWeight','Bold');
         set(tmp, 'interpreter', 'none');
-        text(1,0.68,'+','FontSize',FONTSIZE,'HorizontalAlignment','Center');
+%         text(1,0.68,'+','FontSize',FONTSIZE,'HorizontalAlignment','Center');
+        text(1,g.axisoff+0.08,'+','FontSize',FONTSIZE,'HorizontalAlignment','Center');
         % text(1,0.637,'0','FontSize',12,'HorizontalAlignment','Center',...
 		%	'verticalalignment','middle');
-        text(1,0.61,'-','FontSize',FONTSIZE,'HorizontalAlignment','Center');
-    end;
+%         text(1,0.61,'-','FontSize',FONTSIZE,'HorizontalAlignment','Center');
+        text(1,g.axisoff+0.01,'-','FontSize',FONTSIZE,'HorizontalAlignment','Center');
+    end
     axes(axall)
     set(axall,'layer','top'); % bring component lines to top
     
-end;
+end
 %
 %%%%%%%%%%%%%%%%%%%%%%%%% turn on axcopy %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -1220,7 +1258,7 @@ return %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 function envdata = envelope(data, envmode)  % also in release as env()
   if nargin < 2
       envmode = 'avg';
-  end;
+  end
   if strcmpi(envmode, 'rms'); % return rms of pos and neg vals at each time point 
       warning off;
       datnaeg = (data < 0).*data; % zero out positive values
@@ -1241,6 +1279,6 @@ function envdata = envelope(data, envmode)  % also in release as env()
           mindata = min([data;data]); % min at each time point
           envdata = [maxdata;mindata];
       end
-  end;
+  end
   
 return %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

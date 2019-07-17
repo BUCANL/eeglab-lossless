@@ -36,26 +36,37 @@
 
 % Copyright (C) 2002 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [interparray, timesout] = vectdata( array, timevect, varargin );
 
 if nargin < 3
     help vectdata;
     return;
-end;
+end
 
 g = finputcheck( varargin, { 'timesout'   'real'  []           [];
                              'average'    'real'  []           [];
@@ -63,11 +74,11 @@ g = finputcheck( varargin, { 'timesout'   'real'  []           [];
                              'border'     'string' { 'on','off' } 'off';
                              'avgtype'    'string' { 'const','gauss' } 'const';
                              'method'     'string' { 'linear','cubic','nearest','v4' } 'linear'});
-if isstr(g), error(g); end;
+if ischar(g), error(g); end
 
 if size(array,2) == 1
     array = transpose(array);
-end;
+end
 
 if ~isempty(g.average)
     timediff = timevect(2:end) -timevect(1:end-1);
@@ -77,29 +88,29 @@ if ~isempty(g.average)
         newtimevect = linspace(timevect(1), timevect(end), ceil((timevect(end)-timevect(1))/minspace)); 
         array = interpolate( array, timevect, newtimevect, g.method);
         timevect = newtimevect;
-    end;
+    end
     oldavg = g.average;
     g.average = round(g.average/(timevect(2)-timevect(1)));
     if oldavg ~= g.average
         fprintf('Moving average updated from %3.2f to %3.2f (=%d points)\n', ...
                 oldavg, g.average*(timevect(2)-timevect(1)), g.average);
-    end;
+    end
     if strcmpi(g.border, 'on')
         if strcmpi(g.avgtype, 'const')
             array = convolve(array, ones(1, g.average));
         else
             convolution = gauss2d(1,g.average,1,round(0.15*g.average));
             array = convolve(array, convolution);
-        end;
+        end
     else
         if strcmpi(g.avgtype, 'const')
             array = conv2(array, ones(1, g.average)/g.average, 'same');
         else
             convolution = gauss2d(1,g.average,1,round(0.15*g.average));
             array = conv2(array, convolution/sum(convolution), 'same');
-        end;
-    end;
-end;
+        end
+    end
+end
 
 interparray = interpolate( array, timevect, g.timesout, g.method);
 timesout = g.timesout;
@@ -113,4 +124,4 @@ function [interparray] = interpolate( array, timesin, timesout, method);
         
         [Xi,Yi,Zi] = griddata(timesin, [1 2]', tmpa, timesout, [1 2]', method); % Interpolate data
         interparray(index,:) = Zi(1,:);
-    end;
+    end

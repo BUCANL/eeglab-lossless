@@ -32,46 +32,57 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (C) Arnaud Delorme, 2004
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [handles] = plotsphere(pos, rad, varargin);
     
     if nargin < 2
         help plotsphere;
         return;
-    end;
+    end
     
     g = finputcheck(varargin, { 'color'    { 'real','string' } []         [1 0 0];
                                 'nvert'    'integer'           [2 Inf]    15;
                                 'proj'     'real'              []         [];
                                 'colormap' 'real'              []         jet(64);
                                 'projcol'  { 'real','string' } []         [0 0 0] }, 'plotsphere');
-    if isstr(g), error(g); end;
+    if ischar(g), error(g); end
     
     % decode color if necessary
     % -------------------------
-    if ~isstr(g.color) & length(g.color) == 1
+    if ~ischar(g.color) && length(g.color) == 1
         g.color = g.colormap(g.color,:);
-    elseif isstr(g.color)
+    elseif ischar(g.color)
         g.color = strcol2real(g.color);
-    end;
-    if ~isstr(g.projcol) & length(g.projcol) == 1
+    end
+    if ~ischar(g.projcol) && length(g.projcol) == 1
         g.projcol = g.colormap(g.projcol,:);
-    elseif isstr(g.projcol)
+    elseif ischar(g.projcol)
         g.projcol = strcol2real(g.projcol);
-    end;
+    end
             
     % ploting sphere
     % ==============
@@ -92,12 +103,12 @@ function [handles] = plotsphere(pos, rad, varargin);
     if ~isempty(g.proj)
         colorarray  = repmat(reshape(g.projcol, 1,1,3), [size(zs,1) size(zs,2) 1]);
         if ~isnan(g.proj(1)), handles(end+1) = surf(g.proj(1)*ones(size(xs)), ys, zs, colorarray, ...
-                                                    'edgecolor', 'none', 'facelighting', 'none'); end;
+                                                    'edgecolor', 'none', 'facelighting', 'none'); end
         if ~isnan(g.proj(2)), handles(end+1) = surf(xs, g.proj(2)*ones(size(ys)), zs, colorarray, ...
-                                                    'edgecolor', 'none', 'facelighting', 'none'); end;
+                                                    'edgecolor', 'none', 'facelighting', 'none'); end
         if ~isnan(g.proj(3)), handles(end+1) = surf(xs, ys, g.proj(3)*ones(size(zs)), colorarray, ...
-                                                    'edgecolor', 'none', 'facelighting', 'none'); end;
-    end;
+                                                    'edgecolor', 'none', 'facelighting', 'none'); end
+    end
     
 function color = strcol2real(color)
     switch color
@@ -110,4 +121,4 @@ function color = strcol2real(color)
      case 'k', color = [0 0 0];
      case 'w', color = [1 1 1];
      otherwise, error('Unknown color'); 
-    end;
+    end

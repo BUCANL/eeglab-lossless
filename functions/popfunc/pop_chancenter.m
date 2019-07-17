@@ -22,19 +22,30 @@
 
 % Copyright (C) 2004, Arnaud Delorme, SCCN/INC/UCSD, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [ chanlocs, newcenter, com] = pop_chancenter( chanlocs, center, omitchans)
 
@@ -43,13 +54,13 @@ optim = 0;
 if nargin<1
     help pop_chancenter
     return;
-end;
+end
 
 com = '';
 newcenter = [];
 if nargin < 3
     omitchans = [];
-end;
+end
 if nargin < 2
     cb_browse = [ 'tmpchans = get(gcbf, ''userdata'');' ...
                   'set(findobj(gcbf, ''tag'', ''chans''), ''string'', ' ...
@@ -71,16 +82,16 @@ if nargin < 2
     
     results = inputgui( geometry, uilist, 'pophelp(''pop_chancenter'');', ...
                         'Convert channel locations -- pop_chancenter()', chanlocs );
-	if isempty(results), return; end;
+	if isempty(results), return; end
 	if results{1}
         center = [];
     else
         center  = eval( [ '[' results{2} ']' ] );
-    end;
+    end
     if ~isempty(results{3})
         omitchans =  eval( [ '[' results{3} ']' ] );
-    end;
-end;
+    end
+end
 
 % remove channels
 % ---------------
@@ -88,16 +99,17 @@ c = setdiff_bc([1:length(chanlocs)], union(omitchans, find(cellfun('isempty', { 
 
 % optimize center
 % ---------------
-[X Y Z newcenter]= chancenter( [ chanlocs(c).X ]', [ chanlocs(c).Y ]', [ chanlocs(c).Z ]', center);
+[X, Y, Z, newcenter]= chancenter( [ chanlocs(c).X ]', [ chanlocs(c).Y ]', [ chanlocs(c).Z ]', center);
 for index = 1:length(c)
     chanlocs(c(index)).X  = X(index);
     chanlocs(c(index)).Y  = Y(index);
     chanlocs(c(index)).Z  = Z(index);
-end;
+end
 disp('Note: automatically convert XYZ coordinates to spherical and polar');
 chanlocs = convertlocs(chanlocs, 'cart2all');
 if ~isempty(omitchans)
     disp('Important warning: the location of omitted channels has not been modified');
-end;
-
-com = sprintf('%s = pop_chancenter( %s, %s);', inputname(1), inputname(1), vararg2str({ center omitchans }));
+end
+if nargout > 2
+    com = sprintf('%s = pop_chancenter( %s, %s);', inputname(1), inputname(1), vararg2str({ center omitchans }));
+end

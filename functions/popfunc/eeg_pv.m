@@ -36,18 +36,45 @@
 %
 % Author: from eeg_pvaf(), Scott Makeig, SCCN/INC/UCSD, 02/04/05
 
+% Copyright (C) Scott Makeig, SCCN/INC/UCSD, 02/04/05
+%
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
+%
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
+%
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
+
 function [pv,pvs,pvall] = eeg_pv(EEG,comps,artcomps,omitchans,fraction,plotflag)
 
-if nargin < 1 | nargin > 6
+if nargin < 1 || nargin > 6
    help eeg_pv
    return
 end
 numcomps = size(EEG.icaact,1);
 plotit = 0;
-if nargin>5 | nargout < 1
+if nargin>5 || nargout < 1
    plotit = 1;
 end
-if nargin<5 | isempty(fraction)
+if nargin<5 || isempty(fraction)
   fraction = 1;
 end
 if fraction>1
@@ -58,7 +85,7 @@ if round(fraction*EEG.pnts*EEG.trials)<1
    error('fraction of data specified too small.')
    return
 end
-if nargin<4 | isempty(omitchans)
+if nargin<4 || isempty(omitchans)
   omitchans = [];
 end
 if nargin<3|isempty(artcomps)
@@ -80,7 +107,7 @@ if ~isempty(omitchans)
 end
 
 progressive = 0; % by default, progressive mode is off
-if nargin < 2 | isempty(comps)|comps==0
+if nargin < 2 || isempty(comps)|comps==0
   comps = [];
   progressive = 1;  % turn progressive mode on
 end
@@ -107,7 +134,7 @@ if max(comps) > size(EEG.icawinv,1)
    fprintf('Only %d components in this dataset. Cannot project component %d.\n',numcomps,max(comps));
    error('bad comps input');
 end
-if ~isempty(artcomps) & max(artcomps) > numcomps
+if ~isempty(artcomps) && max(artcomps) > numcomps
     help eeg_pv
    fprintf('Only %d components in this dataset. Cannot project artcomp %d.\n',numcomps,max(artcomps));
    error('bad artcomps input')
@@ -140,14 +167,14 @@ if ~isempty(artcomps)
       comps(c) = [];
    end
 end
-if ~isempty(artcomps) & min([comps artcomps]) < 1
+if ~isempty(artcomps) && min([comps artcomps]) < 1
    error('comps and artcomps must contain component indices');
 end
 
 %
 %%%%%%%%%%%%%%%%%%%%%%%% compute variance accounted for by specified components %%%%%%%%%%%%%
 %
-if ~progressive | comp == 1 % pare out omitchans and artcomps from EEG.data
+if ~progressive || comp == 1 % pare out omitchans and artcomps from EEG.data
   if ~isempty(artcomps)
     EEG.data = EEG.data(chans,:) - EEG.icawinv(chans,artcomps)*EEG.icaact(artcomps,:);
   else
@@ -247,7 +274,7 @@ elseif plotit
       maxc=max(pvs)
    else 
       maxc=100; 
-   end;
+   end
 
    pvstr=sprintf('Total pv: %3.1f%%',pv);
    tx=text(-0.9,-0.6,pvstr);

@@ -1,4 +1,4 @@
-function [output,status] = urlread(urlChar,method,params)
+function [output,status] = plugin_urlread(urlChar,method,params)
 %URLREAD Returns the contents of a URL as a string.
 %   S = URLREAD('URL') reads the content at a URL into a string, S.  If the
 %   server returns binary data, the string will contain garbage.
@@ -19,6 +19,7 @@ function [output,status] = urlread(urlChar,method,params)
 %
 %   See also URLWRITE.
 
+%   Adapted by A. Delorme from 
 %   Matthew J. Simoneau, 13-Nov-2001
 %   Copyright 1984-2011 The MathWorks, Inc.
 %   $Revision: 1.3.2.12 $ $Date: 2011/09/03 22:43:00 $
@@ -28,10 +29,12 @@ if ~usejava('jvm')
    error(message('MATLAB:urlread:NoJvm'));
 end
 
-import com.mathworks.mlwidgets.io.InterruptibleStreamCopier;
+if exist('OCTAVE_VERSION', 'builtin') == 0
+    import com.mathworks.mlwidgets.io.InterruptibleStreamCopier;
 
-% Be sure the proxy settings are set.
-com.mathworks.mlwidgets.html.HTMLPrefs.setProxySettings
+    % Be sure the proxy settings are set.
+    com.mathworks.mlwidgets.html.HTMLPrefs.setProxySettings
+end
 
 % Check number of inputs and outputs.
 if ~ischar(urlChar)

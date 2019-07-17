@@ -27,19 +27,30 @@
 
 % Copyright (C) 2002 Arnaud Delorme & Luca Finelli, Salk/SCCN, La Jolla, CA
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function varargout = pop_eventstat( EEG, eventfield, type, latrange, percent );
 
@@ -59,10 +70,10 @@ end;
 popup=0;
 if nargin < 2
 	popup = 1;
-end;
+end
 if nargin < 3
 	percent=5;
-end;
+end
 
 % pop up window
 % -------------
@@ -75,30 +86,30 @@ if nargin < 2
 					'Percent for trimmed statistics:' };
 	inistr       = { 'latency' '' '' '5' };
 	result       = inputdlg2( promptstr, 'Plot event statistics -- pop_eventstat()', 1,  inistr, 'signalstat');
-	if length( result ) == 0 return; end;
+	if length( result ) == 0 return; end
 	eventfield   = deblank(result{1}); % the brackets allow to process matlab arrays
     if ~isempty(result{2})
         if strcmpi(result{2}(1),'''')
              type = eval( [ '{' result{2} '}' ] );
         else type = parsetxt( result{2});
-        end;
+        end
     else
         disp('WARNING: you should select an event type');
         type = {};
-    end;
+    end
 	latrange     = eval( [ '[' result{3} ']' ] );
 	percent      = eval( [ '[' result{4} ']' ] );
 else
     if nargin < 3
         type = [];
-    end;
+    end
     if nargin < 4
         latrange = [];
-    end;
+    end
     if nargin < 5
         percent = 5;
-    end;
-end;
+    end
+end
 
 % call function signalstat() either on raw data or ICA data
 % ---------------------------------------------------------
@@ -111,7 +122,7 @@ for index = 1:length(alltypevals)
 end;   
 if isempty(typevals)
     error('No such events found. See Edit > Event values to confirm event type.');
-end;
+end
 dlabel='Event values';
 if isempty(type)
     dlabel2=['All event statistics for ''' eventfield ''' info'];
@@ -123,17 +134,17 @@ end;
 % -------
 outstr = '';
 if ~popup
-    for io = 1:nargout, outstr = [outstr 'varargout{' int2str(io) '},' ]; end;
-    if ~isempty(outstr), outstr = [ '[' outstr(1:end-1) '] =' ]; end;
-end;
+    for io = 1:nargout, outstr = [outstr 'varargout{' int2str(io) '},' ]; end
+    if ~isempty(outstr), outstr = [ '[' outstr(1:end-1) '] =' ]; end
+end
 
 % return the string command
 % -------------------------
 fprintf('pop_eventstat: extracting events...\n');
-varargout{1} = sprintf('pop_eventstat( %s, %s );', inputname(1), vararg2str({eventfield type latrange percent}));
+varargout{1} = sprintf('pop_eventstat( EEG, %s );', vararg2str({eventfield type latrange percent}));
 com          = sprintf('%s signalstat( typevals, 1, dlabel, percent, dlabel2 ); %s', outstr);
 
 eval(com)	
-try, icadefs; set(gcf, 'color', BACKCOLOR); catch, end;
+try, icadefs; set(gcf, 'color', BACKCOLOR); catch, end
 
 return;

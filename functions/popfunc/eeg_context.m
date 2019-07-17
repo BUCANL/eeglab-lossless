@@ -63,6 +63,33 @@
 %
 % Author: Scott Makeig, SCCN, Institute for Neural Computation, UCSD, March 27, 2004
 
+% Copyright (C) Scott Makeig, SCCN, Institute for Neural Computation, UCSD, March 27, 2004
+%
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
+%
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
+%
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
+
 % Edit History:
 % 1/10/05 added 4th (type) field to output trgs; added to Example;
 % 5/25/04 test for isnan(urevent.duration) to detect real break events -sm
@@ -84,7 +111,7 @@ if nargin < 1
    return
 end
 
-if nargin< 6 | isempty(alltargs)
+if nargin< 6 || isempty(alltargs)
   alltargs = 0;
 elseif strcmpi(alltargs,'all')
   alltargs = 1;
@@ -105,20 +132,20 @@ if ~isfield(EEG.event,'urevent')
    error('No EEG.event().urevent field found');
 end
       
-if EEG.trials == 1 | ~isfield(EEG.event(1),'epoch')
+if EEG.trials == 1 || ~isfield(EEG.event(1),'epoch')
   fprintf('Data are continuous: Returning info on all targets; no epoch info returned.\n')
   alltargs = 1;
   epochinfo = 0;
 else
   epochinfo = 1;
 end
-if epochinfo & ~isfield(EEG,'epoch')
+if epochinfo && ~isfield(EEG,'epoch')
   error('No EEG.epoch information in this epoched dataset - run eeg_checkset()');
 end
-if epochinfo & ~isfield(EEG.epoch,'eventlatency')
+if epochinfo && ~isfield(EEG.epoch,'eventlatency')
   error('No EEG.epoch.eventlatency information in this epoched dataset');
 end
-if epochinfo & ~isfield(EEG.epoch,'event')
+if epochinfo && ~isfield(EEG.epoch,'event')
   error('No EEG.epoch.event information in this epoched dataset');
 end
 
@@ -130,16 +157,16 @@ end
 %
 %%%%%%%%%%%%%%%%%% Substitute input defaults %%%%%%%%%%%%%%%%%%%%
 %
-if nargin < 5 | isempty(field)
+if nargin < 5 || isempty(field)
   NO_FIELD = 1;        % flag no field variable output
 end
-if nargin  < 4 | isempty(positions)
+if nargin  < 4 || isempty(positions)
   positions = 1;    % default: find next
 end
-if nargin < 3 | isempty(neighbors)
+if nargin < 3 || isempty(neighbors)
   neighbors = {'_ALL'};  % flag neighbors are all neighboring events
 end
-if nargin < 2 | isempty(targets)
+if nargin < 2 || isempty(targets)
   targets = {'_ALL'};  % flag targets are all events
 end
 
@@ -296,7 +323,7 @@ if ~strcmp(EEG.event(evidx).type,'boundary')       % ignore boundary events (no 
  while ~istarget & tidx<=length(targets)           % for each potential target type
     uridxtype = EEG.urevent(uridx).type;
     if ~ischar(uridxtype), uridxtype = num2str(uridxtype); end
-    if strcmpi(uridxtype,targets(tidx)) | strcmp(targets{1},'_ALL')         
+    if strcmpi(uridxtype,targets(tidx)) || strcmp(targets{1},'_ALL')         
                                                    % if is a target type
       istarget=1;                                  % flag event as target
       targetcount = targetcount+1;                 % increment target count
@@ -335,7 +362,7 @@ if ~strcmp(EEG.event(evidx).type,'boundary')       % ignore boundary events (no 
                     else
                       trglt = EEG.epoch(ep).eventlatency{e}(1); % this shouldn't happen
                       fprintf('EEG.epoch(%d).eventlatency{%d} length > 1 ??\n',ep,e);
-                    end;
+                    end
                   end
                   if trglt == 0
                       targepochs(targetcount) = ep;
@@ -400,7 +427,7 @@ if ~strcmp(EEG.event(evidx).type,'boundary')       % ignore boundary events (no 
      %%%%%%%%%% cycle through neighbor types %%%%%%%%%%%%%
      %
      while ~isneighbor & nidx<=length(neighbors)     % for each neighbor event type
-       if strcmpi(uidxtype,neighbors(nidx)) | strcmp(neighbors,'_ALL')
+       if strcmpi(uidxtype,neighbors(nidx)) || any(strcmp(neighbors,'_ALL'))
          isneighbor=1;                               % flag 'neighbors' event
          curpos = curpos+1;
          %
@@ -543,14 +570,14 @@ if ~strcmp(EEG.event(evidx).type,'boundary')       % ignore boundary events (no 
     fprintf('%d. ',targetcount)
     if targetcount<1000, fprintf(' '); end
     if targetcount<100, fprintf(' '); end
-    if targetcount<10, fprintf(' '); end;
+    if targetcount<10, fprintf(' '); end
     if uidx > 1
       %fprintf('event %-4d ttype %s - delays: ',evidx,num2str(EEG.urevent(evidx).type));
      for k=1:npos
       fprintf('(%d) ',ur_nbrs(targetcount,k));
       if ur_nbrs(targetcount,k)<1000, fprintf(' '); end
       if ur_nbrs(targetcount,k)<100, fprintf(' '); end
-      if ur_nbrs(targetcount,k)<10, fprintf(' '); end;
+      if ur_nbrs(targetcount,k)<10, fprintf(' '); end
       fprintf('%2.0f ',delays(targetcount,k));
      end
      if ~exist('NO_FIELD','var')
@@ -588,7 +615,7 @@ end % event loop
 %
 %%%%%%%%% delete watibar %%%%%%%%
 %
-if ishandle(wb), delete(wb); end;
+if ishandle(wb), delete(wb); end
 
 if ~alltargs
   fprintf('Returning info on the %d of %d target events that have epochs centered on them.\n',...

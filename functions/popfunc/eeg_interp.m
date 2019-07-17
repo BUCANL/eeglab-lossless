@@ -1,4 +1,4 @@
-    % eeg_interp() - interpolate data channels
+% eeg_interp() - interpolate data channels
 %
 % Usage: EEGOUT = eeg_interp(EEG, badchans, method);
 %
@@ -14,7 +14,7 @@
 %                'invdist'/'v4' uses inverse distance on the scalp
 %                'spherical' uses superfast spherical interpolation. 
 %                'spacetime' uses griddata3 to interpolate both in space 
-%                and time (very slow and cannot be interupted).
+%                and time (very slow and cannot be interrupted).
 % Output: 
 %     EEGOUT   - data set with bad electrode data replaced by
 %                interpolated data
@@ -23,41 +23,52 @@
 
 % Copyright (C) Arnaud Delorme, CERCO, 2006, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function EEG = eeg_interp(ORIEEG, bad_elec, method)
 
     if nargin < 2
         help eeg_interp;
         return;
-    end;
+    end
     EEG = ORIEEG;
     
     if nargin < 3
         disp('Using spherical interpolation');
         method = 'spherical';
-    end;
+    end
 
     % check channel structure
     tmplocs = ORIEEG.chanlocs;
     if isempty(tmplocs) || isempty([tmplocs.X])
         error('Interpolation require channel location');
-    end;
+    end
     
     if isstruct(bad_elec)
-        
+       
         % add missing channels in interpolation structure
         % -----------------------------------------------
         lab1 = { bad_elec.labels };
@@ -65,28 +76,36 @@ function EEG = eeg_interp(ORIEEG, bad_elec, method)
         lab2 = { tmpchanlocs.labels };
         [tmp tmpchan] = setdiff_bc( lab2, lab1);
         tmpchan = sort(tmpchan);
+        
+        % From 'bad_elec' using only fields present on EEG.chanlocs
+        fields = fieldnames(bad_elec);
+        [tmp, indx1] = setxor(fields,fieldnames(EEG.chanlocs)); clear tmp;
+        if ~isempty(indx1)
+            bad_elec = rmfield(bad_elec,fields(indx1));
+            fields = fieldnames(bad_elec);
+        end
+        
         if ~isempty(tmpchan)
             newchanlocs = [];
-            fields = fieldnames(bad_elec);
             for index = 1:length(fields)
                 if isfield(bad_elec, fields{index})
                     for cind = 1:length(tmpchan)
                         fieldval = getfield( EEG.chanlocs, { tmpchan(cind) },  fields{index});
                         newchanlocs = setfield(newchanlocs, { cind }, fields{index}, fieldval);
-                    end;
-                end;
-            end;
+                    end
+                end
+            end
             newchanlocs(end+1:end+length(bad_elec)) = bad_elec;
             bad_elec = newchanlocs;
-        end;
-        if length(EEG.chanlocs) == length(bad_elec), return; end;
+        end
+        if length(EEG.chanlocs) == length(bad_elec), return; end
         
         lab1 = { bad_elec.labels };
         tmpchanlocs = EEG.chanlocs;
         lab2 = { tmpchanlocs.labels };
         [tmp badchans] = setdiff_bc( lab1, lab2);
         fprintf('Interpolating %d channels...\n', length(badchans));
-        if length(badchans) == 0, return; end;
+        if length(badchans) == 0, return; end
         goodchans      = sort(setdiff(1:length(bad_elec), badchans));
        
         % re-order good channels
@@ -118,7 +137,7 @@ function EEG = eeg_interp(ORIEEG, bad_elec, method)
             %icachansind2 = sorti(icachansind)
             %data(icachansind,:)
             %data2(icachansind2,:)
-        end;
+        end
         % { EEG.chanlocs(neworder).labels; bad_elec(sort(goodchans)).labels }
         %tmpdata                  = zeros(length(bad_elec), size(EEG.data,2), size(EEG.data,3));
         %tmpdata(goodchans, :, :) = EEG.data;
@@ -139,7 +158,7 @@ function EEG = eeg_interp(ORIEEG, bad_elec, method)
         EEG       = pop_select(EEG, 'nochannel', badchans);
         EEG.chanlocs = oldelocs;
         disp('Interpolating missing channels...');
-    end;
+    end
 
     % find non-empty good channels
     % ----------------------------
@@ -150,7 +169,7 @@ function EEG = eeg_interp(ORIEEG, bad_elec, method)
     goodchans = goodchans( sort(indgood) );
     datachans = getdatachans(goodchans,badchans);
     badchans  = intersect_bc(badchans, nonemptychans);
-    if isempty(badchans), return; end;
+    if isempty(badchans), return; end
     
     % scan data points
     % ----------------
@@ -201,8 +220,8 @@ function EEG = eeg_interp(ORIEEG, bad_elec, method)
         zbad = reshape(zbad,prod(size(zbad)),1);
         xbad = repmat(xbad, [1 pnts]); xbad = reshape(xbad,prod(size(xbad)),1);
         ybad = repmat(ybad, [1 pnts]); ybad = reshape(ybad,prod(size(ybad)),1);
-        badchansdata = griddata(ygood, xgood, zgood, tmpdata,...
-                                              ybad, xbad, zbad, 'nearest'); % interpolate data might be griddata might be griddata3                                           
+        badchansdata = griddata3(ygood, xgood, zgood, tmpdata,...
+                                              ybad, xbad, zbad, 'nearest'); % interpolate data                                            
     else 
         % get theta, rad of electrodes
         % ----------------------------
@@ -214,20 +233,20 @@ function EEG = eeg_interp(ORIEEG, bad_elec, method)
         badchansdata = zeros(length(badchans), size(EEG.data,2)*size(EEG.data,3));
         
         for t=1:(size(EEG.data,2)*size(EEG.data,3)) % scan data points
-            if mod(t,100) == 0, fprintf('%d ', t); end;
+            if mod(t,100) == 0, fprintf('%d ', t); end
             if mod(t,1000) == 0, fprintf('\n'); end;          
         
             %for c = 1:length(badchans)
             %   [h EEG.data(badchans(c),t)]= topoplot(EEG.data(goodchans,t),EEG.chanlocs(goodchans),'noplot', ...
             %        [EEG.chanlocs( badchans(c)).radius EEG.chanlocs( badchans(c)).theta]);
-            %end;
+            %end
             tmpdata = reshape(EEG.data, size(EEG.data,1), size(EEG.data,2)*size(EEG.data,3) );
-            if strcmpi(method, 'invdist'), method = 'v4'; end;
+            if strcmpi(method, 'invdist'), method = 'v4'; end
             [Xi,Yi,badchansdata(:,t)] = griddata(ygood, xgood , double(tmpdata(datachans,t)'),...
                                                     ybad, xbad, method); % interpolate data                                            
         end
         fprintf('\n');
-    end;
+    end
     
     tmpdata               = zeros(length(bad_elec), EEG.pnts, EEG.trials);
     tmpdata(origoodchans, :,:) = EEG.data;
@@ -247,7 +266,7 @@ function datachans = getdatachans(goodchans, badchans);
       badchans  = sort(badchans);
       for index = length(badchans):-1:1
           datachans(find(datachans > badchans(index))) = datachans(find(datachans > badchans(index)))-1;
-      end;
+      end
         
 % -----------------
 % spherical splines
@@ -341,10 +360,10 @@ for n = 1:7
     else % Octave legendre function cannot process 2-D matrices
         for icol = 1:size(EI,2)
             tmpL = legendre(n,EI(:,icol));
-            if icol == 1, L = zeros([ size(tmpL) size(EI,2)]); end;
+            if icol == 1, L = zeros([ size(tmpL) size(EI,2)]); end
             L(:,:,icol) = tmpL;
-        end;
-    end;
+        end
+    end
     g = g + ((2*n+1)/(n^m*(n+1)^m))*squeeze(L(1,:,:));
 end
 g = g/(4*pi);    

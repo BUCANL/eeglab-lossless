@@ -28,19 +28,30 @@
 
 % Copyright (C) 01-23-97 Scott Makeig, SCCN/INC/UCSD, scott@sccn.ucsd.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 03-19-97 use datamean instead of frames/baseframes, diag(cov()) for var() -sm
 % 04-03-97 changed name to envproj() -sm
@@ -119,20 +130,20 @@ end
 %
 if chanlist == 0,
     chanlist = [1:chans];
-end;
+end
 if compnums == 0,
     compnums = [1:wr];
-end;
+end
 if size(compnums,1)>1,        % handle column of compnums !
     compnums = compnums';
-end;
+end
 numcomps = length(compnums);
 if numcomps > MAXENVPLOTCHANS,
     fprintf(...
 'envproj(): cannot plot more than %d channels of data at once.\n',...
                   MAXENVPLOTCHANS);
     return
-end;
+end
 
 if max(compnums)>wr
  fprintf('\nenvproj(): Component index %d out of bounds (1:%d).\n',...
@@ -146,7 +157,7 @@ if min(compnums)<1,
  return
 end
 
-if FILL>0 & numcomps == 1
+if FILL>0 && numcomps == 1
    FILL = 1;
 else
    FILL = 0;
@@ -163,33 +174,33 @@ end
         fprintf( ...
  'envproj(): limits should be 0 or an array [xmin xmax ymin ymax].\n');
         return
-      end;
-        if limits(1,1) == 0 & limits(1,2) ==0,
+      end
+        if limits(1,1) == 0 && limits(1,2) ==0,
             xmin=0;
             xmax=0;
         else
             xmin = limits(1,1);
             xmax = limits(1,2);
-        end;
-         if limits(1,3) == 0 & limits(1,4) ==0,
+        end
+         if limits(1,3) == 0 && limits(1,4) ==0,
             ymin=0;
             ymax=0;
         else
             ymin = limits(1,3);
             ymax = limits(1,4);
-        end;
-  end;
+        end
+  end
 
-  if xmax == 0 & xmin == 0,
+  if xmax == 0 && xmin == 0,
     x = (0:1:frames-1);
     xmin = 0;
     xmax = frames-1;
   else
     dx = (xmax-xmin)/(frames-1);
     x=xmin*ones(1,frames)+dx*(0:frames-1); % construct x-values
-  end;
+  end
 
-  if ymax == 0 & ymin == 0,
+  if ymax == 0 && ymin == 0,
     ymax=max(max(data(chanlist,:)));
     ymin=min(min(data(chanlist,:)));
   end
@@ -197,7 +208,7 @@ end
 %
 %%%%%%%%%%%%%%%%%%%% Read the color names %%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-    if ~isstr(colors)
+    if ~ischar(colors)
         fprintf('envproj(): color file name must be a string.\n');
         return
     end
@@ -213,10 +224,10 @@ end
             for j=1:c
                 if colors(i,j)=='.',
                     colors(i,j)=' ';
-                end;
-            end;
-        end;
-    end;
+                end
+            end
+        end
+    end
 [rr cc] = size(colors);
 
 %
@@ -241,12 +252,12 @@ for c=compnums,            % for each component
                  % append envelope of projected data sets onto envdata
   % Note: size(envdata) = [length(chanlist)  frames*(numcomps+1)]
   n = n+1;
-end;
+end
 fprintf('\n');
 %
 %%%%%%%%%%%%%%%%%%%%%%%% Make the plot %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-if ~isstr(titl)
+if ~ischar(titl)
   if titl==0,
     titl = ' ';
   else
@@ -310,7 +321,7 @@ set(l,'FontSize',14);
 l=ylabel('Potential (uV)'); % yaxis label
 set(l,'FontSize',14);
 
-if xmax > 0  & xmin < 0
+if xmax > 0  && xmin < 0
   plot([0 0],[ymin ymax],'k','linewidth',1.5); % plot vertical line at time 0
 end
 

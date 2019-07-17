@@ -31,19 +31,30 @@
 
 % Copyright (C) 12-10-99 Scott Makeig, SCCN/INC/UCSD, scott@sccn.ucsd.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 1-16-00  debugged help msg and improved presentation -sm
 % 3-16-00  added axcopy() -sm
@@ -90,7 +101,7 @@ elseif times==1,
     return
 else
     freqs = 0;
-end;
+end
 
 axcolor= get(0,'DefaultAxesXcolor'); % find what the default x-axis color is
 plotfile = 'topoimage.ps';
@@ -117,13 +128,13 @@ end
 if nargin < 7,
   axwidth  = DEFAULT_AXWIDTH;
   axheight = DEFAULT_AXHEIGHT;
-elseif size(axsize) == [1 1] & axsize(1) == 0
+elseif all(size(axsize) == [1 1]) && axsize(1) == 0
   axwidth  = DEFAULT_AXWIDTH;
   axheight = DEFAULT_AXHEIGHT;
 elseif size(axsize) == [1 2]
   axwidth  = axsize(1);
   axheight = axsize(2);
-  if axwidth > 1 | axwidth < 0 | axheight > 1 | axwidth < 0
+  if axwidth > 1 || axwidth < 0 || axheight > 1 || axwidth < 0
     help topoimage
     return
   end
@@ -165,12 +176,12 @@ end
     fprintf('topoimage(): min channel index (%g) < 1.\n',...
                        min(channels));
     return
-  end;
+  end
   if length(channels)>MAXPLOTDATACHANS,
     fprintf('topoimage(): not set up to plot more than %d channels.\n',...
                        MAXPLOTDATACHANS);
     return
-  end;
+  end
 %
 %%%%%%%%%%%%% Extend the size of the plotting area in the window %%%%%%%%%%%%
 %
@@ -184,14 +195,14 @@ end
 %
 %%%%%%%%%%%%%%%%%%%% Read the channel names %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-  if isstr(channels) == 0,
+  if ischar(channels) == 0,
     % channames = zeros(MAXPLOTDATACHANS,4);
     % for c=1:length(channels),
     %     channames(c,:)= sprintf('%4d',channels(c));
-    % end;
+    % end
     channames = num2str(channels(:));                   %%CJH
   else,
-    if ~isstr(channels)
+    if ~ischar(channels)
        fprintf('topoimage(): channel file name must be a string.\n');
        return
     end
@@ -199,7 +210,7 @@ end
     if chid <3,
         fprintf('topoimage(): cannot open file %s.\n',channels);
         return
-    end;
+    end
     channames = fscanf(chid,'%s',[4 MAXPLOTDATACHANS]);
     channames = channames';
        [r c] = size(channames);
@@ -207,9 +218,9 @@ end
         for j=1:c
             if channames(i,j)=='.',
                 channames(i,j)=' ';
-            end;
-        end;
-    end;
+            end
+        end
+    end
   end; % setting channames
 %
 %%%%%%%%%%%%%%%%%%%%%%%%% Plot and label specified channels %%%%%%%%%%%%%%%%%%
@@ -220,7 +231,7 @@ chans = length(channels);
 %%%%%%%%%%%%%%%%%%%%%%%%% Read the color names %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
   if colors ~=0,
-    if ~isstr(colors)
+    if ~ischar(colors)
        fprintf('topoimage(): color file name must be a string.\n');
        return
     end
@@ -229,7 +240,7 @@ chans = length(channels);
     if cid <3,
         fprintf('topoimage: cannot open file %s.\n',colors);
         return
-    end;
+    end
     colors = fscanf(cid,'%s',[3 MAXPLOTDATAEPOCHS]);
     colors = colors';
        [r c] = size(colors);
@@ -237,15 +248,15 @@ chans = length(channels);
         for j=1:c
             if colors(i,j)=='.',
                 colors(i,j)=' ';
-            end;
-        end;
-    end;
+            end
+        end
+    end
   else % use default color order (no yellow!)
      colors =['r  ';'b  ';'g  ';'c  ';'m  ';'r  ';'b  ';'g  ';'c  ';'m  ';'r  ';'b  ';'g  ';'c  ';'m  ';'r  ';'b  ';'g  ';'c  ';'m  ';'r  ';'b  ';'g  ';'c  ';'m  ';'r  ';'b  ';'g  ';'c  ';'m  ';'r  ';'b  ';'g  ';'c  ';'m  '];
      colors = [colors; colors];  % make > 64 available
-  end;
+  end
   for c=1:length(colors)   % make white traces black unless axis color is white
-    if colors(c,1)=='w' & axcolor~=[1 1 1]
+    if colors(c,1)=='w' && axcolor~=[1 1 1]
          colors(c,1)='k';
     end
   end
@@ -262,16 +273,16 @@ chans = length(channels);
       fprintf( ...
        'topoimage: limits should be 0 or an array [xmin xmax ymin ymax zmin zmax].\n');
       return
-    end;
+    end
     xmin = limits(1);
     xmax = limits(2);
     ymin = limits(3);
     ymax = limits(4);
     zmin = limits(5);
     zmax = limits(6);
-  end;
+  end
 
-  if xmax == 0 & xmin == 0,
+  if xmax == 0 && xmin == 0,
     x = [0:1:times-1];
     xmin = min(x);
     xmax = max(x);
@@ -279,13 +290,13 @@ chans = length(channels);
     dx = (xmax-xmin)/(times-1);
     x=xmin*ones(1,times)+dx*(0:times-1); % compute x-values
     xmax = xmax*times/times;
-  end;
+  end
   if xmax<=xmin,
       fprintf('topoimage() - xmax must be > xmin.\n')
       return
   end
 
-  if ymax == 0 & ymin == 0,
+  if ymax == 0 && ymin == 0,
       y=[1:1:freqs];
       ymax=freqs;
       ymin=1;
@@ -299,7 +310,7 @@ chans = length(channels);
       return
   end
 
-  if zmax == 0 & zmin == 0,
+  if zmax == 0 && zmin == 0,
       zmax=max(max(data));
       zmin=min(min(data));
       fprintf('Color axis limits [%g,%g]\n',zmin,zmax);
@@ -475,14 +486,14 @@ P=0;
       set(gca,'ydir','normal');
       caxis([zmin zmax]);
 
-        if exist('YVAL') & YVAL>=curax(3) & YVAL<=curax(4)
+        if exist('YVAL') && YVAL>=curax(3) && YVAL<=curax(4)
             hold on
             hp=plot([xmin xmax],[YVAL YVAL],'r-');%,'color',axislcolor);  
                                                        % draw horizontal axis 
             set(hp,'Linewidth',1.0)
         end
 
-        if xmin<0 & xmax>0 
+        if xmin<0 && xmax>0 
           hold on
           vl= plot([0 0],[curax(3) curax(4)],'color',axislcolor);  % draw vert axis 
           set(vl,'linewidth',2);
@@ -554,7 +565,7 @@ P=0;
           py=plot([xmin xmin],[curax(3) curax(4)],'color','k'); % vert axis at xmin
       end
       hold on
-      if exist('YVAL') & YVAL>=curax(3)
+      if exist('YVAL') && YVAL>=curax(3)
           px=plot([xmin xmax],[YVAL YVAL],'color',axislcolor); 
                                                       % draw horiz axis at YVAL
       else
@@ -632,7 +643,7 @@ P=0;
              end
           end
           maxlabel = num2str(zmax,3);
-          if zmin<0 & zmax>0
+          if zmin<0 && zmax>0
              maxlabel = ['+' maxlabel];
           end
           while (length(maxlabel)<length(minlabel))

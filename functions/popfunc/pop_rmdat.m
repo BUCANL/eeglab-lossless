@@ -29,19 +29,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [EEG, com] = pop_rmdat( EEG, events, timelims, invertsel );
 
@@ -53,10 +64,10 @@ com = '';
 
 if isempty(EEG.event)
     error( [ 'No event. This function removes data' 10 'based on event latencies' ]);
-end;
+end
 if isempty(EEG.trials)
     error( [ 'This function only works with continuous data' ]);
-end;
+end
 if ~isfield(EEG.event, 'latency'),
     error( 'Absent latency field in event array/structure: must name one of the fields ''latency''');
 end;    
@@ -94,22 +105,22 @@ if nargin < 3
               { 'style' 'popupmenu'  'string' 'Keep selected|Remove selected' } };
               
    result = inputgui( geometry, uilist, 'pophelp(''pop_rmdat'')', 'Remove data portions around events - pop_rmdat()');
-   if length(result) == 0 return; end;
+   if length(result) == 0 return; end
    
-   if strcmpi(result{1}, '[]'), result{1} = ''; end;
+   if strcmpi(result{1}, '[]'), result{1} = ''; end
    if ~isempty(result{1})
        if strcmpi(result{1}(1),'''')   % If event type appears to be in single-quotes, use comma
                                        % and single-quote as delimiter between event types. toby 2.24.2006
                                        % fixed Arnaud May 2006
             events = eval( [ '{' result{1} '}' ] );
        else events = parsetxt( result{1});
-       end;
+       end
    else events = {};
    end
    timelims = eval( [ '[' result{2} ']' ] );
    invertsel = result{3}-1;
  
-end;
+end
 
 tmpevent = EEG.event;
 
@@ -130,12 +141,12 @@ allinds = [];
 for index = 1:length(events)
     inds = strmatch(events{index},{ tmpevent.type }, 'exact');
     allinds = [allinds(:); inds(:) ]';
-end;
+end
 allinds = sort(allinds);
 if isempty(allinds)
     disp('No event found');
     return;
-end;
+end
 
 % compute time limits
 % -------------------
@@ -152,7 +163,7 @@ for bind = 1:length(allinds)
         diffbound = bndlattmp-evtlat;
         allneginds = find(diffbound < 0);
         allposinds = find(diffbound > 0);
-        if ~isempty(allneginds), evtbeg = bndlattmp(allneginds(1)); end;
+        if ~isempty(allneginds), evtbeg = bndlattmp(allneginds(1)); end
         if ~isempty(allposinds), evtend = bndlattmp(allposinds(1)); end;       
         fprintf('Boundary found: time limits for event %d reduced from %3.2f to %3.2f\n', allinds(bind), ...
             (evtbeg-evtlat)/EEG.srate, (evtend-evtlat)/EEG.srate);
@@ -161,16 +172,15 @@ for bind = 1:length(allinds)
         array(end) = evtend;
     else
         array = [ array; evtbeg  evtend];
-    end;
-end;
-array
+    end
+end
 
-if ~isempty(array) && array(1) < 1, array(1) = 1; end;
-if ~isempty(array) && array(end) > EEG.pnts, array(end) = EEG.pnts; end;
+if ~isempty(array) && array(1) < 1, array(1) = 1; end
+if ~isempty(array) && array(end) > EEG.pnts, array(end) = EEG.pnts; end
 if isempty(array)
     disp('No event found');
     return;
-end;
+end
 
 if invertsel
     EEG = pop_select(EEG, 'notime', (array-1)/EEG.srate);

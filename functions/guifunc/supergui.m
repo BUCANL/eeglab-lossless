@@ -75,19 +75,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [handlers, outheight, allhandlers] = supergui( varargin);
 
@@ -99,7 +110,7 @@ outheight = 0;
 if nargin < 2
 	help supergui;
 	return;
-end;
+end
 
 % get version and
 % set additional parameters
@@ -110,13 +121,13 @@ versnum = str2num(v(1:indDot(2)-1));
 if versnum >= 7.14
      addParamFont = { 'fontsize' 12 };
 else addParamFont = { };
-end;
+end
 
 warning off MATLAB:hg:uicontrol:ParameterValuesMustBeValid
 
 % decoding input and backward compatibility
 % -----------------------------------------
-if isstr(varargin{1})
+if ischar(varargin{1})
     options = varargin;
 else
     options = { 'fig'      varargin{1} 'geomhoriz' varargin{2} ...
@@ -137,25 +148,25 @@ g = finputcheck(options, { 'geomhoriz' 'cell'   []      {};
                            'spacing'   'real'   []      [0.02 0.01];
                            'inseth'    'real'   []      0.02; % x border absolute (5% of width)
                            'insetv'    'real'   []      0.02 }, 'supergui');
-if isstr(g), error(g); end
+if ischar(g), error(g); end
 if ~isempty(g.geomhoriz)
     maxcount = sum(cellfun('length', g.geomhoriz));
     if maxcount ~= length(g.uilist)
         warning('Wrong size for ''geomhoriz'' input');
-    end;
+    end
     if ~isempty(g.geomvert)
         if length(g.geomvert) ~= length(g.geomhoriz)
             warning('Wrong size for ''geomvert'' input');
-        end;
-    end;
+        end
+    end
     g.insetv = g.insetv/length(g.geomhoriz);
-end;
+end
 if ~isempty(g.geom)
     if length(g.geom) ~= length(g.uilist)
         warning('Wrong size for ''geom'' input');
-    end;
+    end
     maxcount = length(g.geom);
-end;
+end
 
 % create new figure
 % -----------------
@@ -165,12 +176,12 @@ end
 
 % converting the geometry formats
 % -------------------------------
-if ~isempty(g.geomhoriz) & ~iscell( g.geomhoriz )
+if ~isempty(g.geomhoriz) && ~iscell( g.geomhoriz )
 	oldgeom = g.geomhoriz;
 	g.geomhoriz = {};
 	for row = 1:length(oldgeom)
 		g.geomhoriz = { g.geomhoriz{:} ones(1, oldgeom(row)) };
-	end;
+	end
 end
 if isempty(g.geomvert)
 	g.geomvert = ones(1, length(g.geomhoriz));
@@ -191,14 +202,14 @@ if isempty(g.geom)
             g.geom{count} = { length(g.geomhoriz{row}) sumvert [incx incy] [g.geomhoriz{row}(column)*ratio g.geomvert(row)] };
             incx = incx+g.geomhoriz{row}(column)*ratio;
             count = count+1;
-        end;
+        end
         incy = incy+g.geomvert(row);
-    end;
+    end
     g.borders(1:2) = g.borders(1:2)/maxhoriz*5;
     g.borders(3:4) = g.borders(3:4)/sumvert*10;
     g.spacing(1)   = g.spacing(1)/maxhoriz*5;
     g.spacing(2)   = g.spacing(2)/sumvert*10;
-end;
+end
 
 % disp new geometry
 % -----------------
@@ -207,9 +218,9 @@ if 0
     for index = 1:length(g.geom)
         fprintf('{ %g %g [%g %g] [%g %g] } ...\n', g.geom{index}{1}, g.geom{index}{2}, ...
             g.geom{index}{3}(1), g.geom{index}{3}(2), g.geom{index}{4}(1), g.geom{index}{3}(2));
-    end;
+    end
     fprintf('};\n');
-end;
+end
 
 % get axis coordinates
 % --------------------
@@ -229,6 +240,7 @@ row    = 1; % count the elements
 column = 1; % count the elements
 factmultx = 0;
 factmulty = 0; %zeros(length(g.geomhoriz));
+transformTextUIList = [];
 for counter = 1:maxcount
 
 	% init
@@ -257,45 +269,62 @@ for counter = 1:maxcount
                                           [posx posy+hf2*height 0.005 (hf1-hf2+0.1)*height].*s+q, 'style', 'pushbutton', 'string', '');
             allhandlers{counter} = uicontrol(g.fig, 'unit', 'normalized', 'position', ...
                                           [posx posy+(hf1+hf2)/2*height width/2 0.005].*s+q, 'style', 'pushbutton', 'string', '');
-            allhandlers{counter} = 0;
+            allhandlers{counter} = nan;
         else
-            if strcmpi(currentelem{1}, 'width'),
+            if strcmpi(currentelem{1}, 'width')
                  curwidth = currentelem{2};
                  currentelem(1:2) = [];
             else curwidth = 0;
-            end;
-            if strcmpi(currentelem{1}, 'align'),
+            end
+            if strcmpi(currentelem{1}, 'align')
                  align = currentelem{2};
                  currentelem(1:2) = [];
             else align = 'right';
-            end;
-            if strcmpi(currentelem{1}, 'stickto'),
+            end
+            transformText = false;
+            if strcmpi(currentelem{2}, 'text2')
+                transformTextUIList = [ transformTextUIList counter ];
+                currentelem{2} = 'text';
+            end
+            if strcmpi(currentelem{1}, 'stickto')
                  stickto = currentelem{2};
                  currentelem(1:2) = [];
             else stickto = 'none';
-            end;
+            end
             if strcmpi(currentelem{1}, 'vertshift'), currentelem(1) = []; addvert = -height/2; 
             else                                                          addvert = 0;   
-            end;
+            end
             if strcmpi(currentelem{1}, 'vertexpand'), heightfactor = currentelem{2}; addvert = -(heightfactor-1)*height; currentelem(1:2) = []; 
             else                                      heightfactor = 1;   
-            end;
+            end
             
             % position adjustment depending on GUI type
-            if isstr(currentelem{2}) && strcmpi(currentelem{2}, 'popupmenu')
-                posy = posy-height/10;
-            end;
-            if isstr(currentelem{2}) && strcmpi(currentelem{2}, 'text')
+            if ischar(currentelem{2}) && strcmpi(currentelem{2}, 'popupmenu')
+                posy = posy-height/5;
+            end
+            if ischar(currentelem{2}) && strcmpi(currentelem{2}, 'text')
                 posy = posy+height/5;
-            end;
+            end
                 
             if strcmpi(currentelem{1}, 'function'),
                 % property grid argument
                 panel = uipanel('Title','','FontSize',12,'BackgroundColor','white','Position',[posx posy+addvert width height*heightfactor].*s+q);
                 allhandlers{counter} = arg_guipanel(panel, currentelem{:});
+            elseif strcmpi(currentelem{1}, 'panel'),
+                % property grid argument
+                uipanel(currentelem{2:end},'FontSize',12,'Position',[posx posy+addvert width height*heightfactor].*s+q);
+                allhandlers{counter} = nan;
+            elseif strcmpi(currentelem{1}, 'uitable'),
+                uitable(g.fig, currentelem{2:end}, 'unit', 'normalized', 'Position',[posx posy+addvert width height*heightfactor].*s+q);
+                allhandlers{counter} = nan;
             else
-                allhandlers{counter} = uicontrol(g.fig, 'unit', 'normalized', 'position', ...
-                    [posx posy+addvert width height*heightfactor].*s+q, currentelem{:}, addParamFont{:});
+                if ~isempty(strmatch('fontsize', currentelem(1:2:end)))
+                    allhandlers{counter} = uicontrol(g.fig, 'unit', 'normalized', 'position', ...
+                        [posx posy+addvert width height*heightfactor].*s+q, currentelem{:});
+                else
+                    allhandlers{counter} = uicontrol(g.fig, 'unit', 'normalized', 'position', ...
+                        [posx posy+addvert width height*heightfactor].*s+q, currentelem{:}, addParamFont{:});
+                end
                 
                 % this simply compute a factor so that all uicontrol will be visible
                 % ------------------------------------------------------------------
@@ -309,54 +338,56 @@ for counter = 1:maxcount
                         curpos(1) = curpos(1)+curpos(3)-curwidth;
                     elseif strcmpi(align, 'center')
                         curpos(1) = curpos(1)+curpos(3)/2-curwidth/2;
-                    end;
+                    end
                     set(allhandlers{counter}, 'position', [ curpos(1) curpos(2) curwidth curpos(4) ]);
                     if strcmpi(stickto, 'on')
                         set( allhandlers{counter-1}, 'units', 'pixels');
                         curpos2 = get(allhandlers{counter-1}, 'position');
                         set(allhandlers{counter-1}, 'position', [ curpos(1)-curpos2(3)-10 curpos2(2) curpos2(3) curpos2(4) ]);
                         set( allhandlers{counter-1}, 'units', 'normalized');
-                    end;
+                    end
                     curext(3) = curwidth;
-                end;
+                end
                 set( allhandlers{counter}, 'units', 'normalized');			
-            end;
+            end
 
             if ~strcmp(style, 'edit') && (~strcmp(style, 'pushbutton') || strcmpi(g.adjustbuttonwidth, 'on'))
-                %tmp = curext(3)/curpos(3);
-                %if tmp > 3*factmultx && factmultx > 0, adsfasd; end;
-                factmultx = max(factmultx, curext(3)/curpos(3));
-                if strcmp(style, 'pushbutton'), factmultx = factmultx*1.1; end;
-            end;
+                if strcmpi( currentelem{3}, 'string') && (~iscell(currentelem{4}) || ...
+                        (~isempty(currentelem{4}) && isempty(findstr('html', currentelem{4}{1}))))
+                    %tmp = curext(3)/curpos(3);
+                    %if tmp > 3*factmultx && factmultx > 0, adsfasd; end
+                    factmultx = max(factmultx, curext(3)/curpos(3));
+                    if strcmp(style, 'pushbutton'), factmultx = factmultx*1.1; end
+                end
+            end
             if  ~strcmp(style, 'listbox')
                 factmulty = max(factmulty, curext(4)/curpos(4));
-            end;
-
+            end
+            
             % Uniformize button text aspect (first letter must be upercase)
             % -----------------------------
-            if strcmp(style, 'pushbutton')
+            if strcmp(style, 'pushbutton') && ishandle(allhandlers{counter})
                 tmptext = get(allhandlers{counter}, 'string');
                 if length(tmptext) > 1
                     if upper(tmptext(1)) ~= tmptext(1) || lower(tmptext(2)) ~= tmptext(2) && ~strcmpi(tmptext, 'STATS')
                         tmptext = lower(tmptext);
-                        try, tmptext(1) = upper(tmptext(1)); catch, end;
-                    end;
-                end;
+                        try, tmptext(1) = upper(tmptext(1)); catch, end
+                    end
+                end
                 set(allhandlers{counter}, 'string', tmptext);
-            end;
-        end;
+            end
+        end
     else 
-        allhandlers{counter} = 0;
-    end;
-end;
+        allhandlers{counter} = nan;
+    end
+end
 
 % adjustments
 % -----------
 factmultx = factmultx*1.02;% because some text was still hidden
-%factmultx = factmultx*1.2; 
 if factmultx < 0.1
 	factmultx = 0.1;
-end;
+end
 
 % for MAC (magnify figures that have edit fields)
 % -------
@@ -367,8 +398,8 @@ try,
         factmulty = factmulty*1.5;
 	elseif ~isunix % windows
         factmulty = factmulty*1.08;
-    end;
-catch, end;
+    end
+catch, end
 factmulty = factmulty*0.9; % global shinking
 warning on;	
 
@@ -377,7 +408,7 @@ warning on;
 pos = get(g.fig, 'position');
 if factmulty > 1
 	pos(2) = max(0,pos(2)+pos(4)-pos(4)*factmulty);
-end;
+end
 pos(1) = pos(1)+pos(3)*(1-factmultx)/2;
 pos(3) = max(pos(3)*factmultx, g.minwidth);
 pos(4) = pos(4)*factmulty;
@@ -386,16 +417,16 @@ set(g.fig, 'position', pos);
 % vertical alignment to bottom for text (isnumeric by ishanlde was changed here)
 % ---------------------------------------
 for index = 1:length(allhandlers)
-	if allhandlers{index} ~= 0 && ishandle(allhandlers{index})
+	if ishandle(allhandlers{index})
 		if strcmp(get(allhandlers{index}, 'style'), 'text')
             set(allhandlers{index}, 'unit', 'pixel');
 			curpos = get(allhandlers{index}, 'position');
 			curext = get(allhandlers{index}, 'extent');
 			set(allhandlers{index}, 'position', [curpos(1) curpos(2)-4 curpos(3) curext(4)]);
             set(allhandlers{index}, 'unit', 'normalized');
-		end;
-	end;
-end;
+		end
+	end
+end
 
 % setting defaults colors
 %------------------------
@@ -404,11 +435,11 @@ catch,
 	GUIBACKCOLOR        =  [.8 .8 .8];     
 	GUIPOPBUTTONCOLOR   = [.8 .8 .8];    
 	GUITEXTCOLOR        = [0 0 0];
-end;
+end
 
 numobjects = cellfun(@ishandle, allhandlers); % (isnumeric by ishanlde was changed here)
 allhandlersnum = [ allhandlers{numobjects} ];
-hh = findobj(allhandlersnum, 'parent', g.fig, 'style', 'text');
+hh = findobj(allhandlersnum,'flat', 'parent', g.fig, 'style', 'text');
 %set(hh, 'BackgroundColor', get(g.fig, 'color'), 'horizontalalignment', 'left');
 set(hh, 'Backgroundcolor', GUIBACKCOLOR);
 set(hh, 'foregroundcolor', GUITEXTCOLOR);
@@ -418,25 +449,25 @@ catch
 end
 set(hh, 'horizontalalignment', g.horizontalalignment);
 
-hh = findobj(allhandlersnum, 'style', 'edit');
+hh = findobj(allhandlersnum,'flat', 'style', 'edit');
 set(hh, 'BackgroundColor', [1 1 1]); %, 'horizontalalignment', 'right');
 
-hh =findobj(allhandlersnum, 'parent', g.fig, 'style', 'pushbutton');
+hh =findobj(allhandlersnum,'flat', 'parent', g.fig, 'style', 'pushbutton');
 comp = computer;
 if length(comp) < 3 || ~strcmpi(comp(1:3), 'MAC') % this puts the wrong background on macs
     set(hh, 'backgroundcolor', GUIPOPBUTTONCOLOR);
     set(hh, 'foregroundcolor', GUITEXTCOLOR);
-end;
-hh =findobj(allhandlersnum, 'parent', g.fig, 'style', 'popupmenu');
+end
+hh =findobj(allhandlersnum,'flat', 'parent', g.fig, 'style', 'popupmenu');
 set(hh, 'backgroundcolor', GUIPOPBUTTONCOLOR);
 set(hh, 'foregroundcolor', GUITEXTCOLOR);
-hh =findobj(allhandlersnum, 'parent', g.fig, 'style', 'checkbox');
+hh =findobj(allhandlersnum,'flat', 'parent', g.fig, 'style', 'checkbox');
 set(hh, 'backgroundcolor', GUIBACKCOLOR);
 set(hh, 'foregroundcolor', GUITEXTCOLOR);
-hh =findobj(allhandlersnum, 'parent', g.fig, 'style', 'listbox');
+hh =findobj(allhandlersnum,'flat', 'parent', g.fig, 'style', 'listbox');
 set(hh, 'backgroundcolor', GUIPOPBUTTONCOLOR);
 set(hh, 'foregroundcolor', GUITEXTCOLOR);
-hh =findobj(allhandlersnum, 'parent', g.fig, 'style', 'radio');
+hh =findobj(allhandlersnum,'flat', 'parent', g.fig, 'style', 'radio');
 set(hh, 'foregroundcolor', GUITEXTCOLOR);
 set(hh, 'backgroundcolor', GUIPOPBUTTONCOLOR);
 set(g.fig, 'visible', 'on');
@@ -452,13 +483,29 @@ if ~isempty(g.screenpos)
         pos(1) = (screenSize(3)-pos(3))/2;
         pos(2) = (screenSize(4)-pos(4))/2+pos(4);
         set(g.fig, 'position', pos);
-    end;
+    end
 end;    
 
 % set userdata and title
 % ----------------------
-if ~isempty(g.userdata), set(g.fig, 'userdata', g.userdata); end;
-if ~isempty(g.title   ), set(g.fig, 'name',     g.title   ); end;
+if ~isempty(g.userdata), set(g.fig, 'userdata', g.userdata); end
+if ~isempty(g.title   ), set(g.fig, 'name',     g.title   ); end
+
+% transform selected text UI
+% --------------------------
+a = axes('position', [0 0 1 1]);
+for iList = transformTextUIList
+    set(allhandlers{iList}, 'unit', 'normalized');
+    sTmp = get(allhandlers{iList},'string');
+    pTmp = get(allhandlers{iList},'position');
+    eTmp = get(allhandlers{iList},'extent');
+    tTmp = get(allhandlers{iList},'tag');
+    % Remove the UICONTROL
+    delete(allhandlers{iList});
+    % Replace it with a TEXT object
+    allhandlers{iList} = text(pTmp(1),pTmp(2),sTmp, 'interpreter','latex', 'tag', tTmp);
+end
+set(a, 'visible', 'off');
 
 return;
 

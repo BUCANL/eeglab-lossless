@@ -75,7 +75,7 @@
 %   'center'    - [(1,3) real array or 'auto'] center of xyz coordinates for conversion 
 %                 to spherical or polar, Specify the center of the sphere here, or 'auto'. 
 %                 This uses the center of the sphere that best fits all the electrode 
-%                 locations read. {default: [0 0 0]}
+%                 locations read. {default: [0 0 0]}. [Deprecated]
 % Outputs:
 %   eloc        - structure containing the channel names and locations (if present).
 %                 It has three fields: 'eloc.labels', 'eloc.theta' and 'eloc.radius' 
@@ -176,19 +176,30 @@
 
 % Copyright (C) Arnaud Delorme, CNL / Salk Institute, 28 Feb 2002
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 
 function [eloc, labels, theta, radius, indices] = readlocs( filename, varargin ); 
@@ -196,7 +207,7 @@ function [eloc, labels, theta, radius, indices] = readlocs( filename, varargin )
 if nargin < 1
 	help readlocs;
 	return;
-end;
+end
 
 % NOTE: To add a new channel format:
 % ----------------------------------
@@ -293,11 +304,11 @@ listcolformat = { 'labels' 'channum' 'theta' 'radius' 'sph_theta' 'sph_phi' ...
 % ----------------------------------
 % special mode for getting the info
 % ----------------------------------
-if isstr(filename) & strcmp(filename, 'getinfos')
+if ischar(filename) && strcmp(filename, 'getinfos')
    eloc = chanformat;
    labels = listcolformat;
    return;
-end;
+end
 
 g = finputcheck( varargin, ...
    { 'filetype'	   'string'  {}                 '';
@@ -306,14 +317,14 @@ g = finputcheck( varargin, ...
      'skiplines'   'integer' [0 Inf] 			[];
      'elecind'     'integer' [1 Inf]	    	[];
      'format'	   'cell'	 []					{} }, 'readlocs');
-if isstr(g), error(g); end;  
-if ~isempty(g.format), g.filetype = 'custom'; end;
+if ischar(g), error(g); end;  
+if ~isempty(g.format), g.filetype = 'custom'; end
 
-if isstr(filename)
+if ischar(filename)
    
    % format auto detection
 	% --------------------
-   if strcmpi(g.filetype, 'autodetect'), g.filetype = ''; end;
+   if strcmpi(g.filetype, 'autodetect'), g.filetype = ''; end
    g.filetype = strtok(g.filetype);
    periods = find(filename == '.');
    fileextension = filename(periods(end)+1:end);
@@ -333,31 +344,31 @@ if isstr(filename)
         case 'eps', g.filetype = 'besa';
         case 'sfp', g.filetype = 'sfp';
         otherwise, g.filetype =  ''; 
-       end;
+       end
        fprintf('readlocs(): ''%s'' format assumed from file extension\n', g.filetype); 
    else 
        if strcmpi(g.filetype, 'locs'),  g.filetype = 'loc'; end
        if strcmpi(g.filetype, 'eloc'),  g.filetype = 'loc'; end
-   end;
+   end
    
    % assign format from filetype
    % ---------------------------
-   if ~isempty(g.filetype) & ~strcmpi(g.filetype, 'custom') ...
+   if ~isempty(g.filetype) && ~strcmpi(g.filetype, 'custom') ...
            & ~strcmpi(g.filetype, 'asc') & ~strcmpi(g.filetype, 'elc') & ~strcmpi(g.filetype, 'dat')
       indexformat = strmatch(lower(g.filetype), { chanformat.type }, 'exact');
       g.format = chanformat(indexformat).importformat;
       if isempty(g.skiplines)
          g.skiplines = chanformat(indexformat).skipline;
-      end;
+      end
       if isempty(g.filetype) 
          error( ['readlocs() error: The filetype cannot be detected from the \n' ...
                  '                  file extension, and custom format not specified']);
-      end;
-   end;
+      end
+   end
    
    % import file
    % -----------
-   if strcmp(g.filetype, 'asc') | strcmp(g.filetype, 'dat')
+   if strcmp(g.filetype, 'asc') || strcmp(g.filetype, 'dat')
        eloc = readneurolocs( filename );
        eloc = rmfield(eloc, 'sph_theta'); % for the conversion below
        eloc = rmfield(eloc, 'sph_theta_besa'); % for the conversion below
@@ -366,11 +377,11 @@ if isstr(filename)
                type = eloc(index).type;
                if type == 69,     eloc(index).type = 'EEG';
                elseif type == 88, eloc(index).type = 'REF';
-               elseif type >= 76 & type <= 82, eloc(index).type = 'FID';
+               elseif type >= 76 && type <= 82, eloc(index).type = 'FID';
                else eloc(index).type = num2str(eloc(index).type);
-               end;
-           end;
-       end;
+               end
+           end
+       end
    elseif strcmp(g.filetype, 'elc')
        eloc = readeetraklocs( filename );
        %eloc = read_asa_elc( filename ); % from fieldtrip
@@ -379,38 +390,38 @@ if isstr(filename)
        eloc = convertlocs(eloc, 'cart2all');
        eloc = rmfield(eloc, 'sph_theta'); % for the conversion below
        eloc = rmfield(eloc, 'sph_theta_besa'); % for the conversion below
-   elseif strcmp(lower(g.filetype(1:end-1)), 'polhemus') | ...
+   elseif strcmp(lower(g.filetype(1:end-1)), 'polhemus') || ...
            strcmp(g.filetype, 'polhemus')
        try, 
            [eloc labels X Y Z]= readelp( filename );
            if strcmp(g.filetype, 'polhemusy')
                tmp = X; X = Y; Y = tmp;
-           end;
+           end
            for index = 1:length( eloc )
                eloc(index).X = X(index);
                eloc(index).Y = Y(index);	
                eloc(index).Z = Z(index);	
-           end;
+           end
        catch, 
            disp('readlocs(): Could not read Polhemus coords. Trying to read BESA .elp file.');
            [eloc, labels, theta, radius, indices] = readlocs( filename, 'defaultelp', 'besa', varargin{:} );
-       end;
+       end
    else      
        % importing file
        % --------------
-       if isempty(g.skiplines), g.skiplines = 0; end;
+       if isempty(g.skiplines), g.skiplines = 0; end
        if strcmpi(g.filetype, 'chanedit')
            array = loadtxt( filename, 'delim', 9, 'skipline', g.skiplines, 'blankcell', 'off');
        else
            array = load_file_or_array( filename, g.skiplines);
-       end;
+       end
        if size(array,2) < length(g.format)
            fprintf(['readlocs() warning: Fewer columns in the input than expected.\n' ...
                     '                    See >> help readlocs\n']);
        elseif size(array,2) > length(g.format)
            fprintf(['readlocs() warning: More columns in the input than expected.\n' ...
                     '                    See >> help readlocs\n']);
-       end;
+       end
        
        % removing lines BESA
        % -------------------
@@ -419,24 +430,24 @@ if isstr(filename)
            array = load_file_or_array( filename, g.skiplines-1);
            if isempty(array{1,2})
                array = load_file_or_array( filename, g.skiplines-1);
-           end;
-       end;
+           end
+       end
 
        % xyz format, is the first col absent
        % -----------------------------------
        if strcmp(g.filetype, 'xyz')
            if size(array, 2) == 4
                array(:, 2:5) = array(:, 1:4);
-           end;
-       end;
+           end
+       end
        
        % removing comments and empty lines
        % ---------------------------------
        indexbeg = 1;
        while isempty(array{indexbeg,1}) | ...
-               (isstr(array{indexbeg,1}) & array{indexbeg,1}(1) == '%' )
+               (ischar(array{indexbeg,1}) & array{indexbeg,1}(1) == '%' )
            indexbeg = indexbeg+1;
-       end;
+       end
        array = array(indexbeg:end,:);
        
        % converting file
@@ -448,10 +459,10 @@ if isstr(filename)
                    eval ( [ 'eloc(indexrow).'  str '= -array{indexrow, indexcol};' ]);
                else
                    eval ( [ 'eloc(indexrow).'  str '= array{indexrow, indexcol};' ]);
-               end;
-           end;
-       end;
-   end;
+               end
+           end
+       end
+   end
    
    % handling BESA coordinates
    % -------------------------
@@ -464,10 +475,10 @@ if isstr(filename)
                    eloc(index).sph_theta_besa = eloc(index).type;
                    eloc(index).labels         = '';
                    eloc(index).type           = '';
-               end;
+               end
                eloc = rmfield(eloc, 'labels');
-           end;
-       end;
+           end
+       end
        if isfield(eloc, 'labels')       
            if isnumeric(eloc(1).labels)
                disp('BESA format detected ( Elec | Theta | Phi )');
@@ -478,13 +489,13 @@ if isstr(filename)
                    eloc(index).type           = '';
                    eloc(index).radius         = 1;
                end;           
-           end;
-       end;
+           end
+       end
        
        try
            eloc = convertlocs(eloc, 'sphbesa2all');
            eloc = convertlocs(eloc, 'topo2all'); % problem with some EGI files (not BESA files)
-       catch, disp('Warning: coordinate conversion failed'); end;
+       catch, disp('Warning: coordinate conversion failed'); end
        fprintf('Readlocs: BESA spherical coords. converted, now deleting BESA fields\n');   
        fprintf('          to avoid confusion (these fields can be exported, though)\n');   
        eloc = rmfield(eloc, 'sph_phi_besa');
@@ -495,16 +506,16 @@ if isstr(filename)
    elseif isfield(eloc, 'sph_theta')
        try
            eloc = convertlocs(eloc, 'sph2all');  
-       catch, disp('Warning: coordinate conversion failed'); end;
+       catch, disp('Warning: coordinate conversion failed'); end
    elseif isfield(eloc, 'X')
        try
            eloc = convertlocs(eloc, 'cart2all');  
-       catch, disp('Warning: coordinate conversion failed'); end;
+       catch, disp('Warning: coordinate conversion failed'); end
    else 
        try
            eloc = convertlocs(eloc, 'topo2all');  
-       catch, disp('Warning: coordinate conversion failed'); end;
-   end;
+       catch, disp('Warning: coordinate conversion failed'); end
+   end
    
    % inserting labels if no labels
    % -----------------------------
@@ -512,31 +523,31 @@ if isstr(filename)
        fprintf('readlocs(): Inserting electrode labels automatically.\n');
        for index = 1:length(eloc)
            eloc(index).labels = [ 'E' int2str(index) ];
-       end;
+       end
    else 
        % remove trailing '.'
        for index = 1:length(eloc)
-           if isstr(eloc(index).labels)
+           if ischar(eloc(index).labels)
                tmpdots = find( eloc(index).labels == '.' );
                eloc(index).labels(tmpdots) = [];
-           end;
-       end;
-   end;
+           end
+       end
+   end
    
    % resorting electrodes if number not-sorted
    % -----------------------------------------
    if isfield(eloc, 'channum')
        if ~isnumeric(eloc(1).channum)
            error('Channel numbers must be numeric');
-       end;
+       end
        allchannum = [ eloc.channum ];
        if any( sort(allchannum) ~= allchannum )
            fprintf('readlocs(): Re-sorting channel numbers based on ''channum'' column indices\n');
            [tmp newindices] = sort(allchannum);
            eloc = eloc(newindices);
-       end;
+       end
        eloc = rmfield(eloc, 'channum');      
-   end;
+   end
 else
     if isstruct(filename)
         % detect Fieldtrip structure and convert it
@@ -548,28 +559,28 @@ else
                 neweloc(index).X      = filename.pnt(index,1);
                 neweloc(index).Y      = filename.pnt(index,2);
                 neweloc(index).Z      = filename.pnt(index,3);
-            end;
+            end
             eloc = neweloc;
             eloc = convertlocs(eloc, 'cart2all');
         else
             eloc = filename;
-        end;
+        end
     else
         disp('readlocs(): input variable must be a string or a structure');
     end;        
-end;
+end
 if ~isempty(g.elecind)
 	eloc = eloc(g.elecind);
-end;
+end
 if nargout > 2
     if isfield(eloc, 'theta')
          tmptheta = { eloc.theta }; % check which channels have (polar) coordinates set
     else tmptheta = cell(1,length(eloc));
-    end;
+    end
     if isfield(eloc, 'theta')
          tmpx = { eloc.X }; % check which channels have (polar) coordinates set
     else tmpx = cell(1,length(eloc));
-    end;
+    end
     
     indices           = find(~cellfun('isempty', tmptheta));
     indices           = intersect_bc(find(~cellfun('isempty', tmpx)), indices);
@@ -578,35 +589,35 @@ if nargout > 2
     indbad            = setdiff_bc(1:length(eloc), indices);
     tmptheta(indbad)  = { NaN };
     theta             = [ tmptheta{:} ];
-end;
+end
 if nargout > 3
     if isfield(eloc, 'theta')
          tmprad = { eloc.radius }; % check which channels have (polar) coordinates set
     else tmprad = cell(1,length(eloc));
-    end;
+    end
     tmprad(indbad)    = { NaN };
     radius            = [ tmprad{:} ];
-end;
+end
 
 %tmpnum = find(~cellfun('isclass', { eloc.labels }, 'char'));
 %disp('Converting channel labels to string');
 for index = 1:length(eloc)
-    if ~isstr(eloc(index).labels)
+    if ~ischar(eloc(index).labels)
         eloc(index).labels = int2str(eloc(index).labels);
-    end;
-end;
+    end
+end
 labels = { eloc.labels };
 if isfield(eloc, 'ignore')
     eloc = rmfield(eloc, 'ignore');
-end;
+end
 
 % process fiducials if any
 % ------------------------
-fidnames = { 'nz' 'lpa' 'rpa' 'nasion' 'left' 'right' 'nazion' 'fidnz' 'fidt9' 'fidt10' 'cms' 'drl' };
+fidnames = { 'nz' 'lpa' 'rpa' 'nasion' 'left' 'right' 'nazion' 'fidnz' 'fidt9' 'fidt10' 'cms' 'drl' 'nas' 'lht' 'rht' };
 for index = 1:length(fidnames)
     ind = strmatch(fidnames{index}, lower(labels), 'exact');
-    if ~isempty(ind), eloc(ind).type = 'FID'; end;
-end;
+    if ~isempty(ind), eloc(ind).type = 'FID'; end
+end
 
 return;
 
@@ -615,14 +626,14 @@ return;
 function array = load_file_or_array( varname, skiplines );
 	 if isempty(skiplines),
        skiplines = 0;
-    end;
+    end
     if exist( varname ) == 2
         array = loadtxt(varname,'verbose','off','skipline',skiplines,'blankcell','off');
     else % variable in the global workspace
          % --------------------------
          try, array = evalin('base', varname);
 	     catch, error('readlocs(): cannot find the named file or variable, check syntax');
-		 end;
+		 end
     end;     
 return;
 
@@ -630,28 +641,28 @@ return;
 % ------------------
 function [str, mult] = checkformat(str)
 	mult = 1;
-	if strcmpi(str, 'labels'),         str = lower(str); return; end;
-	if strcmpi(str, 'channum'),        str = lower(str); return; end;
-	if strcmpi(str, 'theta'),          str = lower(str); return; end;
-	if strcmpi(str, 'radius'),         str = lower(str); return; end;
-	if strcmpi(str, 'ignore'),         str = lower(str); return; end;
-	if strcmpi(str, 'sph_theta'),      str = lower(str); return; end;
-	if strcmpi(str, 'sph_phi'),        str = lower(str); return; end;
-	if strcmpi(str, 'sph_radius'),     str = lower(str); return; end;
-	if strcmpi(str, 'sph_theta_besa'), str = lower(str); return; end;
-	if strcmpi(str, 'sph_phi_besa'),   str = lower(str); return; end;
-	if strcmpi(str, 'gain'),           str = lower(str); return; end;
-	if strcmpi(str, 'calib'),          str = lower(str); return; end;
-	if strcmpi(str, 'type') ,          str = lower(str); return; end;
-	if strcmpi(str, 'X'),              str = upper(str); return; end;
-	if strcmpi(str, 'Y'),              str = upper(str); return; end;
-	if strcmpi(str, 'Z'),              str = upper(str); return; end;
-	if strcmpi(str, '-X'),             str = upper(str(2:end)); mult = -1; return; end;
-	if strcmpi(str, '-Y'),             str = upper(str(2:end)); mult = -1; return; end;
-	if strcmpi(str, '-Z'),             str = upper(str(2:end)); mult = -1; return; end;
-	if strcmpi(str, 'custom1'), return; end;
-	if strcmpi(str, 'custom2'), return; end;
-	if strcmpi(str, 'custom3'), return; end;
-	if strcmpi(str, 'custom4'), return; end;
+	if strcmpi(str, 'labels'),         str = lower(str); return; end
+	if strcmpi(str, 'channum'),        str = lower(str); return; end
+	if strcmpi(str, 'theta'),          str = lower(str); return; end
+	if strcmpi(str, 'radius'),         str = lower(str); return; end
+	if strcmpi(str, 'ignore'),         str = lower(str); return; end
+	if strcmpi(str, 'sph_theta'),      str = lower(str); return; end
+	if strcmpi(str, 'sph_phi'),        str = lower(str); return; end
+	if strcmpi(str, 'sph_radius'),     str = lower(str); return; end
+	if strcmpi(str, 'sph_theta_besa'), str = lower(str); return; end
+	if strcmpi(str, 'sph_phi_besa'),   str = lower(str); return; end
+	if strcmpi(str, 'gain'),           str = lower(str); return; end
+	if strcmpi(str, 'calib'),          str = lower(str); return; end
+	if strcmpi(str, 'type') ,          str = lower(str); return; end
+	if strcmpi(str, 'X'),              str = upper(str); return; end
+	if strcmpi(str, 'Y'),              str = upper(str); return; end
+	if strcmpi(str, 'Z'),              str = upper(str); return; end
+	if strcmpi(str, '-X'),             str = upper(str(2:end)); mult = -1; return; end
+	if strcmpi(str, '-Y'),             str = upper(str(2:end)); mult = -1; return; end
+	if strcmpi(str, '-Z'),             str = upper(str(2:end)); mult = -1; return; end
+	if strcmpi(str, 'custom1'), return; end
+	if strcmpi(str, 'custom2'), return; end
+	if strcmpi(str, 'custom3'), return; end
+	if strcmpi(str, 'custom4'), return; end
     error(['readlocs(): undefined field ''' str '''']);
    

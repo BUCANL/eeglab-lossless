@@ -28,19 +28,30 @@
 
 % Copyright (C) 1999 Scott Makeig, SCCN/INC/UCSD, scott@sccn.ucsd.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 3-16-00 changed name to topo2sph() for compatibility with cart2topo() -sm
 % 01-25-02 reformated help & license -ad 
@@ -53,19 +64,19 @@ MAXCHANS = 1024;
 if nargin < 1
     help topo2sph;
     return;
-end;
-if nargin > 1 && ~isstr(eloc_angles)
+end
+if nargin > 1 && ~ischar(eloc_angles)
 	if nargin > 2
 		unshrink = method;
-	end;
+    end
 	method = eloc_angles;
 else
 	method = 2;
-end;
+end
 
-if isstr(eloc_locs)
+if ischar(eloc_locs)
 	fid = fopen(eloc_locs);
-	if fid<1,
+	if fid<1
 	    fprintf('topo2sph()^G: cannot open eloc_loc file (%s)\n',eloc_locs)
 	    return
 	end
@@ -75,19 +86,19 @@ if isstr(eloc_locs)
 else
     E = eloc_locs;
     E = [ ones(size(E,1),1) E ];
-end;
+end
     
-if nargin > 1 & isstr(eloc_angles)
-	if exist(eloc_angles)==2,
+if nargin > 1 && ischar(eloc_angles)
+	if exist(eloc_angles)==2
 	   fprintf('topo2sph: eloc_angles file (%s) already exists and will be erased.\n',eloc_angles);
 	end
 
 	fid = fopen(eloc_angles,'a');
-	if fid<1,
+	if fid<1
 	    fprintf('topo2sph()^G: cannot open eloc_angles file (%s)\n',eloc_angles)
 	    return
 	end
-end;
+end
 
 if method == 2
 	t = E(:,2); % theta
@@ -111,16 +122,16 @@ else
 		else
 			c(e) = 180*r;
 		end
-	end;
+    end
 	t = t';
 	r = r';
-end;
+end
 
 for e=1:size(E,1)
-   if nargin > 1 & isstr(eloc_angles)
+   if nargin > 1 && ischar(eloc_angles)
         chan = E(e,4:7);
         fprintf('%d	%g	%g	%s\n',E(e,1),c(e),h(e),chan);
         fprintf(fid,'%d	%g	%g	%s\n',E(e,1),c(e),h(e),chan);
-   end;     
+   end 
 end
 

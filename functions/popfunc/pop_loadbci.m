@@ -16,19 +16,30 @@
 
 % Copyright (C) 2002 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [EEG, command] = pop_loadbci(filename, srate); 
 
@@ -39,14 +50,14 @@ function [EEG, command] = pop_loadbci(filename, srate);
         % ask user
         [filename, filepath] = uigetfile('*.*', 'Choose a BCI file -- pop_loadbci'); 
         drawnow;
-        if filename == 0 return; end;
+        if filename == 0 return; end
         filename = [filepath filename];
         promptstr    = { 'Sampling rate' };
         inistr       = { '256' };
         result       = inputdlg2( promptstr, 'Import BCI2000 data -- pop_loadbci()', 1,  inistr, 'pop_loadbci');
-        if length(result) == 0 return; end;
+        if length(result) == 0 return; end
         srate   = eval( result{1} );
-    end;
+    end
     
     % import data
     % -----------
@@ -60,10 +71,10 @@ function [EEG, command] = pop_loadbci(filename, srate);
         allfields = setdiff_bc(allfields, 'signal');
         for index = 1:size(bci.signal,2)
             chanlabels{index} = [ 'C' int2str(index) ];
-        end;
+        end
         for index = 1:length(allfields)
             bci.signal(:,end+1) = getfield(bci, allfields{index});
-        end;
+        end
         EEG.chanlocs = struct('labels', { chanlabels{:} allfields{:} });
         EEG.data     = bci.signal';
         EEG.nbchan   = size(EEG.data, 1);
@@ -79,7 +90,7 @@ function [EEG, command] = pop_loadbci(filename, srate);
         fields = loadtxt(filename, 'nlines', 1, 'verbose', 'off');
         if length(fields) > 300
             error('Not a BCI ASCII file');
-        end;
+        end
         
         % read data
         % ---------
@@ -104,9 +115,9 @@ function [EEG, command] = pop_loadbci(filename, srate);
         bci = [];
         for index = setdiff_bc(1:length(fields), indices)
             bci = setfield(bci, fields{index}, tmpdata(index,:));
-        end;
+        end
         bci.signal = tmpdata(indices,:);
-    end;
+    end
     
     
     % ask for which event to import
@@ -120,8 +131,8 @@ function [EEG, command] = pop_loadbci(filename, srate);
     for index = 1:length(allfields)
         if ~isempty(findstr( lower(allfields{index}), 'time')) 
             latencyfields{end+1} = allfields{index};
-        end;
-    end;
+        end
+    end
     for index = 1:length(allfields)
         geom   = { geom{:} [1.3 0.3 0.3 0.3 1] };
         uilist{end+1} = { 'style' 'text' 'string' allfields{index} };
@@ -135,15 +146,15 @@ function [EEG, command] = pop_loadbci(filename, srate);
             uilist{end+1} = { };
             uilist{end+1} = { };
             uilist{end+1} = { 'style' 'listbox' 'string' strvcat(latencyfields) };
-        end;
-    end;
+        end
+    end
     geom   = { geom{:} [1] [0.08 1] };
     uilist{end+1} = { };
     uilist{end+1} = { 'style' 'checkbox' 'value' 0 };
     uilist{end+1} = { 'style' 'text' 'string' 'Attempt to adjust event latencies using sourcetime?' };
     
     result = inputgui( geom, uilist, 'pophelp(''pop_loadbci'')', 'Import BCI2000 data files - pop_loadbci()');
-    if isempty(result), return; end;
+    if isempty(result), return; end
     
     % convert results to command line input
     % -------------------------------------
@@ -151,7 +162,7 @@ function [EEG, command] = pop_loadbci(filename, srate);
     count = 1;
     for index = 1:length(allfields)
         if ~isempty(findstr( lower(allfields{index}), 'time')) 
-            if result{count}, listimport{end+1} = 'event'; listimport{end+1} = { allfields{index} }; end;
+            if result{count}, listimport{end+1} = 'event'; listimport{end+1} = { allfields{index} }; end
             count = count+1;
         else 
             if result{count}
@@ -159,12 +170,12 @@ function [EEG, command] = pop_loadbci(filename, srate);
                     listimport{end+1} = 'event'; listimport{end+1} = { allfields{index}  allfields{result{count+1}-1} };
                 else
                     listimport{end+1} = 'event'; listimport{end+1} = { allfields{index} };
-                end;
-            end;
+                end
+            end
             count = count+2;                
-        end;
-    end;
-    if result{end}, adjust = 1; else adjust = 0; end;
+        end
+    end
+    if result{end}, adjust = 1; else adjust = 0; end
     
     % decode command line input 
     % -------------------------
@@ -173,17 +184,17 @@ function [EEG, command] = pop_loadbci(filename, srate);
         tmpindmatch = strmatch(listimport{index}{1}, allfields, 'exact');
         if ~isempty(tmpindmatch), indeximport(count) = tmpindmatch; 
         else error(['State ''' listimport{index}{1} ''' not found']); 
-        end;
+        end
         if length( listimport{index} ) > 1
             tmpindmatch = strmatch(listimport{index}{2}, allfields, 'exact');
             if ~isempty(tmpindmatch), corresp(count) = tmpindmatch; 
             else error(['State ''' listimport{index}{2} ''' not found']); 
-            end;
+            end
         else
             corresp(count) = 0;
-        end;
+        end
         count = count+1;
-    end;
+    end
         
     % find block size
     % ---------------
@@ -192,7 +203,7 @@ function [EEG, command] = pop_loadbci(filename, srate);
     blocksize = unique_bc(diffevent);
     if length(blocksize) > 1, error('Error in determining block size'); 
     else                      fprintf('Blocksize: %d\n', blocksize); 
-    end;
+    end
     
     % find types
     % ----------
@@ -201,7 +212,7 @@ function [EEG, command] = pop_loadbci(filename, srate);
     indexcorrespval = indeximport(tmpcorresp);
     if length(tmpcorresp) ~= length(intersect(corresp, indeximport))
         disp('Warning: correspondance problem, some information will be lost');
-    end;
+    end
     
     % remove type from latency array
     % ------------------------------
@@ -210,7 +221,7 @@ function [EEG, command] = pop_loadbci(filename, srate);
         fprintf('Latency of event will be adjusted\n');
     else fprintf('WARNING: Latency of event will not be adjusted (latency uncertainty %2.1f ms)\n', ...
                  blocksize/srate*1000);
-    end;
+    end
     
 	% process events
 	% --------------
@@ -230,7 +241,7 @@ function [EEG, command] = pop_loadbci(filename, srate);
                 events(counte).type = allfields{ indexcorrespval(tmpcorresp) };
             else 
                 events(counte).type = allfields{ indeximport(index) };
-            end;
+            end
             if adjust
                 baselatency = sourcetime(tmpi); % note that this is the first bin a block
                 realtmpi    = tmpi+blocksize;   % jump to the end of the block+1
@@ -240,9 +251,9 @@ function [EEG, command] = pop_loadbci(filename, srate);
                 % there is still a potentially large error between baselatency <-> realtmpi
             else
                 events(counte).latency = tmpi+(blocksize-1)/2;
-            end;
+            end
             counte = counte+1;
-		end;
+		end
 	end; 
            
 	EEG.data = bci.signal';
@@ -277,8 +288,8 @@ function [EEG, command] = pop_loadbci(filename, srate);
 % $$$ 	for index = 1:length(colnames)
 % $$$ 		if strcmp( colnames{index}(1:2), 'ch')
 % $$$ 			indices = [indices index ];
-% $$$ 		end;
-% $$$ 	end;
+% $$$ 		end
+% $$$ 	end
 % $$$     
 % $$$     EEG.data = tmpdata(indices,:);
 % $$$     EEG.nbchan = size(EEG.data, 1);
@@ -310,13 +321,13 @@ function [EEG, command] = pop_loadbci(filename, srate);
 % $$$                     %events(counte).value   = tmpdata(index, tmpi);
 % $$$                     %while tmpi > tmptrial(counttrial) & counttrial < length(tmptrial)
 % $$$                     %	counttrial = counttrial+1;
-% $$$                     %end;
+% $$$                     %end
 % $$$                     %events(counte).trial = counttrial;				
 % $$$                     counte = counte+1;
-% $$$                     %if mod(counte, 100) == 0, fprintf('%d ', counte); end;
-% $$$                 end;
-% $$$             end;
-% $$$         end;
+% $$$                     %if mod(counte, 100) == 0, fprintf('%d ', counte); end
+% $$$                 end
+% $$$             end
+% $$$         end
 % $$$ 	
 % $$$         % add up or down events
 % $$$         % ---------------------
@@ -330,7 +341,7 @@ function [EEG, command] = pop_loadbci(filename, srate);
 % $$$                     EEG.event(index).type = 'toptarget';
 % $$$                 else
 % $$$                     EEG.event(index).type = 'bottomtarget';
-% $$$                 end;
+% $$$                 end
 % $$$             else 
 % $$$                 if strcmp(EEG.event(index).type(1:6), 'Result')
 % $$$                     resultcode = str2num(EEG.event(index).type(end));
@@ -338,20 +349,20 @@ function [EEG, command] = pop_loadbci(filename, srate);
 % $$$                         EEG.event(index).type = 'topresp';
 % $$$                     else
 % $$$                         EEG.event(index).type = 'bottomresp';
-% $$$                     end;
+% $$$                     end
 % $$$                     EEG.event(end+1).latency = EEG.event(index).latency;
 % $$$                     if (resultcode == targetcode) 
 % $$$                         EEG.event(end).type = 'correct';
 % $$$                     else
 % $$$                         EEG.event(end).type = 'miss';
-% $$$                     end;
-% $$$                 end;
-% $$$             end;
-% $$$         end;
+% $$$                     end
+% $$$                 end
+% $$$             end
+% $$$         end
 % $$$         EEG = pop_editeventvals( EEG, 'sort', { 'latency', [0] } );
 % $$$         %EEG.data = tmpdata([72 73 75],:);
 % $$$     catch, disp('Failed to import data events');
-% $$$     end;
+% $$$     end
 % $$$ 
 % $$$ command = sprintf('EEG = pop_loadbci(''%s'', %f);',filename, srate); 
 % $$$ return;

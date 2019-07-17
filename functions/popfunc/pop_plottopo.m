@@ -22,19 +22,30 @@
 
 % Copyright (C) 10 March 2002 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 01-25-02 reformated help & license -ad 
 % 02-16-02 text interface editing -sm & ad 
@@ -49,11 +60,6 @@ if nargin < 1
 	return;
 end;	
 
-if isempty(EEG.chanlocs)
-	fprintf('Cannot plot without knowing channel locations. Use Edit/Dataset info\n');
-	return;
-end;
-
 if nargin < 2
 	uilist    = { { 'style' 'text' 'string' 'Channels to plot' } ...
                   { 'style' 'edit' 'string' [ '1:' num2str( EEG.nbchan ) ] 'tag' 'chan' } ...
@@ -67,7 +73,7 @@ if nargin < 2
                   { 'style' 'edit' 'string' '''ydir'', 1' 'tag' 'opt' } };
     geometry = { [1 1] [1 1] [1 1] [1 1] [1 1] };
     [result userdata tmphalt restag ] = inputgui( 'uilist', uilist, 'geometry', geometry, 'helpcom', 'pophelp(''pop_plottopo'')', 'title', 'Topographic ERP plot - pop_plottopo()');
-	if length(result) == 0 return; end;
+	if length(result) == 0 return; end
     
 	channels     = eval( [ '[' restag.chan ']' ] );
 	plottitle    = restag.title;
@@ -80,12 +86,12 @@ if nargin < 2
                'title' plottitle 'chans' channels addoptions{:} };
     if ~rect
         options = { options{:} 'chanlocs' EEG.chanlocs };
-    end;
+    end
 else 
 	options ={ 'chanlocs' EEG.chanlocs 'frames' EEG.pnts 'limits' [EEG.xmin EEG.xmax 0 0]*1000 ...
                'title' plottitle 'chans' channels varargin{:}};
     addoptions = {};
-end;
+end
 % adapt frames to time limit.
 if any(strcmp(addoptions,'limits'))
     addoptions{end+1} = 'frames';
@@ -94,7 +100,7 @@ if any(strcmp(addoptions,'limits'))
     addoptions{end+1} = round(diff(timelims/1000)*EEG.srate);
 end
 
-try, icadefs; set(gcf, 'color', BACKCOLOR); catch, end;
+try, icadefs; set(gcf, 'color', BACKCOLOR); catch, end
 	
 if exist('plottitle') ~= 1
     plottitle = '';
@@ -107,15 +113,15 @@ if singletrials
     plottopo( EEG.data, options{:} );
 else
     plottopo( mean(EEG.data,3), options{:} );
-end;
+end
 
 if ~isempty(addoptions)
-	com = sprintf('figure; pop_plottopo(%s, %s, ''%s'', %d, %s);', ...
-				  inputname(1), vararg2str(channels), plottitle, singletrials, vararg2str(addoptions));
+	com = sprintf('figure; pop_plottopo(EEG, %s, ''%s'', %d, %s);', ...
+				  vararg2str(channels), plottitle, singletrials, vararg2str(addoptions));
 else
-	com = sprintf('figure; pop_plottopo(%s, %s, ''%s'', %d);', ...
-				  inputname(1), vararg2str(channels), plottitle, singletrials);
-end;
+	com = sprintf('figure; pop_plottopo(EEG, %s, ''%s'', %d);', ...
+				  vararg2str(channels), plottitle, singletrials);
+end
 
 return;
 	

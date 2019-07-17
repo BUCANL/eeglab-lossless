@@ -56,19 +56,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 01-25-02 reformated help & license -ad 
 % 03-07-02 added srate argument to eegplot call -ad
@@ -79,7 +90,7 @@ function [EEG, com] = pop_rejtrend( EEG, icacomp, elecrange, winsize, ...
 
 com = '';
 if nargin < 1
-   help pop_rejtrend;
+   help pop_rejtrend
    return;
 end;  
 if nargin < 2
@@ -93,11 +104,11 @@ if icacomp == 0
         	case 'NO', disp('Operation cancelled'); return;   
         	case 'YES', [ EEG com ] = pop_runica(EEG);
     	end % switch
-	end;
+	end
 end;	
 if exist('reject') ~= 1
     reject = 1;
-end;
+end
 if nargin < 3
     
     % which set to save
@@ -132,7 +143,7 @@ if nargin < 3
     figname = fastif(~icacomp, 'Trend rejection in component(s) -- pop_rejtrend()','Data trend rejection -- pop_rejtrend()');
     result = inputgui( geometry,uilist,'pophelp(''pop_rejtrend'');', figname);
     size_result  = size( result );
-    if size_result(1) == 0 return; end;
+    if size_result(1) == 0 return; end
     elecrange    = result{1};
     winsize      = result{2};
     minslope     = result{3};
@@ -140,23 +151,23 @@ if nargin < 3
     superpose    = result{5};
     reject       = result{6};
     calldisp     = 1;
-end;
+end
 
-if ~exist('superpose','var'), superpose = 0; end;
-if ~exist('reject','var'),    reject    = 0; end;
-if ~exist('calldisp','var'),  calldisp  = 1; end;
+if ~exist('superpose','var'), superpose = 0; end
+if ~exist('reject','var'),    reject    = 0; end
+if ~exist('calldisp','var'),  calldisp  = 1; end
 
 if nargin < 9
     calldisp = 1;
 end
 
-if isstr(elecrange) % convert arguments if they are in text format 
+if ischar(elecrange) % convert arguments if they are in text format 
 	calldisp = 1;
 	elecrange = eval( [ '[' elecrange ']' ]  );
 	winsize   = eval( [ '[' winsize ']' ]  );
 	minslope  = eval( [ '[' minslope ']' ]  );
 	minstd    = eval( [ '[' minstd ']' ]  );
-end;
+end
 
 fprintf('Selecting trials...\n');
 if icacomp == 1
@@ -182,7 +193,7 @@ if calldisp
         			macrorejE = 'EEG.reject.rejconstE';
     else			macrorej  = 'EEG.reject.icarejconst';
         			macrorejE = 'EEG.reject.icarejconstE';
-    end;
+    end
 	colrej = EEG.reject.rejconstcol;
 	eeg_rejmacro; % script macro for generating command and old rejection arrays
 
@@ -193,7 +204,7 @@ if calldisp
 		eegplot( icaacttmp, 'srate', ...
 		      EEG.srate, 'limits', [EEG.xmin EEG.xmax]*1000 , 'command', command, eegplotoptions{:}); 
 	end;	
-end;
+end
 if ~isempty(rej)
 	if icacomp	== 1
 		EEG.reject.rejconst = rej;
@@ -201,15 +212,13 @@ if ~isempty(rej)
 	else
 		EEG.reject.icarejconst = rej;
 		EEG.reject.icarejconstE = rejE;
-	end;
+	end
     if reject
         EEG = pop_rejepoch(EEG, rej, 0);
-    end;
-end;
+    end
+end
 
-%com = sprintf('Indexes = pop_rejtrend( %s, %d, [%s], %s, %s, %s, %d, %d);', ...
-%   inputname(1), icacomp, num2str(elecrange),  num2str(winsize), num2str(minslope), num2str(minstd), superpose, reject ); 
-com = [ com sprintf('%s = pop_rejtrend(%s,%s);', inputname(1), ...
-		inputname(1), vararg2str({icacomp,elecrange,winsize,minslope,minstd,superpose,reject})) ]; 
+com = [ com sprintf('EEG = pop_rejtrend(EEG,%s);', ...
+		vararg2str({icacomp,elecrange,winsize,minslope,minstd,superpose,reject})) ]; 
 
 return;

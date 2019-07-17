@@ -73,26 +73,37 @@
 
 % Copyright (C) Arnaud Delorme, CNL / Salk Institute, 28 Feb 2002
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function writelocs( chans, filename, varargin ); 
 
 if nargin < 2
 	help writelocs;
 	return;
-end;
+end
 
 % get infos from readlocs
 % -----------------------
@@ -100,11 +111,11 @@ end;
 [chanformat listcolformat] = readlocs('getinfos');
 indformat  = [];
 for index = 1:length(chanformat), 
-    if ~isstr(chanformat(index).importformat)
+    if ~ischar(chanformat(index).importformat)
         indformat = [ indformat index ];
-    end;
-    if isempty(chanformat(index).skipline), chanformat(index).skipline = 0; end;
-end;
+    end
+    if isempty(chanformat(index).skipline), chanformat(index).skipline = 0; end
+end
 listtype   = { chanformat(indformat).type };
 formatinfo = { chanformat(indformat).importformat };
 formatskip = [ chanformat(indformat).skipline ];
@@ -116,18 +127,18 @@ g = finputcheck( varargin, ...
                    'elecind'      'integer'  [1 Inf]				[];
                    'unicoord'     'string'   { 'on','off' } 	'on'; 
                    'format'		  'cell'	 []					{} }, 'writelocs');
-if isstr(g), error(g); end;  
+if ischar(g), error(g); end;  
 
 if strcmpi(g.unicoord, 'on')
     disp('Uniformizing coordinates');
     chans = convertlocs(chans, 'auto', 'verbose', 'off');
-end;
+end
 
 % select channels
 % ---------------
 if ~isempty(g.elecind)
 	chans = chans(g.elecind);
-end;
+end
 
 % finding types of input
 % ----------------------
@@ -137,7 +148,7 @@ if isempty(g.format)
    g.skipline = formatskip(indexformat);
 else 
    g.skipline = 0;   
-end;
+end
 
 % creating file
 % -------------
@@ -149,18 +160,18 @@ if ~isempty(g.customheader)
     allstrs = cellstr(g.customheader);
     for index=1:length(allstrs)
         fprintf(fid, '%s\n', allstrs{index});
-    end;
-end;
-if  strcmpi(g.header, 'on') | g.skipline == 2
+    end
+end
+if  strcmpi(g.header, 'on') || g.skipline == 2
    for index=1:length(g.format)
       fprintf(fid, '%8s\t', g.format{index});
-   end;
+   end
    fprintf(fid, '\n');
    for index=1:length(g.format)
       fprintf(fid, '%8s\t', char(ones(1,8)*45));
-   end;
+   end
    fprintf(fid, '\n');
-end;
+end
 if g.skipline == 1
    fprintf(fid, '%d\n', length(chans));
 end;         
@@ -175,23 +186,23 @@ for indexchan = 1:length(chans)
       else
          if ~isfield(chans, str)
             error([ 'Non-existant field: ''' str '''' ]);
-         end;
+         end
          eval( [ 'chanval = chans(indexchan).' str ';' ] );
-         if   isstr(chanval), fprintf(fid, '%8s', chanval);
+         if   ischar(chanval), fprintf(fid, '%8s', chanval);
          else   	
              if abs(mult*chanval) > 1E-10
                  fprintf(fid, '%8s', num2str(mult*chanval,5));
              else
                  fprintf(fid, '%8s', '0');
-             end;
-         end;
-      end;
+             end
+         end
+      end
       if index ~= length(g.format)
          fprintf(fid, '\t');
       end;         
-   end;
+   end
    fprintf(fid, '\n');
-end;
+end
 fclose(fid);
 
 return;
@@ -200,27 +211,27 @@ return;
 % ------------------
 function [str, mult] = checkformat(str)
 	mult = 1;
-	if strcmpi(str, 'labels'), str = lower(str); return; end;
-	if strcmpi(str, 'channum'), str = lower(str); return; end;
-	if strcmpi(str, 'theta'), str = lower(str); return; end;
-	if strcmpi(str, 'radius'), str = lower(str); return; end;
-	if strcmpi(str, 'sph_theta'), str = lower(str); return; end;
-	if strcmpi(str, 'sph_phi'), str = lower(str); return; end;
-	if strcmpi(str, 'sph_radius'), str = lower(str); return; end;
-	if strcmpi(str, 'sph_theta_besa'), str = lower(str); return; end;
-	if strcmpi(str, 'sph_phi_besa'), str = lower(str); return; end;
-	if strcmpi(str, 'gain'), str = lower(str); return; end;
-	if strcmpi(str, 'calib'), str = lower(str); return; end;
-	if strcmpi(str, 'type') , str = lower(str); return; end;
-	if strcmpi(str, 'X'), str = upper(str); return; end;
-	if strcmpi(str, 'Y'), str = upper(str); return; end;
-	if strcmpi(str, 'Z'), str = upper(str); return; end;
-	if strcmpi(str, '-X'), str = upper(str(2:end)); mult = -1; return; end;
-	if strcmpi(str, '-Y'), str = upper(str(2:end)); mult = -1; return; end;
-	if strcmpi(str, '-Z'), str = upper(str(2:end)); mult = -1; return; end;
-	if strcmpi(str, 'custum1'), return; end;
-	if strcmpi(str, 'custum2'), return; end;
-	if strcmpi(str, 'custum3'), return; end;
-	if strcmpi(str, 'custum4'), return; end;
+	if strcmpi(str, 'labels'), str = lower(str); return; end
+	if strcmpi(str, 'channum'), str = lower(str); return; end
+	if strcmpi(str, 'theta'), str = lower(str); return; end
+	if strcmpi(str, 'radius'), str = lower(str); return; end
+	if strcmpi(str, 'sph_theta'), str = lower(str); return; end
+	if strcmpi(str, 'sph_phi'), str = lower(str); return; end
+	if strcmpi(str, 'sph_radius'), str = lower(str); return; end
+	if strcmpi(str, 'sph_theta_besa'), str = lower(str); return; end
+	if strcmpi(str, 'sph_phi_besa'), str = lower(str); return; end
+	if strcmpi(str, 'gain'), str = lower(str); return; end
+	if strcmpi(str, 'calib'), str = lower(str); return; end
+	if strcmpi(str, 'type') , str = lower(str); return; end
+	if strcmpi(str, 'X'), str = upper(str); return; end
+	if strcmpi(str, 'Y'), str = upper(str); return; end
+	if strcmpi(str, 'Z'), str = upper(str); return; end
+	if strcmpi(str, '-X'), str = upper(str(2:end)); mult = -1; return; end
+	if strcmpi(str, '-Y'), str = upper(str(2:end)); mult = -1; return; end
+	if strcmpi(str, '-Z'), str = upper(str(2:end)); mult = -1; return; end
+	if strcmpi(str, 'custum1'), return; end
+	if strcmpi(str, 'custum2'), return; end
+	if strcmpi(str, 'custum3'), return; end
+	if strcmpi(str, 'custum4'), return; end
    error(['writelocs: undefined field ''' str '''']);
    

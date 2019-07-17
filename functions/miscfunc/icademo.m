@@ -12,19 +12,30 @@
 
 % Copyright (C) 5-18-97 Scott Makeig, SCCN/INC/UCSD, scott@sccn.ucsd.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % This version tested on package version
 % Added envproj(), used maxmap in compplot() 6-18-97 -sm
@@ -72,7 +83,7 @@ if ~exist('pnas.flt')
     p = which('eeglab');
     p = p(1:findstr(p,'eeglab.m')-1);
     addpath([ p 'sample_data' ] );
-end;
+end
 
 % name of channel locations file
 chan_locs  = 'pnas_chan14.locs';
@@ -99,7 +110,7 @@ axis('off')
 
 if ~exist('icademoauto')
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Load an ascii ERP data matrix 
@@ -129,7 +140,7 @@ pos = get(gcf,'Position'); % record figure position to use as a base for later f
 
 if ~exist('icademoauto')
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -147,7 +158,7 @@ plotdata(data,frames,[0 995 -10 10],'ERP Data', chan_locs2 ,0,'(2 conditions)');
 
 if ~exist('icademoauto')
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -163,7 +174,7 @@ plottopo(data,chan_locs,frames,[0 995 -10 10],'ERP Data');
 
 if ~exist('icademoauto')  
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -178,7 +189,7 @@ timtopo(data(:,1:frames),chan_locs,[0 995 -10 10],[250 320 390 500],'Target Hits
 
 if ~exist('icademoauto')
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -197,7 +208,7 @@ fprintf('Try using the on-screen and menu control elements...\n')
 
 if ~exist('icademoauto')
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -219,7 +230,7 @@ subplot(1,2,2)
 
 if ~exist('icademoauto')
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -235,7 +246,7 @@ fprintf('Now decompose both epochs at once using the ICA algorithm, runica() ...
 
 if ~exist('icademoauto')
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 
 [weights,sphere,activations,bias,signs,lrates] = runica(data);
 
@@ -243,7 +254,7 @@ fprintf('\nDone!\n');
 
 if ~exist('icademoauto')
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
@@ -274,7 +285,7 @@ fprintf('\nDone!\n');
 
 if ~exist('icademoauto')
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Plot the activation waveforms of all the components 
@@ -291,7 +302,7 @@ figure('Position',pos+3*off);
 
 if ~exist('icademoauto')
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Plot the contributions to the first epoch of data by the first reordered 
@@ -308,7 +319,7 @@ figure('Position',pos+4*off);
 
 if ~exist('icademoauto')
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Plot the contributions to the first epoch of data by the 5 largest
@@ -326,7 +337,7 @@ figure('Position',pos+4*off);
 
 if ~exist('icademoauto')
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Plot the envelopes of the data epoch 1 and the first 10 components
@@ -343,7 +354,7 @@ figure('Position',pos+5*off);
 
 if ~exist('icademoauto')
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 fprintf('Now plotting envelopes PLUS scalp maps using envtopo().\n');
@@ -357,7 +368,7 @@ figure('Position',pos+5.5*off);
 
 if ~exist('icademoauto')
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Plot a close-up of the decomposition of epoch 2, channel 2.
@@ -378,7 +389,7 @@ fprintf('\n Note that two components make up most of the response peak.\n');
 
 if ~exist('icademoauto')
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Plot the scalp maps of the first four reordered components 
@@ -393,7 +404,7 @@ figure('Position',pos+7*off);
 
 if ~exist('icademoauto')
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Display the projected epoch-1 data for reordered ICA component windex(7) 
@@ -412,7 +423,7 @@ figure('Position',pos+8*off);
 
 if ~exist('icademoauto')
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Make and display a brief movie of a small segment of the first data epoch
@@ -431,11 +442,11 @@ try,
   seemovie(Movie,-5,Colormap); 
 catch,
     disp('Problem generating movie');
-end;
+end
 
 if ~exist('icademoauto')
     fprintf('\n****> Hit any key to continue: '); pause; fprintf('\n\n'); %%%
-end;
+end
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
 % Run testica script using optimum parameters 
@@ -454,7 +465,7 @@ if ~exist('icademoauto')
     testica(chans,epochs*frames,14,-0.05,1.4);
 else 
     [testresult] = testica(chans,epochs*frames,14,-0.05,1.4);
-end;
+end
 
 % model 14 sources with a wide range of sizes & positive kurtosis
 

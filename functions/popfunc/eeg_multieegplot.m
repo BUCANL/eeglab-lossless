@@ -22,19 +22,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 01-25-02 reformated help & license -ad 
 % 03-07-02 corrected help -ad
@@ -44,16 +55,16 @@ function eeg_multieegplot( data, rej, rejE, oldrej, oldrejE, varargin);
 if nargin < 1
    help eeg_multieegplot;
    return;
-end;
+end
 if nargin < 4
    oldrej = [];
-end;
+end
 if nargin < 5
    oldrejE = [];
-end;
+end
 if ~exist('command')
 	command = '';
-end;
+end
 chans = size(data,1);
 pnts  = size(data,2);
 
@@ -81,7 +92,7 @@ if ndims(data) > 2 % --------------- considering epoched EEG data
    		% -----------------
 		%[tmp I] = unique_bc( rejeegplot(:,1) );
 		%rejeegplot = rejeegplot(I,:);
-   end;
+   end
 else % ---------------------------------------- considering continuous EEG
    % for continuous EEG, electrodes (rejE and oldrejE) are not considered yet
    % because there would be a format problem (these rejection are stored in
@@ -97,8 +108,8 @@ else % ---------------------------------------- considering continuous EEG
    if ~isempty(oldrej)
        tmp = [ oldrej(:, 3:4) colold*ones(s,1) zeros(size(oldrej,1), chans) ]; 
        rejeegplot = [rejeegplot; tmp];
-   end;
-end;
+   end
+end
 
 if isempty(varargin)   
 	eegplot(data, 'winlength', 5, 'position', [100 300 800 500], 'winrej', rejeegplot, 'xgrid', 'off');

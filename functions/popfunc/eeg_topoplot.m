@@ -41,53 +41,64 @@
 
 % Copyright (C) Arnaud Delorme, SCCN, INC, 2010
 %                                          
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function eeg_topoplot(values, chanlocs, varargin);
 
 g = [];
 for index = 1:2:length(varargin)
     g = setfield(g, varargin{index}, varargin{index+1});
-end;
-if ~isfield(g, 'electrodes'), g.electrodes = 'on'; end;
-if ~isfield(g, 'colormap'),   g.colormap   = jet;  end;
-if ~isfield(g, 'maplimits'),  g.maplimits  = [];   end;
-if ~isfield(g, 'headrad'),    g.headrad    = [];   end;
-if ~isfield(g, 'sphspline'),  g.sphspline  = 'on'; end;
-if ~isfield(g, 'shading'),    g.shading    = 'interp'; end;
-if ~isfield(g, 'contour'),    g.contour    = 'on'; end;
-if ~isfield(g, 'dotsize'),    g.dotsize    = 5;    end;
-if ~isfield(g, 'mark'),       g.mark       = [];   end;
-if ~isfield(g, 'exclude'),    g.exclude    = [];   end;
-if ~isfield(g, 'linewidth'),  g.linewidth  = 2;    end;
-if ~isfield(g, 'shrink'),     g.shrink     = 1;    end;
-if isstr(g.dotsize), g.dotsize = str2num(g.dotsize); end;
+end
+if ~isfield(g, 'electrodes'), g.electrodes = 'on'; end
+if ~isfield(g, 'colormap'),   g.colormap   = jet;  end
+if ~isfield(g, 'maplimits'),  g.maplimits  = [];   end
+if ~isfield(g, 'headrad'),    g.headrad    = [];   end
+if ~isfield(g, 'sphspline'),  g.sphspline  = 'on'; end
+if ~isfield(g, 'shading'),    g.shading    = 'interp'; end
+if ~isfield(g, 'contour'),    g.contour    = 'on'; end
+if ~isfield(g, 'dotsize'),    g.dotsize    = 5;    end
+if ~isfield(g, 'mark'),       g.mark       = [];   end
+if ~isfield(g, 'exclude'),    g.exclude    = [];   end
+if ~isfield(g, 'linewidth'),  g.linewidth  = 2;    end
+if ~isfield(g, 'shrink'),     g.shrink     = 1;    end
+if ischar(g.dotsize), g.dotsize = str2num(g.dotsize); end
 if any(values == 0)
     inds = find(values == 0);
     if ~isempty( [ chanlocs(inds).theta ])
         g.contour = 'off';
         g.sphspline = 'off';
-    end;
-end;
+    end
+end
 
 % exclude electrodes
 % ------------------
 if ~isempty(g.exclude)
     chanlocs(g.exclude) = [];
     values(g.exclude)   = [];
-end;
+end
 
 % find channel coordinates
 % ------------------------
@@ -132,7 +143,7 @@ if strcmpi(g.sphspline, 'on')
     if strcmpi(g.contour, 'on')
     	[c h] = contour3(-ysph/2, xsph/2, valsph+top/10, 5); view([0 0 1]);
         set(h, 'cdata', [], 'edgecolor', 'k')
-    end;
+    end
     
 	% coordinates for electrodes
 	% --------------------------
@@ -146,7 +157,7 @@ else
     % -------------------
     if isempty(g.headrad);
         g.headrad = max(sqrt(x.^2+y.^2));
-    end;
+    end
     
     % data points for 2-D data plot
     % -----------------------------
@@ -165,7 +176,7 @@ else
         [tmp closey] = min(abs(yy(ind)-coords));
         ax(closex,closey) = xx(ind);
         ay(closex,closey) = yy(ind);
-	end;
+	end
 	xx2 = sin(pnts)*(g.headrad-0.01);
 	yy2 = cos(pnts)*(g.headrad-0.01);
 	for ind=1:length(xx)
@@ -173,7 +184,7 @@ else
         [tmp closey] = min(abs(yy2(ind)-coords));
         ax(closex,closey) = xx(ind);
         ay(closex,closey) = yy(ind);
-	end;
+	end
 	
 	% linear interpolation and removal of values outside circle
 	% ---------------------------------------------------------
@@ -190,27 +201,27 @@ else
     if strcmpi(g.contour, 'on')
         [c h] = contour3(ay, ax, a, 5);
         set(h, 'cdata', [], 'edgecolor', 'k')
-    end;
-end;
+    end
+end
 
 % plot electrodes as dots
 % -----------------------
-if strcmpi(g.electrodes, 'on') | strcmpi(g.electrodes, 'labels')
+if strcmpi(g.electrodes, 'on') || strcmpi(g.electrodes, 'labels')
     rad = sqrt(x.^2 + y.^2);
     x(find(rad > g.headrad)) = [];
     y(find(rad > g.headrad)) = [];
     plot3( -x, y, ones(size(x))*top, 'k.', 'markersize', g.dotsize);
-    for i = g.mark,      plot3( -x(i), y(i), double(top), 'y.', 'markersize', 4*g.dotsize); plot3( -x(i), y(i), double(top), 'r.', 'markersize', 2*g.dotsize); end;
+    for i = g.mark,      plot3( -x(i), y(i), double(top), 'y.', 'markersize', 4*g.dotsize); plot3( -x(i), y(i), double(top), 'r.', 'markersize', 2*g.dotsize); end
     if strcmpi(g.electrodes, 'labels')
         for index = 1:length(x)
             text( -x(index)+0.02, y(index), double(top), labls{index});
-        end;
-    end;
+        end
+    end
 else
     % invisible electrode that avoid plotting problem (no surface, only
     % contours)
     plot3( -x, y, -ones(size(x))*top, 'k.', 'markersize', 0.001); 
-end;
+end
 
 % plot dipoles if any
 % -------------------
@@ -231,26 +242,26 @@ if ~isempty(g.dipole)
             hh = line( -[g.dipole(index, 2) g.dipole(index, 2)+g.dipole(index, 4)]', ...
                 [g.dipole(index, 1) g.dipole(index, 1)+g.dipole(index, 3)]',[top top]);
             set(hh, 'color', 'k', 'linewidth', 30/7);
-        end;
-    end;
-end;
+        end
+    end
+end
 
 % special colormaps
 % -----------------
-if isstr(g.colormap) 
+if ischar(g.colormap) 
     if ~isempty(strmatch(g.colormap, { 'hsv' 'jet' 'gray' 'hot' 'cool' 'bone' ...
             'copper', 'pink' 'flag' 'prism' }, 'exact'))
     else % read text file
         g.colormap = load('-ascii', g.colormap);
-    end;
+    end
 end;    
 colormap(g.colormap);
 
 if ~isempty(g.maplimits)
-    if ~isstr(g.maplimits) && ~isempty(g.maplimits) && ~isnan(g.maplimits(1))
+    if ~ischar(g.maplimits) && ~isempty(g.maplimits) && ~isnan(g.maplimits(1))
         caxis(g.maplimits);
-    end;
-end;
+    end
+end
 
 % main circle
 % -----------
@@ -352,16 +363,16 @@ function allinds = elecind( str, chanlocs, values );
     findmax = 0;
     findmin = 0;
     if ~iscell(str)
-         if strmatch(str, 'max', 'exact'), findmax = 1; end;
+         if strmatch(str, 'max', 'exact'), findmax = 1; end
          if strmatch(str, 'min', 'exact'), findmin = 1; end;         
          indunderscore = [ 0 find( str == '_' ) length(str)+1 ];
     else indunderscore = [1:length(str)+1];
-    end;
+    end
      
     % find maximum or minimum
     % -----------------------
-    if findmax, [tmp allinds] = max(values); return; end;
-    if findmin, [tmp allinds] = min(values); return; end;
+    if findmax, [tmp allinds] = max(values); return; end
+    if findmin, [tmp allinds] = min(values); return; end
     
     % find indices for labels
     % -----------------------
@@ -370,16 +381,16 @@ function allinds = elecind( str, chanlocs, values );
         if ~iscell(str)
              tmpstr = str(indunderscore(i)+1:indunderscore(i+1)-1);
         else tmpstr = str{i};
-        end;
+        end
         tmpind = strmatch(lower(tmpstr), labels, 'exact');
         if isempty(tmpind)
             if str2num(tmpstr) > 0
                 tmpind = str2num(tmpstr);
             else
                 error(sprintf('Could not find channel "%s"', tmpstr));
-            end;
-        end;
+            end
+        end
         allinds(i) = tmpind;
-    end;
+    end
     
         

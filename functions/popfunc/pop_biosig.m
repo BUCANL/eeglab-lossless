@@ -46,39 +46,51 @@
 
 % Copyright (C) 2003 Arnaud Delorme, SCCN, INC, UCSD, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [EEG, command, dat] = pop_biosig(filename, varargin); 
 EEG = [];
 command = '';
 
-if ~plugin_askinstall('Biosig', 'sopen'), return; end;
+if ~plugin_askinstall('Biosig', 'sopen'), return; end
+biosigpathfirst;
     
 if nargin < 1
 	% ask user
 	[filename, filepath] = uigetfile('*.*', 'Choose a data file -- pop_biosig()'); %%% this is incorrect in original version!!!!!!!!!!!!!!
     drawnow;
     
-	if filename == 0 return; end;
+	if filename == 0 return; end
 	filename = [filepath filename];
     
     % look if MEG
     % -----------
     if length(filepath)>4
-        if strcmpi(filepath(end-3:end-1), '.ds'), filename = filepath(1:end-1); end;
-    end;
+        if strcmpi(filepath(end-3:end-1), '.ds'), filename = filepath(1:end-1); end
+    end
     
     % open file to get infos
     % ----------------------
@@ -86,7 +98,7 @@ if nargin < 1
     dat = sopen(filename, 'r', [], 'OVERFLOWDETECTION:OFF');
     if ~isfield(dat, 'NRec')
         error('Unsuported data format');
-    end;
+    end
     
     % special BIOSEMI
     % ---------------
@@ -95,7 +107,7 @@ if nargin < 1
         disp(upper('We highly recommend that you choose a reference channel IF these are Biosemi data'));
         disp(upper('(e.g., a mastoid or other channel). Otherwise the data will lose 40 dB of SNR!'));
         disp('For more information, see <a href="http://www.biosemi.com/faq/cms&drl.htm">http://www.biosemi.com/faq/cms&drl.htm</a>');
-    end;
+    end
     uilist = { { 'style' 'text' 'String' 'Channel list (defaut all):' } ...
                  { 'style' 'edit' 'string' '' } ...
                  { 'style' 'text' 'String' [ 'Data range (in seconds) to read (default all [0 ' int2str(dat.NRec) '])' ] } ...
@@ -113,26 +125,26 @@ if nargin < 1
 
     result = inputgui( geom, uilist, 'pophelp(''pop_biosig'')', ...
                                  'Load data using BIOSIG -- pop_biosig()');
-    if length(result) == 0 return; end;
+    if length(result) == 0 return; end
     
     % decode GUI params
     % -----------------
     options = {};
-    if ~isempty(result{1}), options = { options{:} 'channels'   eval( [ '[' result{1} ']' ] ) }; end;
-    if ~isempty(result{2}), options = { options{:} 'blockrange' eval( [ '[' result{2} ']' ] ) }; end;
+    if ~isempty(result{1}), options = { options{:} 'channels'   eval( [ '[' result{1} ']' ] ) }; end
+    if ~isempty(result{2}), options = { options{:} 'blockrange' eval( [ '[' result{2} ']' ] ) }; end
     if length(result) > 2
-        if ~result{3},          options = { options{:} 'importevent'  'off'  }; end;
-        if ~result{4},          options = { options{:} 'importannot'  'off'  }; end;
-        if  result{5},          options = { options{:} 'blockepoch'   'off' }; end;
-        if ~isempty(result{6}), options = { options{:} 'ref'        eval( [ '[' result{6} ']' ] ) }; end;
-        if  result{7},          options = { options{:} 'memorymapped' 'on' }; end;
-    end;
+        if ~result{3},          options = { options{:} 'importevent'  'off'  }; end
+        if ~result{4},          options = { options{:} 'importannot'  'off'  }; end
+        if  result{5},          options = { options{:} 'blockepoch'   'off' }; end
+        if ~isempty(result{6}), options = { options{:} 'ref'        eval( [ '[' result{6} ']' ] ) }; end
+        if  result{7},          options = { options{:} 'memorymapped' 'on' }; end
+    end
     if length(eval( [ '[' result{6} ']' ] )) > 1
         options = { options{:} 'refoptions' { 'keepref' 'off' } };
-    end;
+    end
 else
     options = varargin;
-end;
+end
 
 % decode imput parameters
 % -----------------------
@@ -145,7 +157,7 @@ g = finputcheck( options, { 'blockrange'   'integer' [0 Inf]    [];
                             'importannot'  'string'  { 'on';'off' } 'on';
                             'memorymapped' 'string'  { 'on';'off' } 'off';
                             'blockepoch'   'string'  { 'on';'off' } 'off' }, 'pop_biosig');
-if isstr(g), error(g); end;
+if ischar(g), error(g); end
 
 % import data
 % -----------
@@ -154,20 +166,20 @@ EEG = eeg_emptyset;
 
 if strcmpi(g.blockepoch, 'off')
     dat.NRec = 1;
-end;
+end
     
 EEG = biosig2eeglab(dat, DAT, interval, g.channels, strcmpi(g.importevent, 'on'));
 
-if strcmpi(g.rmeventchan, 'on') & strcmpi(dat.TYPE, 'BDF') & isfield(dat, 'BDF')
+if strcmpi(g.rmeventchan, 'on') && strcmpi(dat.TYPE, 'BDF') && isfield(dat, 'BDF')
     if size(EEG.data,1) >= dat.BDF.Status.Channel, 
         disp('Removing event channel...');
         EEG.data(dat.BDF.Status.Channel,:) = []; 
         if ~isempty(EEG.chanlocs) && length(EEG.chanlocs) >= dat.BDF.Status.Channel
             EEG.chanlocs(dat.BDF.Status.Channel) = [];
-        end;
-    end;
+        end
+    end
     EEG.nbchan = size(EEG.data,1);
-end;
+end
 
 % rerefencing
 % -----------
@@ -177,13 +189,13 @@ if ~isempty(g.ref)
 %     EEG.data = EEG.data - repmat(mean(EEG.data(g.ref,:),1), [size(EEG.data,1) 1]);
 %     if length(g.ref) == size(EEG.data,1)
 %         EEG.ref  = 'averef';
-%     end;
+%     end
 %     if length(g.ref) == 1
 %         disp([ 'Warning: channel ' int2str(g.ref) ' is now zeroed (but still present in the data)' ]);
 %     else
 %         disp([ 'Warning: data matrix rank has decreased through re-referencing' ]);
-%     end;
-end;
+%     end
+end
 
 % test if annotation channel is present
 % -------------------------------------
@@ -196,10 +208,10 @@ if isfield(dat, 'EDFplus') && strcmpi(g.importannot, 'on')
             EEG.nbchan        = EEG.nbchan+1;
             if ~isempty(EEG.chanlocs)
                 EEG.chanlocs(end+1).labels = tmpfields{ind};
-            end;
-        end;
-    end;
-end;
+            end
+        end
+    end
+end
 
 % convert data to single if necessary
 % -----------------------------------
@@ -214,12 +226,15 @@ else
     command = sprintf('EEG = pop_biosig(''%s'', %s);', filename, vararg2str(options)); 
 end;    
 
+% Checking if str2double is on top of the path
+biosigpathlast;
+
 % ---------
 % read data
 % ---------
 function [dat DAT interval] = readfile(filename, channels, blockrange, memmapdata);
 
-if isempty(channels), channels = 0; end;
+if isempty(channels), channels = 0; end
 dat = sopen(filename, 'r', channels,'OVERFLOWDETECTION:OFF');
 
 if strcmpi(memmapdata, 'off')
@@ -238,7 +253,7 @@ else
     fprintf('Reading data in %s format (file will be mapped to memory so this may take a while)...\n', dat.TYPE);
     inc = ceil(250000/(dat.NS*dat.SPR)); % 1Mb block
     
-    if isempty(blockrange), blockrange = [0 dat.NRec]; end;
+    if isempty(blockrange), blockrange = [0 dat.NRec]; end
     blockrange(2) = min(blockrange(2), dat.NRec);
     allblocks = [blockrange(1):inc:blockrange(end)];
     count = 1;
@@ -246,12 +261,12 @@ else
         TMPDAT=sread(dat, (allblocks(bind+1)-allblocks(bind))*dat.Dur, allblocks(bind)*dat.Dur);
         if bind == 1
             DAT = mmo([], [size(TMPDAT,2) (allblocks(end)-allblocks(1))*dat.SPR]);
-        end;
+        end
         DAT(:,count:count+length(TMPDAT)-1) = TMPDAT';
         count = count+length(TMPDAT);
-    end;
+    end
     sclose(dat);
-end;
+end
 
 if ~isempty(blockrange)
      interval(1) = blockrange(1) * dat.SampleRate(1) + 1;

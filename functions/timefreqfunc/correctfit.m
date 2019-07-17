@@ -28,19 +28,30 @@
 
 % Copyright (C) 7/02/03  Arnaud Delorme, SCCN/INC/UCSD
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [pval, PHAT, PCI, zerofreq] = correctfit(pval, varargin)
     
@@ -48,12 +59,12 @@ function [pval, PHAT, PCI, zerofreq] = correctfit(pval, varargin)
         help correctfit;
         disp('You need to specify one optional input');
         return;
-    end;
+    end
     
     g = finputcheck( varargin, { 'allpval'    'real'    [0 1]          [];
                                  'zeromode'   'string'  {'on','off'}   'on';
                                  'gamparams'  'real'    []             []}, 'correctfit');
-    if isstr(g), error(g); end;
+    if ischar(g), error(g); end
     
     if ~isempty(g.gamparams)
         PHAT     = g.gamparams(1);
@@ -66,16 +77,16 @@ function [pval, PHAT, PCI, zerofreq] = correctfit(pval, varargin)
         [PHAT, PCI] = gamfit( tmpdat );
         PHAT = PHAT(1);
         PCI  = PCI(2);
-    end;
+    end
     
     if pval == 0
         if strcmpi(g.zeromode, 'on')
             pval = zerofreq;
-        end;
+        end
     else
         tmppval = -log10( pval ) + 1E-10;
         pval    = 1-gamcdf( tmppval, PHAT, PCI);
-    end;
+    end
     
     if 1 % plotting
         if exist('tmpdat') == 1
@@ -84,5 +95,5 @@ function [pval, PHAT, PCI, zerofreq] = correctfit(pval, varargin)
             tmpdat = linspace(0.00001,10, 300);
             normy = gampdf( tmpdat, PHAT, PCI);
             plot( tmpdat, normy/max(normy)*mult(2)*3, 'r');
-        end;
-    end;
+        end
+    end

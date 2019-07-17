@@ -60,19 +60,30 @@
 
 % Copyright (C) 2000 Scott Makeig, SCCN/INC/UCSD, scott@sccn.ucsd.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 08/07/00 Added warning to update icadefs.m -sm
 % 09/08/00 Added tmpint to script, weights and sphere files to avoid
@@ -84,19 +95,19 @@
  
 function [wts,sph,tmpint] = binica(data,var2,var3,var4,var5,var6,var7,var8,var9,var10,var11,var12,var13,var14,var15,var16,var17,var18,var19,var20,var21,var22,var23,var24,var25)
 
-if nargin < 1 | nargin > 25
+if nargin < 1 || nargin > 25
     more on
     help binica
     more off
     return
 end
-if size(data,3) > 1, data = reshape(data, size(data,1), size(data,2)*size(data,3) ); end;
+if size(data,3) > 1, data = reshape(data, size(data,1), size(data,2)*size(data,3) ); end
 
 icadefs % import ICABINARY and SC
 if ~exist('SC')
   fprintf('binica(): You need to update your icadefs file to include ICABINARY and SC.\n')
   return
-end;
+end
 if exist(SC) ~= 2
   fprintf('binica(): No ica source file ''%s'' is in your Matlab path, check...\n', SC);
   return
@@ -113,7 +124,7 @@ else
 		fprintf('binica(): using binary ica file ''%s''\n', ICABINARYdir);
 	else
 		fprintf('binica(): using binary ica file ''\?/%s''\n', ICABINARY);
-	end;
+	end
 end
 
 [flags,args] = read_sc(SC); % read flags and args in master SC file
@@ -175,7 +186,7 @@ else
         if ~isnumeric(tmpint)
             fprintf('\nbinica(): FileNum argument needs to be a number.  Will use random number instead.\n')
             tmpint=[];
-        end;
+        end
         tmpint=int2str(tmpint);
   end
 
@@ -216,7 +227,7 @@ if ~ischar(data) % data variable given
       floatwrite(data,tmpdata,'ieee-be');
   else
       floatwrite(data,tmpdata);
-  end;
+  end
   datafile = tmpdata;
 
 else % data filename given
@@ -232,7 +243,7 @@ else % data filename given
   end
   nchans = var2;
   nframes = var3;
-  if ischar(nchans) | ischar(nframes)
+  if ischar(nchans) || ischar(nframes)
     fprintf(...
 '\nbinica(): chans, frames args must be given after data file name\n');
     return
@@ -279,7 +290,7 @@ if exist('wtsin') % specify WeightsInfile from 'weightsin' flag, arg
            floatwrite(wtsin,winfn,'ieee-be');
        else
            floatwrite(wtsin,winfn);
-       end;
+       end
        fprintf('   saving input weights:\n  ');
        weightsinfile = winfn; % weights in file name
      elseif exist(wtsin) == 2 % file

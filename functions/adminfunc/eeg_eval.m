@@ -22,19 +22,30 @@
 
 % Copyright (C) 2005 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [EEG, com] = eeg_eval( funcname, EEG, varargin);
     
@@ -42,13 +53,13 @@ function [EEG, com] = eeg_eval( funcname, EEG, varargin);
     if nargin < 2
         help eeg_eval;
         return;
-    end;
+    end
     
     % check input parameters
     % ----------------------
     g = finputcheck( varargin, { 'params'   'cell'    {}               {};
                                  'warning'  'string'  { 'on','off' }   'on' }, 'eeg_eval');
-    if isstr(g), error(g); end;
+    if ischar(g), error(g); end
     
     % warning pop up
     % --------------
@@ -64,12 +75,12 @@ function [EEG, com] = eeg_eval( funcname, EEG, varargin);
             res = questdlg2( [ 'Data files on disk will be automatically overwritten.' 10 ...
                                 'Are you sure you want to proceed with this operation?' ], ...
                             'Confirmation', 'Cancel', 'Proceed', 'Proceed');
-        end;
+        end
         switch lower(res),
          case 'cancel', return;
          case 'proceed',;
-        end;
-    end;
+        end
+    end
  
     % execute function
     % ----------------
@@ -78,7 +89,7 @@ function [EEG, com] = eeg_eval( funcname, EEG, varargin);
         command = [ 'TMPEEG = ' funcname '( TMPEEG, ' vararg2str(g.params) ');' ];
     else
         eval( [ 'func = @' funcname ';' ] );
-    end;
+    end
         
     NEWEEG = [];
     for i = 1:length(EEG)
@@ -86,31 +97,31 @@ function [EEG, com] = eeg_eval( funcname, EEG, varargin);
         TMPEEG    = eeg_retrieve(EEG, i);
         if v(1) == '5', eval(command);                      % Matlab 5
         else            TMPEEG = feval(func, TMPEEG, g.params{:}); % Matlab 6 and higher
-        end;
+        end
         TMPEEG = eeg_checkset(TMPEEG);
         TMPEEG.saved = 'no';
         if option_storedisk
             TMPEEG = pop_saveset(TMPEEG, 'savemode', 'resave');
             TMPEEG = update_datafield(TMPEEG);
-        end;
+        end
         NEWEEG = eeg_store(NEWEEG, TMPEEG, i);
         if option_storedisk
             NEWEEG(i).saved = 'yes'; % eeg_store by default set it to no
-        end;
-    end;
+        end
+    end
     EEG = NEWEEG;
     
     % history
     % -------
     if nargout > 1
-        com = sprintf('%s = %s( %s,%s);', funcname, inputname(2), funcname, inputname(2), vararg2str(g.params));
-    end;
+        com = sprintf('%s = %s( %s,%s);', inputname(2), funcname, inputname(2), vararg2str(g.params));
+    end
 
 function EEG = update_datafield(EEG);
-    if ~isfield(EEG, 'datfile'), EEG.datfile = ''; end;
+    if ~isfield(EEG, 'datfile'), EEG.datfile = ''; end
     if ~isempty(EEG.datfile)
         EEG.data = EEG.datfile;
     else 
         EEG.data = 'in set file';
-    end;
+    end
     EEG.icaact = [];

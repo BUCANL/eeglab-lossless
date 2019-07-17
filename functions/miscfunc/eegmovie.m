@@ -48,19 +48,30 @@
 
 % Copyright (C)  6/4/97 Colin Humphries & Scott Makeig, CNL / Salk Institute / La Jolla CA
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 6/6/97 added movieframes arg -sm
 % 6/12/97 removed old 'startframes' var., fixed vertical line frame selection -sm
@@ -100,7 +111,7 @@ if nargin > 5 && ~ischar(varargin{3}) || nargin == 4 && ~ischar(varargin{2})
     if nargin>=4, options = { options{:} 'title'       varargin{1} }; end
 else
     options = varargin;
-end;
+end
 
 opt = finputcheck(options, { 'startsec'    'real'    {}    0;
                              'minmax'      'real'    {}    0;
@@ -114,7 +125,7 @@ opt = finputcheck(options, { 'startsec'    'real'    {}    0;
                              'time'        'string'  { 'on' 'off' }    'off';
                              'topoplotopt' 'cell'    {}    {};
                              'headplotopt' 'cell'    {}    {} }, 'eegmovie');
-if isstr(opt), error(opt); end;
+if ischar(opt), error(opt); end
 if opt.minmax ==0,
 	datamin = min(min(data));
 	datamax = max(max(data));
@@ -135,7 +146,7 @@ end
 if srate ==0,
 	srate = DEFAULT_SRATE;
 end
-if strcmpi(opt.time, 'on'), opt.framenum = 'off'; end;
+if strcmpi(opt.time, 'on'), opt.framenum = 'off'; end
 
 mframes = length(opt.movieframes);
 fprintf('Making a movie of %d frames\n',mframes)
@@ -152,12 +163,12 @@ if strcmpi(opt.timecourse, 'on')
         adddots = '...';
         for iChan = 1:length(eloc_locs)
             fprintf(fid, '0 0 0 %s\n', [ eloc_locs(iChan).labels adddots(length(eloc_locs(iChan).labels):end) ]);
-        end;
+        end
         fclose(fid);
         eegplotold('noui',-data,srate,0,'tmp_file.loc',opt.startsec,'r');
     else
         eegplotold('noui',-data,srate,0,eloc_locs,opt.startsec,'r');
-    end;
+    end
     
     % set(axeegplot,'XTick',[])                %%CJH
     % plot negative up
@@ -170,8 +181,8 @@ if strcmpi(opt.timecourse, 'on')
        frameind = (opt.vert(ind)-opt.startsec)*srate+1;
        line([frameind frameind],limits,'color','k'); % draw vertical line at map timepoint
        set(axeegplot,'Xtick',frameind,'XtickLabel',num2str(opt.vert(ind),'%4.3f'));
-    end;
-end;
+    end
+end
 
 %%%%%%%%%%%%%%%%%%%%% topoplot/headplot axis %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -190,7 +201,7 @@ if strcmpi(opt.mode, '3d')
     if isequal(opt.camerapath, 0)
         opt.camerapath = [-127 0 30 0];
         fprintf('Using default view [-127 0 30 0].');
-    end;
+    end
     if size(opt.camerapath,2)~=4
         error('Camerapath parameter must have exact 4 columns');
     end
@@ -206,7 +217,7 @@ if strcmpi(opt.mode, '3d')
     elevation = opt.camerapath(1,3);
     el_step   = opt.camerapath(1,4);
     
-end;
+end
 
 %%%%%%%%%%%%%%%%%%%%%%%%% "Roll'em!" %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -219,7 +230,7 @@ for f = 1:length(opt.movieframes)                      % make the movie, frame b
        x1 = opt.startsec+(indFrame-1)/srate;
        l1 = line([indFrame indFrame],limits,'color','b'); % draw vertical line at map timepoint
        set(axeegplot,'Xtick',indFrame,'XtickLabel',num2str(x1,'%4.3f'));
-   end;
+   end
    
    % plot headplot or topoplot
    axes(axtopoplot)
@@ -260,7 +271,7 @@ for f = 1:length(opt.movieframes)                      % make the movie, frame b
            'PlotBoxAspectRatioMode','manual',...
            'DataAspectRatioMode','manual');    % keep camera distance constant
        
-   end;
+   end
                                          
    % show frame number
    if strcmpi(opt.framenum, 'on') 
@@ -269,17 +280,17 @@ for f = 1:length(opt.movieframes)                      % make the movie, frame b
    elseif strcmpi(opt.time, 'on') 
        txt = sprintf('%3.3f s', opt.startsec+(indFrame-1)/srate); 
        text(-0.5,-0.5,txt,'FontSize',14);    
-   end;
+   end
 
    Movie(:,f) = getframe(gcf);
    drawnow
    if strcmpi(opt.timecourse, 'on')
        delete(l1)
-   end;
+   end
    
    % print advancement
    fprintf('.',f);
-   if rem(indFrame,10) == 0, fprintf('%d',f); end;
+   if rem(indFrame,10) == 0, fprintf('%d',f); end
    if rem(indFrame,50) == 0, fprintf('\n'); end
 end
 fprintf('\nDone\n');

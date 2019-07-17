@@ -1,6 +1,11 @@
 % pop_topoplot() - Plot scalp map(s) in a figure window. If number of input
 %                  arguments is less than 3, pop up an interactive query window.
 %                  Makes (possibly repeated) calls to topoplot().
+% 
+%                  If field 'EEG.chanmatrix' exists, will use the topoplot() 'plotgrid' option 
+%                  to plot the data on the indicated channel matrix instead of plotting 
+%                  on the head (see 'plotgrid' in >> help topoplot).
+
 % Usage:
 %   >> pop_topoplot( EEG); % pops up a parameter query window
 %   >> pop_topoplot( EEG, typeplot, items, title, plotdip, options...); % no pop-up
@@ -24,9 +29,9 @@
 %
 % Optional Key-Value Pair Inputs
 %   'colorbar' - ['on' or 'off'] Switch to turn colorbar on or off. {Default: 'on'}
-%   options  - optional topoplot() arguments. Separate using commas. 
-%              Example 'style', 'straight'. See >> help topoplot
-%              for further details. {default: none}
+%   options   - optional topoplot() arguments. Separate using commas. 
+%               Example 'style', 'straight'. See >> help topoplot
+%               for further details. {default: none}
 %
 % Note:
 %   A new figure is created automatically only when the pop_up window is 
@@ -39,19 +44,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 01-25-02 reformated help & license -ad 
 % 02-15-02 text interface editing -sm & ad 
@@ -67,11 +83,11 @@ if nargin < 1
 end;   
 if nargin < 2   
    typeplot = 1;
-end;
-if typeplot == 0 & isempty(EEG.icasphere)
+end
+if typeplot == 0 && isempty(EEG.icasphere)
    disp('Error: no ICA data for this set, first run ICA'); return;
 end;   
-if isempty(EEG.chanlocs)
+if isempty(EEG.chanlocs) && ~isfield(EEG, 'chanmatrix')
    disp('Error: cannot plot topography without channel location file'); return;
 end;   
 
@@ -92,7 +108,7 @@ if nargin < 3
             elecdef = ['''electrodes'', ''off''']; 
         else, 
             elecdef = ['''electrodes'', ''on''']; 
-        end;
+        end
     uilist = { { 'style'   'text'     'string'    txtwhat2plot1 } ...
                { 'style'   'edit'     'string'    editwhat2plot } ...
                { 'style'   'text'     'string'    txtwhat2plot2 } ...
@@ -111,12 +127,12 @@ if nargin < 3
     if typeplot
         uilist(9:11) = [];
         uigeom(6) = [];
-    end;
+    end
     guititle = fastif( typeplot, 'Plot ERP scalp maps in 2-D -- pop_topoplot()', ...
                        'Plot component scalp maps in 2-D -- pop_topoplot()');
     
     result = inputgui( uigeom, uilist, 'pophelp(''pop_topoplot'')', guititle, [], 'normal');
-	if length(result) == 0 return; end;
+	if length(result) == 0 return; end
 	
     % reading first param
     % -------------------
@@ -125,9 +141,9 @@ if nargin < 3
 		tmpbut = questdlg2(...
                   ['This involves drawing ' int2str(length(arg2)) ' plots. Continue ?'], ...
                          '', 'Cancel', 'Yes', 'Yes');
-		if strcmp(tmpbut, 'Cancel'), return; end;
-	end;
-    if isempty(arg2), error('Nothing to plot; enter parameter in first edit box'); end;
+		if strcmp(tmpbut, 'Cancel'), return; end
+	end
+    if isempty(arg2), error('Nothing to plot; enter parameter in first edit box'); end
     
     % reading other params
     % --------------------
@@ -136,51 +152,69 @@ if nargin < 3
     if typeplot
         plotdip = 0;
         try, options      = eval( [ '{ ' result{4} ' }' ]);
-        catch, error('Invalid scalp map options'); end;
+        catch, error('Invalid scalp map options'); end
     else
         plotdip     = result{4};
         try, options      = eval( [ '{ ' result{5} ' }' ]);
-        catch, error('Invalid scalp map options'); end;
+        catch, error('Invalid scalp map options'); end
     end;        
     if length(arg2) == 1, 
       figure('paperpositionmode', 'auto'); curfig=gcf; 
       try, icadefs; 
          set(curfig, 'color', BACKCOLOR); 
       catch, end; 
-    end;
+    end
 else
-    if ~isempty(varargin) & isnumeric(varargin{1})
+    if ~isempty(varargin) && isnumeric(varargin{1})
         plotdip = varargin{1};
         varargin = varargin(2:end);
     else
         plotdip = 0;
-    end;
+    end
     options = varargin;
-end;
+end
 
 % additional options
 % ------------------
 outoptions = { options{:} }; % for command
 options    = { options{:} 'masksurf' 'on' };
 
+% plot grid plots instead of head plots
+%-------------------------------------
+isaninteger = @(x) mod(x, 1) == 0;
+if isfield(EEG, 'chanmatrix')
+    if isempty(EEG.chanmatrix)
+        if exist('curfig','var') && ishandle(curfig), close(curfig); end
+        disp('Error: EEG.chanmatrix is empty. See >> help topoplot');return;
+    end
+    if ~all(isaninteger(EEG.chanmatrix(:)))
+        if exist('curfig','var') && ishandle(curfig), close(curfig); end
+        disp('Error: EEG.chanmatrix must contain channel indices. See >> help topoplot');return;
+    end
+    options = { options{:} 'gridplot' EEG.chanmatrix};
+elseif isempty(EEG.chanlocs)
+    if exist('curfig','var') && ishandle(curfig), close(curfig); end
+    disp('Error: cannot plot topography without channel location file'); return;
+end
+
 % find maplimits
 % --------------
 maplimits = [];
 for i=1:2:length(options)
-    if isstr(options{i})
+    if ischar(options{i})
         if strcmpi(options{i}, 'maplimits')
             maplimits = options{i+1};
             options(i:i+1) = [];
             break;
-        end;
-    end;
-end;
+        end
+    end
+end
 
 nbgraph = size(arg2(:),1);
 if ~exist('topotitle')
     topotitle = '';
 end;    
-if ~exist('rowcols') | isempty(rowcols) | rowcols == 0
+if ~exist('rowcols') || isempty(rowcols) || rowcols(1) == 0
     rowcols(2) = ceil(sqrt(nbgraph));
     rowcols(1) = ceil(nbgraph/rowcols(2));
 end;    
@@ -188,10 +222,6 @@ end;
 SIZEBOX = 150;
 
 fprintf('Plotting...\n');
-if isempty(EEG.chanlocs)
-	fprintf('Error: set has no channel location file\n');
-	return;
-end;
 
 % Check if pop_topoplot input 'colorbar' was called, and don't send it to topoplot
 loc = strmatch('colorbar', options(1:2:end), 'exact');
@@ -216,18 +246,18 @@ if typeplot
         maxlim = max(SIGTMPAVG(:));
         minlim = min(SIGTMPAVG(:));
         maplimits = [ -max(maxlim, -minlim) max(maxlim, -minlim)];
-    end;
+    end
 else
     if isempty(maplimits)
         maplimits = 'absmax';
-    end;
-end;
+    end
+end
 
 if plotdip
     if strcmpi(EEG.dipfit.coordformat, 'CTF')
         disp('Cannot plot dipole on scalp map for CTF MEG data');
-    end;
-end;
+    end
+end
 
 % plot the graphs
 % ---------------
@@ -240,44 +270,39 @@ if isfield(EEG, 'chaninfo'), options = { options{:} 'chaninfo' EEG.chaninfo }; e
 for index = 1:size(arg2(:),1)
 	if nbgraph > 1
         if mod(index, rowcols(1)*rowcols(2)) == 1
-            if index> 1
-                figure(curfig); 
-                a = textsc(0.5, 0.05, topotitle); 
-                set(a, 'fontweight', 'bold'); 
-            end;
+            if index> 1, figure(curfig); a = textsc(0.5, 0.05, topotitle); set(a, 'fontweight', 'bold'); end
         	curfig = figure('paperpositionmode', 'auto');
 			pos = get(curfig,'Position');
 			posx = max(0, pos(1)+(pos(3)-SIZEBOX*rowcols(2))/2);
 			posy = pos(2)+pos(4)-SIZEBOX*rowcols(1);
 			set(curfig,'Position', [posx posy  SIZEBOX*rowcols(2)  SIZEBOX*rowcols(1)]);
-			try, icadefs; set(curfig, 'color', BACKCOLOR); catch, end;
-            pause(0.5); % Hack to prevent race condition in 2015a
+			try, icadefs; set(curfig, 'color', BACKCOLOR); catch, end
         end;    
-		curax = subplot( rowcols(1), rowcols(2), mod(index-1, rowcols(1)*rowcols(2))+1);
+		curax = subplot( rowcols(1), rowcols(2), mod(index-1, rowcols(1)*rowcols(2))+1,'Parent',curfig);
         set(curax, 'visible', 'off')
-    end;
+    end
 
 	% add dipole location if present
     % ------------------------------
     dipoleplotted = 0;
     if plotdip && typeplot == 0
-        if isfield(EEG, 'dipfit') & isfield(EEG.dipfit, 'model')
-            if length(EEG.dipfit.model) >= index & ~strcmpi(EEG.dipfit.coordformat, 'CTF')
+        if isfield(EEG, 'dipfit') && isfield(EEG.dipfit, 'model')
+            if length(EEG.dipfit.model) >= index && ~strcmpi(EEG.dipfit.coordformat, 'CTF')
                 %curpos = EEG.dipfit.model(arg2(index)).posxyz/EEG.dipfit.vol.r(end);
                 curpos = EEG.dipfit.model(arg2(index)).posxyz;
                 curmom = EEG.dipfit.model(arg2(index)).momxyz;
                 try,
                     select = EEG.dipfit.model(arg2(index)).select;
                 catch select = 0;
-                end;
+                end
                 if ~isempty(curpos)
                     if strcmpi(EEG.dipfit.coordformat, 'MNI') % from MNI to sperical coordinates
                         transform = pinv( sph2spm );
                         tmpres = transform * [ curpos(1,:) 1 ]'; curpos(1,:) = tmpres(1:3);
                         tmpres = transform * [ curmom(1,:) 1 ]'; curmom(1,:) = tmpres(1:3);
-                        try, tmpres = transform * [ curpos(2,:) 1 ]'; curpos(2,:) = tmpres(1:3); catch, end;
-                        try, tmpres = transform * [ curmom(2,:) 1 ]'; curmom(2,:) = tmpres(1:3); catch, end;
-                    end;
+                        try, tmpres = transform * [ curpos(2,:) 1 ]'; curpos(2,:) = tmpres(1:3); catch, end
+                        try, tmpres = transform * [ curmom(2,:) 1 ]'; curmom(2,:) = tmpres(1:3); catch, end
+                    end
                     curpos = curpos / 85;
                     if size(curpos,1) > 1 && length(select) == 2
                         dipole_index = find(strcmpi('dipole',options),1);
@@ -318,77 +343,79 @@ for index = 1:size(arg2(:),1)
         addopt = { 'verbose', 'on' };
     else 
         addopt = { 'verbose', 'off' };
-    end;
+    end
     %fprintf('Printing to figure %d.\n',curfig);
     options = {  'maplimits' maplimits options{:} addopt{:} };
     if ~isnan(arg2(index))
 		if typeplot
-            if nbgraph > 1, axes(curax); end;
+            if nbgraph > 1, axes(curax); end
             tmpobj = topoplot( SIGTMPAVG(:,index), EEG.chanlocs, options{:});
 			if nbgraph == 1, 
-                 figure(curfig); if nbgraph > 1, axes(curax); end;
+                 figure(curfig); if nbgraph > 1, axes(curax); end
                  title( [ 'Latency ' int2str(arg2(index)) ' ms from ' topotitle]);
 			else 
                  figure(curfig); if nbgraph > 1, axes(curax); end; 
                  title([int2str(arg2(index)) ' ms'] );
-			end;
+			end
 		else
             if arg2(index) < 0
-                 figure(curfig);  if nbgraph > 1, axes(curax); end;
+                 figure(curfig);  if nbgraph > 1, axes(curax); end
                  tmpobj = topoplot( -EEG.icawinv(:, -arg2(index)), EEG.chanlocs, options{:} );
             else
-                 figure(curfig);  if nbgraph > 1, axes(curax); end;
+                 figure(curfig);  if nbgraph > 1, axes(curax); end
                  tmpobj = topoplot( EEG.icawinv(:, arg2(index)), EEG.chanlocs, options{:} );
             end;    			
-			if nbgraph == 1, texttitle = [ 'IC ' int2str(arg2(index)) ' from ' topotitle];
-			else             texttitle = ['' int2str(arg2(index))];
-			end;
-            if dipoleplotted, texttitle = [ texttitle ' (' num2str(EEG.dipfit.model(arg2(index)).rv*100,2) '%)']; end;
-            figure(curfig);  if nbgraph > 1, axes(curax); end; title(texttitle);
-		end;
+			if nbgraph == 1, texttitle = ['IC ' int2str(arg2(index)) ' from ' topotitle];
+			else             texttitle = ['IC ' int2str(arg2(index))];
+			end
+            if dipoleplotted, texttitle = [ texttitle ' (' num2str(EEG.dipfit.model(arg2(index)).rv*100,2) '%)']; end
+            figure(curfig);  if nbgraph > 1, axes(curax); end; htmp = title(texttitle);
+            try, icadefs; set(htmp,'FontSize',AXES_FONTSIZE_L); catch, end; clear htmp;
+		end
         allobj(countobj:countobj+length(tmpobj)-1) = tmpobj;
         countobj = countobj+length(tmpobj);
 		drawnow;
 		axis square;
     else
     axis off
-    end;
+    end
 end
 
 % Draw colorbar
 if colorbar_switch
     if nbgraph == 1
-        if ~isstr(maplimits)
+        if ~ischar(maplimits)
             ColorbarHandle = cbar(0,0,[maplimits(1) maplimits(2)]);
         else
             ColorbarHandle = cbar(0,0,get(gca, 'clim'));
-        end;
+        end
         pos = get(ColorbarHandle,'position');  % move left & shrink to match head size
         set(ColorbarHandle,'position',[pos(1)-.05 pos(2)+0.13 pos(3)*0.7 pos(4)-0.26]);
-    elseif ~isstr(maplimits)
+    elseif ~ischar(maplimits)
          cbar('vert',0,[maplimits(1) maplimits(2)]);
     else cbar('vert',0,get(gca, 'clim'));
     end
     if ~typeplot    % Draw '+' and '-' instead of numbers for colorbar tick labels
         tmp = get(gca, 'ytick');
-        set(gca, 'ytickmode', 'manual', 'yticklabelmode', 'manual', 'ytick', [tmp(1) tmp(end)], 'yticklabel', { '-' '+' });
+        set(gca, 'ytickmode', 'manual', 'yticklabelmode', 'manual', 'ytick', [tmp(1) 0 tmp(end)], 'yticklabel', { '-' '0' '+' });
+        try, icadefs; set(gca,'FontSize',AXES_FONTSIZE_L+2); catch, end
     end
 end
 
 if nbgraph> 1, 
    figure(curfig); a = textsc(0.5, 0.05, topotitle); 
    set(a, 'fontweight', 'bold'); 
-end;
+end
 if nbgraph== 1, 
    com = 'figure;'; 
-end;
+end
 set(allobj(1:countobj-1), 'visible', 'on');
 
 figure(curfig);
 axcopy(curfig, 'set(gcf, ''''units'''', ''''pixels''''); postmp = get(gcf, ''''position''''); set(gcf, ''''position'''', [postmp(1) postmp(2) 560 420]); clear postmp;');
 
-com = [com sprintf('pop_topoplot(%s,%d, %s);', ...
-                   inputname(1), typeplot, vararg2str({arg2 topotitle rowcols plotdip outoptions{:} }))];
+com = [com sprintf('pop_topoplot(EEG, %d, %s);', ...
+                   typeplot, vararg2str({arg2 topotitle rowcols plotdip outoptions{:} }))];
 return;
 
 		

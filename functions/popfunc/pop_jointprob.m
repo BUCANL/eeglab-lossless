@@ -65,19 +65,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 01-25-02 reformated help & license -ad 
 % 03-07-02 added srate argument to eegplot call -ad
@@ -102,11 +113,11 @@ if icacomp == 0
         	case 'NO', disp('Operation cancelled'); return;   
         	case 'YES', [ EEG com ] = pop_runica(EEG);
     	end % switch
-	end;
+	end
 end;	
 if exist('reject') ~= 1
     reject = 1;
-end;
+end
 
 if nargin < 3
     
@@ -145,28 +156,28 @@ if nargin < 3
     result = inputgui( geometry,uilist,'pophelp(''pop_jointprob'');', figname);
     
     size_result  = size( result );
-    if size_result(1) == 0, locthresh = []; globthresh = []; return; end;
+    if size_result(1) == 0, locthresh = []; globthresh = []; return; end
     elecrange    = result{1};
     locthresh    = result{2};
     globthresh   = result{3};
-    switch result{4}, case 1, vistype=0; otherwise, vistype=1; end;
+    switch result{4}, case 1, vistype=0; otherwise, vistype=1; end
     superpose    = result{5};
     reject       = result{6};
     
-end;
+end
 
-if ~exist('vistype'  ,'var'), vistype   = 0; end;
-if ~exist('reject'   ,'var'), reject    = 0; end;
-if ~exist('superpose','var'), superpose = 1; end;
+if ~exist('vistype'  ,'var'), vistype   = 0; end
+if ~exist('reject'   ,'var'), reject    = 0; end
+if ~exist('superpose','var'), superpose = 1; end
 
-if isstr(elecrange) % convert arguments if they are in text format 
+if ischar(elecrange) % convert arguments if they are in text format 
     calldisp = 1;
 	elecrange  = eval( [ '[' elecrange ']'  ]  );
 	locthresh  = eval( [ '[' locthresh ']'  ]  );
 	globthresh = eval( [ '[' globthresh ']' ]  );
 else
     calldisp = 0;
-end;
+end
 
 if exist('plotflag','var') && ismember(plotflag,[1,0])
     calldisp = plotflag;
@@ -185,7 +196,7 @@ if icacomp == 1
     tmpdata = eeg_getdatact(EEG);
     if isempty(EEG.stats.jpE)
 		[ EEG.stats.jpE rejE ] = jointprob( tmpdata, locthresh, EEG.stats.jpE, 1); 
-	end;
+	end
 	[ tmp rejEtmp ] = jointprob( tmpdata(elecrange,:,:), locthresh, EEG.stats.jpE(elecrange,:), 1); 
     rejE    = zeros(EEG.nbchan, size(rejEtmp,2));
 	rejE(elecrange,:) = rejEtmp;
@@ -200,7 +211,7 @@ else
 	fprintf('Computing joint probability for components...\n');
     if isempty(EEG.stats.icajpE)
 		[ EEG.stats.icajpE rejE ] = jointprob( tmpdata, locthresh, EEG.stats.icajpE, 1); 
-	end;
+	end
 	[ tmp rejEtmp ] = jointprob( tmpdata(elecrange,:), locthresh, EEG.stats.icajpE(elecrange,:), 1); 
     rejE    = zeros(size(tmpdata,1), size(rejEtmp,2));
 	rejE(elecrange,:) = rejEtmp;
@@ -210,7 +221,7 @@ else
 	tmpdata2 = reshape(tmpdata2, size(tmpdata2,1), size(tmpdata2,2)*size(tmpdata2,3));
 	[ EEG.stats.icajp  rej] = jointprob( tmpdata2, globthresh, EEG.stats.icajp, 1); 
 	clear tmpdata2;
-end;
+end
 rej = rej' | max(rejE, [], 1);
 fprintf('%d/%d trials marked for rejection\n', sum(rej), EEG.trials);
 
@@ -220,7 +231,7 @@ if calldisp
 	        			macrorejE = 'EEG.reject.rejjpE';
 	    else			macrorej  = 'EEG.reject.icarejjp';
 	        			macrorejE = 'EEG.reject.icarejjpE';
-	    end;
+	    end
 		colrej = EEG.reject.rejjpcol;
 		eeg_rejmacro; % script macro for generating command and old rejection arrays
 
@@ -249,7 +260,7 @@ else
 	rej = rejtmp | rej;
 	nrej =  sum(rej);
 	fprintf('%d trials marked for rejection\n', nrej);
-end;
+end
 if ~isempty(rej)
 	if icacomp	== 1
 		EEG.reject.rejjp = rej;
@@ -257,17 +268,17 @@ if ~isempty(rej)
 	else
 		EEG.reject.icarejjp = rej;
 		EEG.reject.icarejjpE = rejE;
-	end;
+	end
     if reject
         EEG = pop_rejepoch(EEG, rej, 0);
-    end;
-end;
+    end
+end
 nrej = sum(rej);
 
-com = [ com sprintf('%s = pop_jointprob(%s,%s);', inputname(1), ...
-		inputname(1), vararg2str({icacomp,elecrange,locthresh,globthresh,superpose,reject, vistype, [],plotflag})) ]; 
-if nargin < 3 & nargout == 2
+com = [ com sprintf('EEG = pop_jointprob(EEG,%s);', ...
+		vararg2str({icacomp,elecrange,locthresh,globthresh,superpose,reject, vistype, [],plotflag})) ]; 
+if nargin < 3 && nargout == 2
 	locthresh = com;
-end;
+end
 
 return;

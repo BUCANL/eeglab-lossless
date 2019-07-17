@@ -43,26 +43,37 @@
 
 % Copyright (C) 2008 Arnaud Delorme, CERCO, UPS/CNRS
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [EEG allrmchan specdata specfreqs com] = pop_rejchanspec(EEG, varargin)
 
 if nargin < 1
     help pop_rejchanspec;
     return;
-end;
+end
 allrmchan = [];
 specdata  = [];
 specfreqs = [];
@@ -88,27 +99,27 @@ if nargin < 2
     geom = { [2 1] [2 1] [2 1] [2 1] [2 0.3 0.7] [2 0.3 0.7] [2 0.3 0.7] };
     result = inputgui( 'uilist', uilist, 'geometry', geom, 'title', 'Reject channel using spectrum -- pop_rejchanspec()', ...
         'helpcom', 'pophelp(''pop_rejchan'')');
-    if isempty(result), return; end;
+    if isempty(result), return; end
     
     options = { 'elec' eval( [ '[' result{1} ']' ] ) 'stdthresh' str2num(result{3}) 'freqlims' str2num(result{2}) };
     if ~isempty(result{4})
         options = { options{:} 'absthresh' str2num(result{4}) };
-    end;
+    end
     if result{5}, 
          options = { options{:} 'averef', 'on' }; 
-    end;
+    end
     if result{6}, 
          options = { options{:} 'plothist', 'on' }; 
-    end;
+    end
     % Begin: Added by Romain on 22 July 2010
     if result{7}, 
          options = { options{:} 'plotchans', 'on' }; 
-    end;
+    end
     % End: Added by Romain on 22 July 2010
     
 else
     options = varargin;
-end;
+end
 
 % decode options
 % --------------
@@ -122,13 +133,13 @@ opt = finputcheck( options, { 'averef'    'string'    { 'on';'off' }       'off'
                               'specfreqs' 'real'   []                      [];
                               'absthresh' 'real'   []                      [];
                               'stdthresh' 'real'   []                      5 }, 'pop_rejchanspec');
-if isstr(opt), error(opt); end;
+if ischar(opt), error(opt); end
 
 % compute average referecne if necessary
 if strcmpi(opt.averef, 'on')
      NEWEEG = pop_reref(EEG, [], 'exclude', setdiff([1:EEG.nbchan], opt.elec));
 else NEWEEG = EEG;
-end;
+end
 if isempty(opt.specdata)
     [tmpspecdata specfreqs] = pop_spectopo(NEWEEG, 1, [], 'EEG' , 'percent', 100, 'freqrange',[0 EEG.srate/2], 'plot', 'off');
     % add back 0 channels
@@ -139,15 +150,15 @@ if isempty(opt.specdata)
         specdata(goodchan,:) = tmpspecdata;
     else
         specdata = tmpspecdata;
-    end;
+    end
 else
     specdata  = opt.specdata;
     specfreqs = opt.specfreqs;
-end;
+end
 
 if size(opt.stdthresh,1) == 1 && size(opt.freqlims,1) > 1
     opt.stdthresh = ones(length(opt.stdthresh), size(opt.freqlims,1))*opt.stdthresh;  
-end;
+end
 
 allrmchan = [];
 for index = 1:size(opt.freqlims,1)
@@ -167,23 +178,23 @@ for index = 1:size(opt.freqlims,1)
         else 
             rmchan = find(selectedspec > m+s*opt.stdthresh(index));
         end
-    end;
+    end
     
     % print out results
     % -----------------
     if isempty(rmchan)
          textout = sprintf('Range %2.1f-%2.1f Hz: no channel removed\n',  opt.freqlims(index,1), opt.freqlims(index,2));
     else textout = sprintf('Range %2.1f-%2.1f Hz: channels %s removed\n', opt.freqlims(index,1), opt.freqlims(index,2), int2str(opt.elec(rmchan')));
-    end;
+    end
     fprintf(textout);
     if strcmpi(opt.verbose, 'on')
         for inde = 1:length(opt.elec)
             if ismember(inde, rmchan)
                  fprintf('Elec %s power: %1.2f *\n', EEG.chanlocs(opt.elec(inde)).labels, selectedspec(inde));
             else fprintf('Elec %s power: %1.2f\n', EEG.chanlocs(opt.elec(inde)).labels  , selectedspec(inde));
-            end;
-        end;
-    end;
+            end
+        end
+    end
     allrmchan = [ allrmchan rmchan' ];    
     
     % plot histogram
@@ -205,11 +216,11 @@ for index = 1:size(opt.freqlims,1)
                 threshold =  m+s*opt.stdthresh(index,1);
                 plot([threshold threshold], yl, 'r');
             end
-        end;
+        end
         title(textout);
-    end;
+    end
     
-end;
+end
 allrmchan = unique_bc(allrmchan);
 
 com = sprintf('EEG = pop_rejchan(EEG, %s);', vararg2str(options));
@@ -230,13 +241,13 @@ if strcmpi(opt.plotchans, 'on')
     tmpchanlocs = EEG.chanlocs;
     if ~isempty(EEG.chanlocs), tmplocs = EEG.chanlocs(opt.elec); tmpelec = { tmpchanlocs(opt.elec).labels }';
     else                       tmplocs = []; tmpelec = mattocell([1:EEG.nbchan]');
-    end;
+    end
     eegplot(EEG.data(opt.elec,:,:), 'srate', EEG.srate, 'title', 'Scroll component activities -- eegplot()', ...
         'limits', [EEG.xmin EEG.xmax]*1000, 'color', colors, 'eloc_file', tmplocs, 'command', tmpcom);
 else
     EEG = pop_select(EEG, 'nochannel', opt.elec(allrmchan));
-end;
+end
 
 if nargin < 2
     allrmchan = sprintf('EEG = pop_rejchanspec(EEG, %s);', vararg2str(options));
-end;
+end

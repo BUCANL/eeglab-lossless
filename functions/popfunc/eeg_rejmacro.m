@@ -7,19 +7,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 01-25-02 reformated help & license -ad 
 % 03-08-02 include past rejections in eegplot -ad
@@ -41,7 +52,7 @@ if ~exist('elecrange')
 	error('Error: eeg_rejmacro cannot be called from the command line');
 end;	
 
-if ~exist('nbpnts') nbpnts = EEG.pnts; end;
+if ~exist('nbpnts') nbpnts = EEG.pnts; end
 
 % mix all type of rejections
 % --------------------------
@@ -82,7 +93,7 @@ else
              '  if ~isempty(tmprej) eval([ ''if ~isempty('' tmpstr ''),'' tmpstr ''='' tmpstr ''| tmprej; else, '' tmpstr ''=tmprej; end;'' ]); end;' ...
              '  if ~isempty(tmprejE2) eval([ ''if ~isempty('' tmpstr ''E),'' tmpstr ''E='' tmpstr ''E| tmprejE2; else, '' tmpstr ''E=tmprejE2; end;'' ]); end;' ];
 %             '  size(tmprejE2), eval([''disp(size('' tmpstr ''E))'']),' ...
-end;
+end
 % text commented below to fix BUG 478
 %             '  [tmprej tmprejE] = eegplot2trial(TMPREJ,' int2str(nbpnts) ', EEG.trials, [' num2str(EEG.reject.rejmanualcol) '], []);' ...
 %             '  if ~isempty(tmprejE),' ...
@@ -110,7 +121,7 @@ else
 end; 
 if ~exist('topcommand')
 	topcommand = [];
-end;
+end
 
 % the first part is used to convert the eegplot output
 command = [  com2 topcommand 'clear indextmp colortmp icaprefix tmpcom tmprej tmprejE tmprejE2 TMPREJ;' ];
@@ -121,15 +132,15 @@ if all(colrej == EEG.reject.rejmanualcol)
 else
 	oldrej  = eval(macrorej);
 	oldrejE = eval(macrorejE);
-end;
+end
 
 switch superpose
  case 0, rejeegplot = trial2eegplot(  rej, rejE, nbpnts, colrej);
  case 1, rejeegplottmp = trial2eegplot(  oldrej, oldrejE, nbpnts, min(colrej+0.15, [1 1 1]));
          if ~isempty(rejeegplottmp), rejeegplot = [ rejeegplottmp ]; 
-		 else rejeegplot = []; end;
+		 else rejeegplot = []; end
          rejeegplottmp = trial2eegplot(  rej, rejE, nbpnts, colrej);
-         if ~isempty(rejeegplottmp), rejeegplot = [ rejeegplot; rejeegplottmp ]; end;
+         if ~isempty(rejeegplottmp), rejeegplot = [ rejeegplot; rejeegplottmp ]; end
  case 2, 
   rejeegplot = [];
   for index = 1:length(EEG.reject.disprej)
@@ -140,44 +151,44 @@ switch superpose
 				  currentname = [ 'EEG.reject.icarej' EEG.reject.disprej{index} ];
 			  else
 				  currentname = [ 'EEG.reject.rej' EEG.reject.disprej{index} ];
-			  end;
+			  end
 			  currentcolor =  [ 'EEG.reject.rej' EEG.reject.disprej{index} 'col' ];
 			  %if strcmp(EEG.reject.disprej{index}, 'manual')
 			  %	  currentcolor = [ 'min(' currentcolor '+0.15, [1 1 1])' ];
 			  %end; % using this test, manual rejections won't be added to current rej
 			  eval( [ 'rejeegplottmp = trial2eegplot( ' currentname ',' currentname ...
 					  'E, nbpnts,' currentcolor ');' ]);
-			  if ~isempty(rejeegplottmp), rejeegplot = [ rejeegplot; rejeegplottmp ]; end;
-		  end;
-	  end;
-  end;
+			  if ~isempty(rejeegplottmp), rejeegplot = [ rejeegplot; rejeegplottmp ]; end
+		  end
+	  end
+  end
   rejeegplottmp = trial2eegplot(  rej, rejE, nbpnts, colrej);
-  if ~isempty(rejeegplottmp), rejeegplot = [ rejeegplot; rejeegplottmp ]; end;
-end;
+  if ~isempty(rejeegplottmp), rejeegplot = [ rejeegplot; rejeegplottmp ]; end
+end
 if ~isempty(rejeegplot)
 	rejeegplot = rejeegplot(:,[1:5,elecrange+5]);
 else
 	rejeegplot = [];
-end;
+end
 eegplotoptions = { 'events', EEG.event, 'winlength', 5, 'winrej', ...
 				   rejeegplot, 'xgrid', 'off', 'wincolor', EEG.reject.rejmanualcol, ...
 				   'colmodif', { { EEG.reject.rejmanualcol EEG.reject.rejthreshcol EEG.reject.rejconstcol ...
                                    EEG.reject.rejjpcol     EEG.reject.rejkurtcol   EEG.reject.rejfreqcol } } };
 
-if ~isempty(EEG.chanlocs) & icacomp == 1
+if ~isempty(EEG.chanlocs) && icacomp == 1
     if exist('elecrange')
         eegplotoptions = { eegplotoptions{:}  'eloc_file', EEG.chanlocs(elecrange) };
     else
         eegplotoptions = { eegplotoptions{:}  'eloc_file', EEG.chanlocs };
-    end;
+    end
 else 
     if exist('elecrange')
         for index = 1:length(elecrange)
             tmpstruct(index).labels = int2str(elecrange(index));
-        end;
+        end
         eegplotoptions = { eegplotoptions{:}  'eloc_file' tmpstruct };
-    end;
-end;
+    end
+end
 if ~reject
 	eegplotoptions = { eegplotoptions{:}  'butlabel', 'UPDATE MARKS' };
-end;
+end

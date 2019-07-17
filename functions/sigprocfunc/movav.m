@@ -32,19 +32,30 @@
 
 % Copyright (C) 10-25-97 Scott Makeig, SCCN/INC/UCSD, scott@sccn.ucsd.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 3-20-98 fixed bug in multi-channel windowed averaging -sm
 % 6-10-98 changed mean() and sum() to nanmean() and nansum() -sm
@@ -66,7 +77,7 @@ if nargin<1
 else
   [chans,frames]=size(data);
 end
-if chans>1 & frames == 1,
+if chans>1 && frames == 1,
   data   = data';   % make row vector
   tmp    = chans;
   chans  = frames;
@@ -78,11 +89,11 @@ if frames < 4
 end
 
 flag_fastave = 0;
-if nargin<2 | isempty(xvals) | (numel(xvals)==1 & xvals == 0)
+if nargin<2 || isempty(xvals) || (numel(xvals)==1 && xvals == 0)
   xvals = 1:frames; % flag default xvals
   flag_fastave = 0; % TURNED OFF THIS FEATURE - LEADS TO ?? BUG AT ABOUT 287
 end                 % -sm 3/6/07
-if size(xvals,1)>1 & size(xvals,2)>1
+if size(xvals,1)>1 && size(xvals,2)>1
   error('xvals must be a vector');
 end
 xvals = xvals(:)'; % make xvals a row vector
@@ -91,18 +102,18 @@ if frames ~= length(xvals)
     error('lengths of xvals and data not equal');
 end
 
-if nargin < 8 | isempty(nonorm)
+if nargin < 8 || isempty(nonorm)
   nonorm = 0;  % default -> return moving mean
 end
 if abs(nonorm) > NEARZERO
    nonorm = 1;
 end
 
-if nargin < 7 | isempty(xwin)
+if nargin < 7 || isempty(xwin)
   xwin = 0;
 end
 
-if nargin < 6 | isempty(lastx)
+if nargin < 6 || isempty(lastx)
   lastx = [];
 end
 if isempty(lastx),
@@ -113,7 +124,7 @@ if isempty(lastx),
   end
 end
 
-if nargin<5 | isempty(firstx)
+if nargin<5 || isempty(firstx)
   firstx = [];
 end
 if isempty(firstx),
@@ -124,22 +135,22 @@ if isempty(firstx),
   end
 end
 
-if nargin<4 | isempty(xadv)
+if nargin<4 || isempty(xadv)
   xadv = 0;
 end
-if isempty(xadv) | xadv == 0,
+if isempty(xadv) || xadv == 0,
   xadv = DEFAULT_XADV;
 end
 
-if nargin<3 | isempty(xwidth) | xwidth==0
+if nargin<3 || isempty(xwidth) || xwidth==0
   xwidth = (lastx-firstx)/4;  % DEFAULT XWIDTH
 end
 
 wlen = 1;  % default;
 if flag_fastave==0
-  if length(xwin)==1 & (xwin~=0) & (xwin~=1),  % should be a vector or 0
+  if length(xwin)==1 && (xwin~=0) && (xwin~=1),  % should be a vector or 0
     error('xwin not vector or 0');
-  elseif size(xwin,1)>1 & size(xwin,2)>1 % not a matrix
+  elseif size(xwin,1)>1 && size(xwin,2)>1 % not a matrix
     error('xwin cannot be a matrix'); 
   end
   if size(xwin,1)>1
@@ -201,7 +212,7 @@ for f=1:outframes
           outdata(:,f) = nan_mean(data(:,i)')'; % Else average
           nix = length(i);
       end
-      if nonorm & nix % undo division by number of elements summed
+      if nonorm && nix % undo division by number of elements summed
           outdata(:,f) = outdata(:,f)*nix;
       end
 %
@@ -218,7 +229,7 @@ for f=1:outframes
 
        % AG fix 3/6/7
        outdata(:,f) = nan_sum((((ones(chans,1)*xwin(ix)).*data(:,i)))')';
-       if abs(sumx) > NEARZERO & nonorm == 0 
+       if abs(sumx) > NEARZERO && nonorm == 0 
           outdata(:,f) = outdata(:,f)/sumx;
        end
    end

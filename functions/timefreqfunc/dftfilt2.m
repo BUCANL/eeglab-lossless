@@ -30,41 +30,52 @@
 
 % Copyright (C) 3/28/2003 Arnaud Delorme 8, SCCN/INC/UCSD, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function wavelet = dftfilt2( freqs, cycles, srate, cycleinc, type);
 
     if nargin < 3
         error('3 arguments required');
-    end;
+    end
     if nargin < 5
         type = 'morlet';
-    end;
+    end
 
     % compute number of cycles at each frequency
     % ------------------------------------------
     if length(cycles) == 1
         cycles = cycles*ones(size(freqs));
     elseif length(cycles) == 2
-        if nargin == 4 & strcmpi(cycleinc, 'log') % cycleinc
+        if nargin == 4 && strcmpi(cycleinc, 'log') % cycleinc
             cycles = linspace(log(cycles(1)), log(cycles(2)), length(freqs));
             cycles = exp(cycles);
         else
             cycles = linspace(cycles(1), cycles(2), length(freqs));
-        end;
-    end;
+        end
+    end
     
     % compute wavelet
     for index = 1:length(freqs)
@@ -90,7 +101,7 @@ function wavelet = dftfilt2( freqs, cycles, srate, cycleinc, type);
             wavelet{index} = exp(j*t*p)/sqrt(2*pi) .* ...
                 (exp(-t.^2/(2*s^2))-sqrt(2)*exp(-t.^2/(s^2)-p^2*s^2/4));
         end;    
-    end;
+    end
     
     
     return;
@@ -127,13 +138,13 @@ function wavelet = dftfilt2( freqs, cycles, srate, cycleinc, type);
     winsize = 0;
     for index = 1:length(win)
         winsize = max(winsize,length(win{index}));
-    end;
+    end
     allwav = zeros(winsize, length(win));
     for index = 1:length(win)
         wav1 = win{index};
         abs1 = linspace(-(length(wav1)-1)/2,(length(wav1)-1)/2, length(wav1));
         allwav(abs1+(winsize+1)/2,index) = wav1(:);
-    end;
+    end
     figure; imagesc(imag(allwav));
 
 

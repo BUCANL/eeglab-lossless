@@ -62,19 +62,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 01-25-02 reformated help & license -ad 
 % 03-07-02 added srate argument to eegplot call -ad
@@ -102,7 +113,7 @@ if icacomp == 0
         	case 'NO', disp('Operation cancelled'); return;   
         	case 'YES', [ EEG com ] = pop_runica(EEG);
     	end % switch
-	end;
+	end
 end;	
 
 if nargin < 3
@@ -148,7 +159,7 @@ if nargin < 3
     result = inputgui( geometry,uilist,'pophelp(''pop_rejspec'');', 'Reject by data spectra -- pop_rejspec()');
  
     size_result  = size( result );
-    if size_result(1) == 0 return; end;
+    if size_result(1) == 0 return; end
     options = {};
     options = { options{:} 'elecrange' eval( [ '[' result{1} ']' ]  ) };
     options = { options{:} 'method'   lower(methodlist{result{2}})};
@@ -159,28 +170,28 @@ if nargin < 3
     freqLimitsHigh  = eval( [ '[' result{6} ']' ]  );
     options = { options{:} 'freqlimits' [freqLimitsLow(:) freqLimitsHigh(:) ] };
     
-    if result{7}, superpose=1; else superpose=0; end;
-    if result{8}, reject=1;    else reject=0; end;
+    if result{7}, superpose=1; else superpose=0; end
+    if result{8}, reject=1;    else reject=0; end
     options = { options{:} 'eegplotplotallrej' superpose };
     options = { options{:} 'eegplotreject'     reject };
 else
     if isnumeric(varargin{3}) || ~isempty(str2num(varargin{3}))
         options = {};
-        if isstr(varargin{1}), varargin{1} = str2num(varargin{1}); end;
-        if isstr(varargin{2}), varargin{2} = str2num(varargin{2}); end;
-        if isstr(varargin{3}), varargin{3} = str2num(varargin{3}); end;
-        if isstr(varargin{4}), varargin{4} = str2num(varargin{4}); end;
-        if isstr(varargin{5}), varargin{5} = str2num(varargin{5}); end;
-        if nargin > 2, options = { options{:} 'elecrange'   varargin{1} }; end;
-        if nargin > 3, options = { options{:} 'threshold'   [ varargin{2}; varargin{3}]' }; end;
-        if nargin > 5, options = { options{:} 'freqlimits'  [ varargin{4}; varargin{5}]' }; end;
-        if nargin > 7, options = { options{:} 'eegplotplotallrej' varargin{6}  }; end;
-        if nargin > 8, options = { options{:} 'eegplotreject'     varargin{7}  }; end;
-        if nargin > 9, options = { options{:} 'eegplotcom'        varargin{8}  }; end;
+        if ischar(varargin{1}), varargin{1} = str2num(varargin{1}); end
+        if ischar(varargin{2}), varargin{2} = str2num(varargin{2}); end
+        if ischar(varargin{3}), varargin{3} = str2num(varargin{3}); end
+        if ischar(varargin{4}), varargin{4} = str2num(varargin{4}); end
+        if ischar(varargin{5}), varargin{5} = str2num(varargin{5}); end
+        if nargin > 2, options = { options{:} 'elecrange'   varargin{1} }; end
+        if nargin > 3, options = { options{:} 'threshold'   [ varargin{2}; varargin{3}]' }; end
+        if nargin > 5, options = { options{:} 'freqlimits'  [ varargin{4}; varargin{5}]' }; end
+        if nargin > 7, options = { options{:} 'eegplotplotallrej' varargin{6}  }; end
+        if nargin > 8, options = { options{:} 'eegplotreject'     varargin{7}  }; end
+        if nargin > 9, options = { options{:} 'eegplotcom'        varargin{8}  }; end
     else
         options = varargin;
-    end;
-end;
+    end
+end
 
 opt = finputcheck( options, { 'elecrange'     'integer'  []    [1:EEG.nbchan];
                               'threshold'     'real'     []    [-30 30];
@@ -190,7 +201,7 @@ opt = finputcheck( options, { 'elecrange'     'integer'  []    [1:EEG.nbchan];
                               'method'        'string'   { 'fft';'multitaper' }    'multitaper';
                               'eegplotreject' 'integer'  []    0;
                               'eegplotplotallrej' 'integer'  []    0 }, 'pop_rejspec');
-if isstr(opt), error(opt); end;
+if ischar(opt), error(opt); end
 
 sizewin = 2^nextpow2(EEG.pnts);
 if icacomp == 1
@@ -206,7 +217,7 @@ else
                             opt.elecrange, EEG.srate, opt.threshold(:,1)', opt.threshold(:,2)', opt.freqlimits(:,1)', opt.freqlimits(:,2)', opt.method);
     rejE = zeros(size(EEG.icaweights,1), size(icaacttmp,1));
     rejE(opt.elecrange,Irej) = tmprejE;
-end;
+end
 
 fprintf('%d channel selected\n', size(opt.elecrange(:), 1));
 fprintf('%d/%d trials marked for rejection\n', length(Irej), EEG.trials);
@@ -214,12 +225,12 @@ rej = zeros( 1, EEG.trials);
 rej(Irej) = 1;
 
 if nargin < 3 || opt.eegplotplotallrej == 2
-	nbpnts = size(allspec,2);
+	nbpnts = EEG.pnts;
     if icacomp == 1 macrorej  = 'EEG.reject.rejfreq';
         			macrorejE = 'EEG.reject.rejfreqE';
     else			macrorej  = 'EEG.reject.icarejfreq';
         			macrorejE = 'EEG.reject.icarejfreqE';
-    end;
+    end
 	colrej = EEG.reject.rejfreqcol;
     
     elecrange  = opt.elecrange;
@@ -229,15 +240,13 @@ if nargin < 3 || opt.eegplotplotallrej == 2
 	eeg_rejmacro; % script macro for generating command and old rejection arrays
     
 	if icacomp == 1
-		eegplot(EEG.data(opt.elecrange,:,:), 'winlength', 5, 'position', [100 550 800 500], ...
-			'limits', [EEG.xmin EEG.xmax]*1000, 'xgrid', 'off', 'tag', 'childEEG' );
+		eegplot(EEG.data(opt.elecrange,:,:), 'srate', EEG.srate, 'winlength', 5, 'position', [100 550 800 500], ...
+			'limits', [EEG.xmin EEG.xmax]*1000, 'command', command, eegplotoptions{:}); 
 	else
-		eegplot(icaacttmp(opt.elecrange,:,:), 'winlength', 5, 'position', [100 550 800 500], 'limits', ...
-				[EEG.xmin EEG.xmax]*1000 , 'xgrid', 'off', 'tag', 'childEEG' );
+		eegplot(icaacttmp(opt.elecrange,:,:), 'srate', EEG.srate, 'winlength', 5, 'position', [100 550 800 500], 'limits', ...
+				[EEG.xmin EEG.xmax]*1000 , 'command', command, eegplotoptions{:}); 
 	end;	
-	eegplot( allspec(elecrange,:,:), 'srate', EEG.srate, 'freqlimits', [1 EEG.srate/2],'freqs', freqs,...
-                                     'command',command, 'children', findobj('tag', 'childEEG'), 'position', [100 50 800 500], eegplotoptions{3:end}); % excluding events
-end;
+end
 if ~isempty(rej)
 	if icacomp	== 1
 		EEG.reject.rejfreq = rej;
@@ -245,21 +254,21 @@ if ~isempty(rej)
 	else
 		EEG.reject.icarejfreq = rej;
 		EEG.reject.icarejfreqE = rejE;
-	end;
+	end
     if opt.eegplotreject
         EEG = pop_rejepoch(EEG, rej, 0);
-    end;
+    end
     Irej = find(rej);
-end;
+end
 
 % store variables
 % ---------------
 if icacomp == 1, EEG.specdata = allspec;
 else,            EEG.specicaact = allspec;
-end;
+end
     
-com = [com sprintf('%s = pop_rejspec( %s, %s);', inputname(1), ...
-   inputname(1), vararg2str({icacomp, 'elecrange', opt.elecrange,'method', opt.method, 'threshold', opt.threshold, 'freqlimits', opt.freqlimits, ...
+com = [com sprintf('EEG = pop_rejspec( EEG, %s);', ...
+   vararg2str({icacomp, 'elecrange', opt.elecrange,'method', opt.method, 'threshold', opt.threshold, 'freqlimits', opt.freqlimits, ...
      'eegplotcom', opt.eegplotcom, 'eegplotplotallrej' opt.eegplotplotallrej 'eegplotreject' opt.eegplotreject })) ]; 
 
 return;
@@ -280,7 +289,7 @@ function [specdata, Irej, Erej, freqs ] = spectrumthresh( data, specdata, elecra
         else
             if ~exist('pmtm')
                 error('The signal processing toolbox needs to be installed');
-            end;
+            end
             [tmp freqs] = pmtm( data(1,:,1), [],[],srate); % just to get the frequencies 	
 
             fprintf('Computing spectrum (using slepian tapers; done only once):\n');
@@ -289,20 +298,20 @@ function [specdata, Irej, Erej, freqs ] = spectrumthresh( data, specdata, elecra
                 fprintf('%d ', index);    
                 for indextrials = 1:size(data,3)
                     [ tmpspec(index,:,indextrials) freqs] = pmtm( data(index,:,indextrials) , [],[],srate);
-                end;
-            end;
+                end
+            end
             tmpspec  = 10*log(tmpspec);
             tmpspec  = tmpspec - repmat( mean(tmpspec,3), [1 1 size(data,3)]);
             specdata = tmpspec;
-        end;
+        end
     else
         if strcmpi(method, 'fft')
             sizewin = size(data,2);
             freqs = srate*[1, sizewin]/sizewin/2;
         else
             [tmp freqs] = pmtm( data(1,:,1), [],[],srate); % just to get the frequencies 	
-        end;
-    end;
+        end
+    end
     
 	% perform the rejection
 	% ---------------------	

@@ -17,30 +17,41 @@
 % Copyright (C) May 6, 2003 Arnaud Delorme, SCCN/INC/UCSD,
 % arno@sccn.ucsd.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function p1 = plotmesh(faces, vertex, normal, newfig)
        
     if nargin < 2
         help plotmesh;
         return;
-    end;
+    end
        
     FaceColor  = [.8 .55 .35]*1.1; % ~= ruddy Caucasian - pick your complexion!
     
-    if any(any(faces == 0)), faces = faces+1; end;
+    if any(any(faces == 0)), faces = faces+1; end
     %vertex(:,3) = -vertex(:,3);
     %FCmap = [jet(64); FaceColor; FaceColor; FaceColor];
     %colormap(FCmap)
@@ -49,17 +60,17 @@ function p1 = plotmesh(faces, vertex, normal, newfig)
     %size(W)
     if nargin < 4
         figure; 
-    end;
+    end
     if nargin < 3 
         normal = [];
-    end;
+    end
     if isempty(normal)
         p1 = patch('vertices', vertex, 'faces', faces, ...
                    'facecolor', [1,.75,.65]);
     else
         p1 = patch('vertices', vertex, 'faces', faces, ...
                    'facecolor', [1,.75,.65], 'vertexnormals', normal);
-    end;
+    end
         %           'FaceVertexCdata',W(:), 'FaceColor','interp', 'vertexnormals', normal);
     set(p1,'EdgeColor','none')
     

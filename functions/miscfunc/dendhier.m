@@ -1,3 +1,4 @@
+function [links,topology,node] = dendhier(links,topology,node)
 % DENDHIER: Recursive algorithm to find links and distance coordinates on a 
 %             dendrogram, given the topology matrix.
 %
@@ -12,7 +13,6 @@
 
 % RE Strauss, 7/13/95 
 
-function [links,topology,node] = dendhier(links,topology,node)
   n = size(topology,1)+1;             % Number of OTUs
 
   c1 =   topology(node,1);
@@ -27,7 +27,7 @@ function [links,topology,node] = dendhier(links,topology,node)
     prevdist = topology(prevnode,4);
     links = [links; c1 clst prevdist dist];
     [links,topology,node] = dendhier(links,topology,prevnode);
-  end;
+  end
 
   if (c2 <= n)
     links = [links; c2 clst 0 dist];
@@ -36,6 +36,6 @@ function [links,topology,node] = dendhier(links,topology,node)
     prevdist = topology(prevnode,4);
     links = [links; c2 clst prevdist dist];
     [links,topology,node] = dendhier(links,topology,prevnode);
-  end;
+  end
 
   return;

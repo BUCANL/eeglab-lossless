@@ -1,3 +1,4 @@
+function angdataw=angtimewarp(evLatency, newLatency, angdata)
 % angtimewarp() - Given two event marker vectors, computes a
 %                 warping of the input angular time series so that its
 %                 evlatencies match newlatencies. Values of the warped
@@ -32,9 +33,6 @@
 % Authors: Jean Hausser, SCCN/INC/UCSD, 2006
 %
 % See also: timeWarp(), phasecoher(), erpimage(), newtimef()
-%
-
-function angdataw=angtimewarp(evLatency, newLatency, angdata)
   
   if min(sort(evLatency) == evLatency) == 0
     error('evlatency should be sorted');
@@ -48,7 +46,7 @@ function angdataw=angtimewarp(evLatency, newLatency, angdata)
     error('evlatency and newlatency must have the same length.');
     return;
   end
-  if length(evLatency) < 2 | length(newLatency) < 2
+  if length(evLatency) < 2 || length(newLatency) < 2
     error(['There should be at least two events in evlatency and ' ...
           'newlatency, that is "begin" and "end"' ]);
     return;
@@ -110,4 +108,30 @@ function angdataw=angtimewarp(evLatency, newLatency, angdata)
 %       end
     end
   end
-  angdataw = wrapToPi(angdataw);
+  angdataw = wrap2pi(angdataw);
+
+  function a = wrap2pi(a, a_center )
+% function a = wrap(a,a_center)
+%
+% Wraps angles to a range of 2*pi.
+% Inverse of Matlab's "unwrap", and better than wrapToPi ( which has
+% redundant [-pi,pi])
+% Optional input "a_center" defines the center angle.  Default is 0, giving
+% angles from (-pi,pi], chosen to match angle(complex(-1,0)).  Maximum
+% possible value is pi.
+
+% T.Hilmer, UH
+% 2010.10.18 version 2
+%   removed code from version 1. Have not bug-checked second input
+%   "a_center"
+
+if nargin < 2, a_center = 0; end
+
+% new way
+a = mod(a,2*pi); % [0 2pi)
+
+% shift
+j = a > pi - a_center;
+a(j) = a(j) - 2*pi;
+j = a < a_center - pi;
+a(j) = a(j) + 2*pi;

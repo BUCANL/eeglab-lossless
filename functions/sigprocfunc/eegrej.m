@@ -35,85 +35,114 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
-function [indata, times, newevents, boundevents] = eegrej( indata, regions, times, eventtimes );
+function [indata, times, events, boundevents] = eegrej( indata, regions, times, events )
 
 if nargin < 2
    help eegrej;
 	return;
-end;
+end
 
-if isstr(indata)
+if nargin < 4
+    events = [];
+end
+
+if ischar(indata)
   datlen = evalin('base', [ 'size(' indata ',2)' ]);
 else
   datlen = size(indata, 2);
-end;
-
-reject = zeros(1,datlen);
-regions = round(regions);
-% Checking for extreme values in regions (correcting round) RMC
-if max(regions(:)) > size(indata, 2)
-    IndxOut = find(regions(:) > size(indata, 2));
-    regions(IndxOut) = size(indata, 2);
 end
 
+reject = zeros(1,datlen);
+
+% Checking for extreme values in regions (correcting round) RMC
+regions = round(regions);
+regions(regions > size(indata, 2)) = size(indata, 2);
+regions(regions < 1) = 1;
 regions = sortrows(sort(regions,2));        % Sorting regions %regions = sort(regions,1); RMC
-Izero = find(regions == 0);                 % Find regions index == 0 to adjust them
-if ~isempty(Izero), regions(Izero) = 1;end; % Fractional point below 1 adjusted to 1
+for i=2:size(regions,1)
+    if regions(i-1,2) >= regions(i,1)
+        regions(i,1) = regions(i-1,2)+1;
+    end
+end
+
 for i=1:size(regions,1)
-   try
-      reject(regions(i,1):regions(i,2)) = 1;
-   catch
-      error(['Region ' int2str(i) ' out of bound']);
-   end;
-end;
+    reject(regions(i,1):regions(i,2)) = 1;
+end
 
 % recompute event times
 % ---------------------
-newevents = [];
-if exist('eventtimes') == 1 
-    if ~isempty(eventtimes)
-        try
-            rmevent = find( reject(min(length(reject),max(1,round(eventtimes)))) == 1); % cko: sometimes, events may have latencies < 0.5 or >= length(reject)+0.5 (e.g. after resampling)
-	    catch, error('Latency event out of bound'); end;
-        eventtimes(rmevent) = NaN;
-	    newevents = eventtimes;
-	    for i=1:size(regions,1)
-	        for index=1:length( eventtimes )
-	            if ~isnan(eventtimes(index))
-	                if regions(i,2) < eventtimes(index)
-	                    newevents(index) = newevents(index) - (regions(i,2)-regions(i,1)+1);
-	                end;
-	            end;
-	        end;
-	    end;
-    end;
-end;                    
+rmEvent = [];
+rejectedEvents = {};
+oriEvents = events;
+if ~isempty(events)
+    eventLatencies = [ events.latency ];
+    oriEventLatencies = eventLatencies;
+    for i=1:size(regions,1)
+        
+        % indices of removed events
+        rejectedEvents{i} = find( oriEventLatencies > regions(i,1) & oriEventLatencies < regions(i,2) );
+        rmEvent = [ rmEvent rejectedEvents{i} ];
+        
+        % remove events within the selected regions
+        eventLatencies( oriEventLatencies > regions(i,1) ) = eventLatencies( oriEventLatencies > regions(i,1) )-(regions(i,2)-regions(i,1)+1);
+        %if i == 24, dsafds; end
+        
+    end
+    for iEvent = 1:length(events)
+        events(iEvent).latency = eventLatencies(iEvent);
+    end
+        
+    events(rmEvent) = [];
+end
 
 % generate boundaries latencies
 % -----------------------------
 boundevents = regions(:,1)-1;
-for i=1:size(regions,1)
-	for index=i+1:size(regions)
-		boundevents(index) = boundevents(index) - (regions(i,2)-regions(i,1)+1);
-    end;
-end;
+for iRegion1=1:size(regions,1)
+    duration(iRegion1)    = regions(iRegion1,2)-regions(iRegion1,1)+1;
+    
+    % add nested boundary events
+    if ~isempty(events) && ischar(events(1).type) && isfield(events, 'duration')
+        selectedEvent = oriEvents(rejectedEvents{iRegion1});
+        indBound      = strmatch('boundary', { selectedEvent.type });
+        duration(iRegion1) = duration(iRegion1) + sum([selectedEvent(indBound).duration]);
+    end
+    
+	for iRegion2=iRegion1+1:size(regions)
+		boundevents(iRegion2) = boundevents(iRegion2) - (regions(iRegion1,2)-regions(iRegion1,1)+1);
+    end
+end
 boundevents = boundevents+0.5;
+boundevents(boundevents < 0) = [];
 
-if isstr(indata)
+% reject data
+% -----------
+if ischar(indata)
   disp('Using disk to reject data');
   increment = 10000;
   global elecIndices;
@@ -134,9 +163,38 @@ if isstr(indata)
   evalin('base', 'clear numberrow indextmp endtmp fid');  
   evalin('base', 'delete(''tmpeegrej.fdt'')');  
 else
-  timeIndices = find(reject == 1);
-  indata(:,timeIndices) = [];
-end;
-times = times * length(find(reject ==0)) / length(reject);
+  indata(:,reject == 1) = [];
+end
+times = times * size(indata,2) / length(reject);
+
+% merge boundary events
+% ---------------------
+for iBound = length(boundevents):-1:2
+    if boundevents(iBound) == boundevents(iBound-1)
+        duration(iBound-1) = duration(iBound-1)+duration(iBound);
+        boundevents(iBound) = [];
+        duration(iBound) = [];
+    end
+end
+if ~isempty(boundevents) && boundevents(end) > size(indata,2)
+    boundevents(end) = [];
+end
+
+% insert boundary events
+% ----------------------
+for iRegion1=1:length(boundevents)
+    if boundevents(iRegion1) > 0 && boundevents(iRegion1) < size(indata,2)
+        events(end+1).type = 'boundary';
+        events(end).latency  = boundevents(iRegion1);
+        events(end).duration = duration(iRegion1);
+    end
+end
+if ~isempty(events) && isfield(events, 'latency')
+%    events([ events.latency ] < 1) = [];
+    events([ events.latency ] < 0) = [];
+    alllatencies = [ events.latency ];
+    [~, sortind] = sort(alllatencies);
+    events = events(sortind);
+end
 
 return;

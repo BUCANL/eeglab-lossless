@@ -56,19 +56,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % userdata
 % gcf : plotsig - signal to plot in the pop_out window
@@ -87,26 +98,26 @@ function [ Irej, Irejdetails, n, threshold, thresholdg] = rejstatepoch( signal, 
 if nargin < 1
 	help rejstatepoch;
 	return;
-end;
+end
 
-if ~isstr( signal )
+if ~ischar( signal )
 
 	if nargin < 2
 		help rejstatepoch;
 		return;
-	end;
+	end
 
 	if ~isempty( varargin ), g=struct(varargin{:}); 
-	else g= []; end;
-	try, g.plot; 			catch, g.plot='on'; end;
-	try, g.threshold; 		catch, g.threshold=5; end;
-	try, g.thresholdg; 		catch, g.thresholdg=5; end;
-	try, g.global; 			catch, g.global='on'; end;
-	try, g.rejglob; 		catch, g.rejglob=[]; end;
-	try, g.normalize; 		catch, g.normalize='on'; end;
-	try, g.plotcom; 		catch, g.plotcom=''; end;
-	try, g.title;	 		catch, g.title=''; end;
-	try, g.labels;	 		catch, g.labels=''; end;
+	else g= []; end
+	try, g.plot; 			catch, g.plot='on'; end
+	try, g.threshold; 		catch, g.threshold=5; end
+	try, g.thresholdg; 		catch, g.thresholdg=5; end
+	try, g.global; 			catch, g.global='on'; end
+	try, g.rejglob; 		catch, g.rejglob=[]; end
+	try, g.normalize; 		catch, g.normalize='on'; end
+	try, g.plotcom; 		catch, g.plotcom=''; end
+	try, g.title;	 		catch, g.title=''; end
+	try, g.labels;	 		catch, g.labels=''; end
 
 	g.rej = rej;
 	clear rej
@@ -122,10 +133,10 @@ if ~isstr( signal )
 		case {'on', 'off'} ;  
 		otherwise disp('Error: Normalize must be either ''on'' or ''off'''); return;
 	end;	
-	if ~isstr(g.plotcom)
+	if ~ischar(g.plotcom)
 		disp('Error: Plotcom must be a string to evaluate'); return;
 	end;	
-	if ~isstr(g.title)
+	if ~ischar(g.title)
 		disp('Error: Title must be a string'); return;
 	end;	
 	try, g.threshold*2;
@@ -143,28 +154,28 @@ if ~isstr( signal )
 	if ~isempty(g.rejglob)
 		if length(g.rejglob) ~= size(g.rej,2)
 			disp('Error: Rejglob must be have the same length as rej columns'); return;
-		end;
+		end
 	else
-		switch lower(g.global), case 'on', g.rejglob = sum(g.rej,1); end;
+		switch lower(g.global), case 'on', g.rejglob = sum(g.rej,1); end
 	end;		
 	if size(signal,3) ~= size(g.rej,2)
 		disp('Error: Signal must be have the same number of element in 3rd dimension as rej have columns'); return;
-	end;
+	end
 	if isempty(g.labels)
 		for index = 1:size(g.rej,1)
 			g.labels(index,:) = sprintf('%3d', index);
-		end;
+		end
 		if ~isempty(g.rejglob)
 			g.labels(index+2,:) = 'g. ';
-		end;
+		end
 	end;		
 			
 	switch lower(g.normalize),  
 		case 'on', 
 			g.rej = (g.rej-mean(g.rej,2)*ones(1, size(g.rej,2)))./ (std(g.rej, 0, 2)*ones(1, size(g.rej,2)));
-			switch lower(g.global), case 'on', g.rejglob = (g.rejglob(:)-mean(g.rejglob(:)))./ std(g.rejglob(:)); end;
+			switch lower(g.global), case 'on', g.rejglob = (g.rejglob(:)-mean(g.rejglob(:)))./ std(g.rejglob(:)); end
 	end;	
-	switch lower(g.global), case 'off',g.rejglob = []; end;
+	switch lower(g.global), case 'off',g.rejglob = []; end
 
 	% plot the buttons
 	% ----------------
@@ -282,7 +293,7 @@ if ~isstr( signal )
 	rejstatepoch('draw');
 	switch g.plot,
 		case 'on', waitfor( haccept, 'userdata'); drawnow;
-	end;
+	end
 
 	threshold  = g.threshold;
 	thresholdg = g.thresholdg;
@@ -300,7 +311,7 @@ if ~isstr( signal )
 		threshold = TMPEEG{3};
 		thresholdg = TMPEEG{4};
 		close(gcf);
-	catch, end;
+	catch, end
 else %if signal is a string draw everything
 
 	% retreive data
@@ -329,7 +340,7 @@ else %if signal is a string draw everything
 		rej2 = abs(g.rejg) > g.thresholdg;
 		n2 = sum(rej2(:));
 		rej = rej | rej2(:)';
-	end;
+	end
 	fprintf('%d trials rejected (single:%d, all:%d)\n', sum(rej(:)), n1, n2);
 	gcfdata {3} = rej;
 	gcfdata {4} = rejelec;
@@ -339,7 +350,7 @@ else %if signal is a string draw everything
 	% -----------------------------
 	plotstat( 'Plotwin');
 
-end;
+end
 return;
 
 function plotstat( id );
@@ -386,10 +397,10 @@ function plotstat( id );
 	else
 		pp = patch([size(g.rej(:),1) size(g.rej(:),1) size(g.rej(:),1)+2*sweeps size(g.rej(:),1)+2*sweeps], [yl(1)-1 yl(2)+1 yl(2)+1 yl(1)-1], get(gcf, 'color'), 'clipping', 'off');
 		set(pp, 'EdgeColor',  get(gcf, 'color'));
-	end;
+	end
 	for index = 0:sweeps:size(g.rej(:),1); 
 		plot([index index], yl, 'k');
-	end;
+	end
 
 	% restore properties
 	title(oldtitle);

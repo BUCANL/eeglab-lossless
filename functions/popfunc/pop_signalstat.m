@@ -24,19 +24,30 @@
 
 % Copyright (C) 2002 Luca Finelli, Salk/SCCN, La Jolla, CA
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function varargout = pop_signalstat( EEG, typeproc, cnum, percent );
 
@@ -56,34 +67,34 @@ end;
 popup=0;
 if nargin < 3
 	popup = 1;
-end;
+end
 if nargin < 4
 	percent=5;
-end;
+end
 
 % pop up window
 % -------------
-if (nargin < 3 & typeproc==1)
+if (nargin < 3 && typeproc==1)
 	promptstr    = { 'Channel number:'; 'Trim percentage (each end):' };
 	inistr       = { '1';'5' };
 	result       = inputdlg2( promptstr, 'Plot signal statistics -- pop_signalstat()', 1,  inistr, 'signalstat');
-	if length( result ) == 0 return; end;
+	if length( result ) == 0 return; end
 	cnum   	     = eval( [ '[' result{1} ']' ] ); % the brackets allow processing Matlab arrays
 	percent      = eval( [ '[' result{2} ']' ] );
-elseif (nargin < 3 & typeproc==0)
+elseif (nargin < 3 && typeproc==0)
 	promptstr    = { 'Component number:'; 'Trim percentage (each end):' };
 	inistr       = { '1'; '5' };
 	result       = inputdlg2( promptstr, 'Plot signal statistics -- pop_signalstat()', 1,  inistr, 'signalstat');
-	if length( result ) == 0 return; end;
+	if length( result ) == 0 return; end
 	cnum    	 = eval( [ '[' result{1} ']' ] ); % the brackets allow processing Matlab arrays
     percent      = eval( [ '[' result{2} ']' ] );
-end;
+end
 
-if length(cnum) ~= 1 | (cnum-floor(cnum)) ~= 0
+if length(cnum) ~= 1 || (cnum-floor(cnum)) ~= 0
 	error('pop_signalstat(): Channel/component number must be a single integer');
 end
 
-if cnum < 1 | cnum > EEG.nbchan
+if cnum < 1 || cnum > EEG.nbchan
    error('pop_signalstat(): Channel/component number out of range');
 end;   
 
@@ -112,14 +123,14 @@ end;
 % -------
 outstr = '';
 if ~popup
-    for io = 1:nargout, outstr = [outstr 'varargout{' int2str(io) '},' ]; end;
-    if ~isempty(outstr), outstr = [ '[' outstr(1:end-1) '] =' ]; end;
-end;
+    for io = 1:nargout, outstr = [outstr 'varargout{' int2str(io) '},' ]; end
+    if ~isempty(outstr), outstr = [ '[' outstr(1:end-1) '] =' ]; end
+end
 
 % return the string command
 % -------------------------
 %fprintf('Pop_signalstat: computing statistics...\n');
-varargout{1} = sprintf('pop_signalstat( %s, %d, %d );', inputname(1), typeproc, cnum);
+varargout{1} = sprintf('pop_signalstat( EEG, %d, %d );', typeproc, cnum);
 
 
 plotloc = 0;
@@ -127,20 +138,20 @@ if ~isempty(EEG.chanlocs)
     if isfield(EEG.chanlocs, 'theta')
         if ~isempty(EEG.chanlocs(cnum).theta)
             plotloc = 1;
-        end;
-    end;
-end;
+        end
+    end
+end
 if plotloc
     if typeproc == 1
         com = sprintf('%s signalstat( tmpsig, 1, dlabel, percent, dlabel2, map, EEG.chanlocs );', outstr);
     else
         com = sprintf('%s signalstat( tmpsig, 1, dlabel, percent, dlabel2, map, EEG.chanlocs(EEG.icachansind) );', outstr);
-    end;
+    end
 else
     com = sprintf('%s signalstat( tmpsig, 1, dlabel, percent, dlabel2);', outstr);
-end;
+end
 
 eval(com)	
-try, icadefs; set(gcf, 'color', BACKCOLOR); catch, end;
+try, icadefs; set(gcf, 'color', BACKCOLOR); catch, end
 
 return;

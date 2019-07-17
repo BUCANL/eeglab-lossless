@@ -1,4 +1,4 @@
-% eeg_store() - store specified EEG dataset(s) in the ALLEG variable 
+% eeg_store() - store specified EEG dataset(s) in the ALLEEG variable 
 %               containing all current datasets, after first checking 
 %               dataset consistency using eeg_checkset().
 %
@@ -34,60 +34,69 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
-
-% uses the global variable EEG ALLEEG CURRENTSET 
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % store set
 % ------------------
-function [ALLEEG, EEG, storeSetIndex] = eeg_store(ALLEEG, EEG, storeSetIndex, varargin);
+function [ALLEEG, EEG, storeSetIndex] = eeg_store(ALLEEG, EEG, storeSetIndex, varargin)
 
 % check parameter consistency
 % ------------------------------
 if nargin >= 3
-    if length(EEG) ~= length(storeSetIndex) & storeSetIndex(1) ~= 0
+    if length(EEG) ~= length(storeSetIndex) && storeSetIndex(1) ~= 0
         error('Length of input dataset structure must equal the length of the index array');
-    end;
-end;
+    end
+end
 
 % considering multiple datasets
 % -----------------------------
 if length(EEG) > 1
 	TMPEEG = EEG;
-    if nargin >= 3 & storeSetIndex(1) ~= 0
+    if nargin >= 3 && storeSetIndex(1) ~= 0
         for index=1:length(TMPEEG)
             EEG = TMPEEG(index);
             tmpsaved      = EEG.saved;
-            if strcmpi(tmpsaved, 'justloaded'), tmpsaved = 'yes'; end;
+            if strcmpi(tmpsaved, 'justloaded'), tmpsaved = 'yes'; end
             [ALLEEG, EEG] = eeg_store(ALLEEG, EEG, storeSetIndex(index), varargin{:});
             ALLEEG(storeSetIndex(index)).saved = tmpsaved;
             TMPEEG(index).saved                = tmpsaved;
-        end;        
+        end
     else
         for index=1:length(TMPEEG)
             EEG = TMPEEG(index);
             tmpsaved      = EEG.saved;
-            if strcmpi(tmpsaved, 'justloaded'), tmpsaved = 'yes'; end;
+            if strcmpi(tmpsaved, 'justloaded'), tmpsaved = 'yes'; end
             [ALLEEG, EEG, storeSetIndex(index)] = eeg_store(ALLEEG, EEG);
             ALLEEG(storeSetIndex(index)).saved = tmpsaved;
             TMPEEG(index).saved                = tmpsaved;
-        end;
-    end;
+        end
+    end
     EEG = TMPEEG;
-	return;
-end;
+	return
+end
 
 if nargin < 3
     % creating new dataset
@@ -96,24 +105,24 @@ if nargin < 3
     EEG.filename = '';
     EEG.filepath = '';
     EEG.datfile  = '';
-end;
+end
 
 if isempty(varargin) % no text output and no check (study loading)
-    [ EEG com ]  = eeg_checkset(EEG);
+    [ EEG, com ]  = eeg_checkset(EEG);
 else
     com = '';
-end;
-if nargin > 2, 
+end
+if nargin > 2 
     if storeSetIndex == 0 || strcmpi(EEG.saved, 'justloaded')
         EEG.saved = 'yes'; % just loaded
     else 
         EEG.saved = 'no';
-    end;
+    end
 elseif strcmpi(EEG.saved, 'justloaded')
     EEG.saved = 'yes';        
 else
     EEG.saved = 'no';        
-end;
+end
 EEG = eeg_hist(EEG, com);
 
 % find first free index
@@ -121,28 +130,28 @@ EEG = eeg_hist(EEG, com);
 findindex = 0;
 if nargin < 3,             findindex = 1;
 elseif storeSetIndex == 0, findindex = 1; 
-end;
+end
 
 if findindex
 	i = 1;
-	while (i<2000)
+	while (i<10000)
 		try
-			if isempty(ALLEEG(i).data);
-				storeSetIndex = i; i = 2000;
-			end;
+			if isempty(ALLEEG(i).data)
+				storeSetIndex = i; i = 10000;
+			end
 			i = i+1;	
 		catch
-			storeSetIndex = i; i = 2000;
-		end;
-   end;
+			storeSetIndex = i; i = 10000;
+		end
+   end
    if isempty(varargin) % no text output and no check
        fprintf('Creating a new ALLEEG dataset %d\n', storeSetIndex);
-   end;
+   end
 else
-	if isempty(storeSetIndex) | storeSetIndex == 0
+	if isempty(storeSetIndex) || storeSetIndex == 0
 		storeSetIndex = 1;
-	end;
-end;
+	end
+end
 
 if ~isempty( ALLEEG )
 	try
@@ -150,12 +159,12 @@ if ~isempty( ALLEEG )
 	catch
 		allfields = fieldnames( EEG );
 		for i=1:length( allfields )
-			eval( ['ALLEEG(' int2str(storeSetIndex) ').' allfields{i} ' = EEG.' allfields{i} ';' ]);
-		end;	
-        if ~isfield(EEG, 'datfile') & isfield(ALLEEG, 'datfile')
+			ALLEEG(storeSetIndex).(allfields{i}) = EEG.(allfields{i});
+        end
+        if ~isfield(EEG, 'datfile') && isfield(ALLEEG, 'datfile')
             ALLEEG(storeSetIndex).datfile = '';
-        end;
-	end;
+        end
+	end
 else	
 	ALLEEG = EEG;
 	if storeSetIndex ~= 1
@@ -163,6 +172,5 @@ else
 		ALLEEG(1) = ALLEEG(storeSetIndex); % empty
  		ALLEEG(storeSetIndex) = ALLEEG(storeSetIndex+1); 
  		ALLEEG = ALLEEG(1:storeSetIndex);
- 	end;	
-end;	
-return;
+    end	
+end	

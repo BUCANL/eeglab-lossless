@@ -40,19 +40,30 @@
 
 % Copyright (C) 2004- Scott Makeig & Arnaud Delorme, SCCN, INC, UCSD
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [pvaf,pvafs,pvall] = eeg_pvaf(EEG,comps, varargin)
 
@@ -66,7 +77,7 @@ g = finputcheck(varargin, { 'artcomps'   'integer'    []         [];
                             'chans'      'integer'    []         [];
                             'fraction'   'real'       []         1;
                             'plot'       'string'     { 'on';'off';'def' } 'def' }, 'eeg_pvaf');
-if isstr(g), error(g); end;
+if ischar(g), error(g); end
 
 numcomps = size(EEG.icaact,1);
 if round(g.fraction*EEG.pnts*EEG.trials)<1
@@ -76,14 +87,14 @@ end
 if strcmpi(g.plot, 'def')
     if nargout > 0, g.plot = 'on';
     else            g.plot = 'off';
-    end;
+    end
 end 
 
 numchans = EEG.nbchan;
 chans = 1:numchans;
 if ~isempty(g.chans)
     g.omitchans = setdiff_bc([1:EEG.nbchan], g.chans);
-end;
+end
 if ~isempty(g.omitchans)
  if max(g.omitchans)>numchans
   help eeg_pvaf
@@ -97,7 +108,7 @@ if ~isempty(g.omitchans)
 end
 
 progressive = 0; % by default, progressive mode is off
-if nargin < 2 | isempty(comps)|comps==0
+if nargin < 2 || isempty(comps) || comps==0
   comps = [];
   progressive = 1;  % turn progressive mode on
 end
@@ -124,7 +135,7 @@ if max(comps) > size(EEG.icawinv,1)
    fprintf('Only %d components in this dataset. Cannot project component %d.\n',numcomps,max(comps));
    error('bad comps input');
 end
-if ~isempty(g.artcomps) & max(g.artcomps) > numcomps
+if ~isempty(g.artcomps) && max(g.artcomps) > numcomps
     help eeg_pvaf
    fprintf('Only %d components in this dataset. Cannot project artcomp %d.\n',numcomps,max(g.artcomps));
    error('bad artcomps input')
@@ -157,14 +168,14 @@ if ~isempty(g.artcomps)
       comps(c) = [];
    end
 end
-if ~isempty(g.artcomps) & min([comps g.artcomps]) < 1
+if ~isempty(g.artcomps) && min([comps g.artcomps]) < 1
    error('comps and artcomps must contain component indices');
 end
 
 %
 %%%%%%%%%%%%%%%%%%%%%%%% compute variance accounted for by specified components %%%%%%%%%%%%%
 %
-if ~progressive | comp == 1 % pare out g.omitchans and artcomps from EEG.data
+if ~progressive || comp == 1 % pare out g.omitchans and artcomps from EEG.data
   if ~isempty(g.artcomps)
     EEG.data = EEG.data(chans,:) - EEG.icawinv(chans,g.artcomps)*EEG.icaact(g.artcomps,:);
   else
@@ -222,7 +233,7 @@ elseif strcmpi(g.plot, 'on')
    end
    if length(chanlocs) > 1
        topoplot(pvafs',chanlocs);  % plot pvaf here
-   end;
+   end
    
    if length(comps)>5        % add text legend
      if length(g.artcomps)>3
@@ -262,7 +273,7 @@ elseif strcmpi(g.plot, 'on')
       maxc=max(pvafs)
    else 
       maxc=100; 
-   end;
+   end
 
    pvstr=sprintf('Total pvaf: %3.1f%%',pvaf);
    tx=text(-0.9,-0.6,pvstr);

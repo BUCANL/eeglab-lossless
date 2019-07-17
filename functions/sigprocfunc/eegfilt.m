@@ -27,19 +27,30 @@
 
 % Copyright (C) 4-22-97 from bandpass.m Scott Makeig, SCCN/INC/UCSD, scott@sccn.ucsd.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 05-08-97 fixed frequency bound computation -sm
 % 10-22-97 added MINFREQ tests -sm
@@ -60,7 +71,7 @@ end
 %end
 
 [chans frames] = size(data);
-if chans > 1 & frames == 1,
+if chans > 1 && frames == 1,
     help eegfilt
     error('input data should be a row vector.');
 end
@@ -72,10 +83,10 @@ minfac         = 3;    % this many (lo)cutoff-freq cycles in filter
 min_filtorder  = 15;   % minimum filter length
 trans          = 0.15; % fractional width of transition zones
 
-if locutoff>0 & hicutoff > 0 & locutoff > hicutoff,
+if locutoff>0 && hicutoff > 0 && locutoff > hicutoff,
     error('locutoff > hicutoff ???\n');
 end
-if locutoff < 0 | hicutoff < 0,
+if locutoff < 0 || hicutoff < 0,
     error('locutoff | hicutoff < 0 ???\n');
 end
 
@@ -104,7 +115,7 @@ if strcmp(firtype, 'firls')
     warning('Using firls to estimate filter coefficients. We recommend that you use fir1 instead, which yields larger attenuation. In future, fir1 will be used by default!');
 end
 
-if isempty(filtorder) | filtorder==0,
+if isempty(filtorder) || filtorder==0,
     if locutoff>0,
         filtorder = minfac*fix(srate/locutoff);
     elseif hicutoff>0,
@@ -133,14 +144,14 @@ if filtorder*3 > epochframes,   % Matlab filtfilt() restriction
 end
 if (1+trans)*hicutoff/nyq > 1
     error('high cutoff frequency too close to Nyquist frequency');
-end;
+end
 
-if locutoff > 0 & hicutoff > 0,    % bandpass filter
+if locutoff > 0 && hicutoff > 0,    % bandpass filter
     if revfilt
         fprintf('eegfilt() - performing %d-point notch filtering.\n',filtorder);
     else
         fprintf('eegfilt() - performing %d-point bandpass filtering.\n',filtorder);
-    end;
+    end
     fprintf('            If a message, ''Matrix is close to singular or badly scaled,'' appears,\n');
     fprintf('            then Matlab has failed to design a good filter. As a workaround, \n');
     fprintf('            for band-pass filtering, first highpass the data, then lowpass it.\n');
@@ -182,9 +193,9 @@ if revfilt
     if strcmp(firtype, 'fir1')
         error('Cannot reverse filter using ''fir1'' option');
     else
-        m = ~m;
-    end;
-end;
+        m = double(~m);
+    end
+end
 
 if strcmp(firtype, 'firls')
     filtwts = firls(filtorder,f,m); % get FIR filter coefficients
@@ -197,13 +208,13 @@ for e = 1:epochs                % filter each epoch, channel
             if causal
                  smoothdata(c,(e-1)*epochframes+1:e*epochframes) = filter(  filtwts,1,data(c,(e-1)*epochframes+1:e*epochframes));
             else smoothdata(c,(e-1)*epochframes+1:e*epochframes) = filtfilt(filtwts,1,data(c,(e-1)*epochframes+1:e*epochframes));
-            end;
+            end
         catch,
             if causal
                  smoothdata(c,(e-1)*epochframes+1:e*epochframes) = filter(  filtwts,1,double(data(c,(e-1)*epochframes+1:e*epochframes)));
             else smoothdata(c,(e-1)*epochframes+1:e*epochframes) = filtfilt(filtwts,1,double(data(c,(e-1)*epochframes+1:e*epochframes)));
-            end;
-        end;
+            end
+        end
         if epochs == 1
             if rem(c,20) ~= 0, fprintf('.');
             else               fprintf('%d',c);

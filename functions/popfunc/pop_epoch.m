@@ -57,19 +57,30 @@
 
 % Copyright (C) 2001 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 01-25-02 reformated help & license -ad 
 % 02-13-02 introduction of 'key', val arguments -ad
@@ -86,26 +97,30 @@ end;
 com = '';
 indices = [];
 
-if isempty(EEG.event)
-    if EEG.trials > 1 & EEG.xmin <= 0 & EEG.xmax >=0
+if length(EEG) > 1 && isempty(EEG(1).event)
+    error('Cannot process empty event structure for the first dataset');
+end
+
+if isempty(EEG(1).event)
+    if EEG.trials > 1 && EEG.xmin <= 0 && EEG.xmax >=0
         disp('No EEG.event structure found: creating events of type ''TLE'' (Time-Locking Event) at time 0');
         EEG.event(EEG.trials).epoch = EEG.trials; 
         for trial = 1:EEG.trials
             EEG.event(trial).epoch   = trial; 
             EEG.event(trial).type    = 'TLE';
             EEG.event(trial).latency = -EEG.xmin*EEG.srate+1+(trial-1)*EEG.pnts;
-        end;
+        end
     else
         disp('Cannot epoch data with no events'); beep;
         return;
-    end;
-end;
-if ~isfield(EEG.event, 'latency'),
-    disp( 'Absent latency field in event array/structure: must name one of the fields ''latency''');
-     beep; return;
-end;
-if size(EEG.data,3) > 1
-    epochlim = [num2str( round(EEG.xmin*1000,1)) '  '  num2str(round(EEG.xmax*1000,1))];
+    end
+end
+if ~isfield(EEG(1).event, 'latency'),
+    error( 'Absent latency field in event array/structure: must name one of the fields ''latency''');
+end
+if size(EEG(1).data,3) > 1
+    epochlim = [num2str( round(EEG.xmin)) '  '  num2str(round(EEG.xmax))]; % Units in seconds as in GUI
+%   epochlim = [num2str( round(EEG.xmin*1000)) '  '  num2str(round(EEG.xmax*1000))]; % Units in miliseconds
 else
     epochlim = '-1 2';
 end
@@ -120,11 +135,11 @@ if nargin < 3
                     'Name for the new dataset:', ... 
 					'Out-of-bounds EEG rejection limits ([min max], []=none):'  };
 
-   cbevent = ['if ~isfield(EEG.event, ''type'')' ...
+   cbevent = ['if ~isfield(EEG(1).event, ''type'')' ...
 				   '   errordlg2(''No type field'');' ...
 				   'else' ...
-                   '   tmpevent = EEG.event;' ...
-                   '   if isnumeric(EEG.event(1).type),' ...
+                   '   tmpevent = EEG(1).event;' ...
+                   '   if isnumeric(EEG(1).event(1).type),' ...
 				   '        [tmps,tmpstr] = pop_chansel(unique([ tmpevent.type ]));' ...
 				   '   else,' ...
                    '        [tmps,tmpstr] = pop_chansel(unique({ tmpevent.type }));' ...
@@ -143,52 +158,63 @@ if nargin < 3
               { 'style' 'edit'       'string' epochlim } ...
               { } ...
               { 'style' 'text'       'string' 'Name for the new dataset' } ...
-              { 'style' 'edit'       'string'  fastif(isempty(EEG.setname), '', [ EEG.setname ' epochs' ]) } ...
+              { 'style' 'edit'       'string'  fastif(length(EEG) > 1 || isempty(EEG(1).setname), '', [ EEG(1).setname ' epochs' ]) 'enable' fastif(length(EEG) == 1, 'on', 'off') } ...
               { 'style' 'text'       'string' 'Out-of-bounds EEG limits if any [min max]' } ...
               { 'style' 'edit'       'string' '' } { } };
               
    result = inputgui( geometry, uilist, 'pophelp(''pop_epoch'')', 'Extract data epochs - pop_epoch()');
-   if length(result) == 0 return; end;
+   if length(result) == 0 return; end
    
-   if strcmpi(result{1}, '[]'), result{1} = ''; end;
+   if strcmpi(result{1}, '[]'), result{1} = ''; end
    if ~isempty(result{1})
        if strcmpi(result{1}(1),'''')   % If event type appears to be in single-quotes, use comma
                                        % and single-quote as delimiter between event types. toby 2.24.2006
                                        % fixed Arnaud May 2006
             events = eval( [ '{' result{1} '}' ] );
        else events = parsetxt( result{1});
-       end;
+       end
    else events = {};
    end
    lim = eval( [ '[' result{2} ']' ] );
 
    args = {};
-   if ~isempty( result{3} ),  args = { args{:}, 'newname', result{3} }; end;
-   if ~isempty( result{4} ),  args = { args{:}, 'valuelim', eval( [ '[' result{4} ']' ] ) }; end;
+   if ~isempty( result{3} ),  args = { args{:}, 'newname', result{3} }; end
+   if ~isempty( result{4} ),  args = { args{:}, 'valuelim', eval( [ '[' result{4} ']' ] ) }; end
    args = { args{:}, 'epochinfo', 'yes' };
  
 else % no interactive inputs
     args = varargin;
-end;
+end
+
+% process multiple datasets
+% -------------------------
+if length(EEG) > 1
+    if nargin < 2
+        [ EEG, com ] = eeg_eval( 'pop_epoch', EEG, 'warning', 'on', 'params', { events lim args{:} } );
+    else
+        [ EEG, com ] = eeg_eval( 'pop_epoch', EEG, 'params', { events lim args{:} } );
+    end
+    return;
+end
 
 % create structure
 % ----------------
 if ~isempty(args)
    try, g = struct(args{:});
-   catch, disp('pop_epoch(): wrong syntax in function arguments'); return; end;
+   catch, disp('pop_epoch(): wrong syntax in function arguments'); return; end
 else
     g = [];
-end;
+end
 
 % test the presence of variables
 % ------------------------------
 try, g.epochfield; 	 	  catch, g.epochfield = 'type'; end; % obsolete
-try, g.timeunit; 	 	  catch, g.timeunit = 'points'; end;
-try, g.verbose; 	      catch, g.verbose = 'on'; end;
-try, g.newname; 	      catch, g.newname = fastif(isempty(EEG.setname), '', [EEG.setname ' epochs' ]); end;
-try, g.eventindices;      catch, g.eventindices = 1:length(EEG.event); end;
-try, g.epochinfo;         catch, g.epochinfo = 'yes'; end;
-try, if isempty(g.valuelim), g.valuelim = [-Inf Inf]; end; catch, g.valuelim = [-Inf Inf]; end;
+try, g.timeunit; 	 	  catch, g.timeunit = 'points'; end
+try, g.verbose; 	      catch, g.verbose = 'on'; end
+try, g.newname; 	      catch, g.newname = fastif(isempty(EEG.setname), '', [EEG.setname ' epochs' ]); end
+try, g.eventindices;      catch, g.eventindices = 1:length(EEG.event); end
+try, g.epochinfo;         catch, g.epochinfo = 'yes'; end
+try, if isempty(g.valuelim), g.valuelim = [-Inf Inf]; end; catch, g.valuelim = [-Inf Inf]; end
 
 % transform string events into a int array of column indices
 % ----------------------------------------------------------
@@ -205,25 +231,25 @@ if ~isempty( events )
     tmpevent = EEG.event;
     tmpeventtype  = { tmpevent.type };
     if iscell(events)
-		if isstr(EEG.event(1).type)
+		if ischar(EEG.event(1).type)
 			for index2 = 1:length( events )
 				tmpevent = events{index2};
-				if ~isstr( tmpevent ), tmpevent = num2str( tmpevent ); end;
+				if ~ischar( tmpevent ), tmpevent = num2str( tmpevent ); end
 				Ieventtmp = [ Ieventtmp ; strmatch(tmpevent, tmpeventtype, 'exact') ];
-			end;
+			end
 		else
 			for index2 = 1:length( events )
 				tmpevent = events{index2};
-				if isstr( tmpevent ),tmpevent = str2num( tmpevent ); end;
-				if isempty( tmpevent ), error('pop_epoch(): string entered in a numeric field'); end;
+				if ischar( tmpevent ),tmpevent = str2num( tmpevent ); end
+				if isempty( tmpevent ), error('pop_epoch(): string entered in a numeric field'); end
 				Ieventtmp = [ Ieventtmp find(tmpevent == [ tmpeventtype{:} ]) ];
-			end;
-		end;
+			end
+		end
     else
         error('pop_epoch(): multiple event types must be entered as {''a'', ''cell'', ''array''}'); return;
-    end;
+    end
     Ievent = sort(intersect(Ievent, Ieventtmp));
-end;
+end
 
 % select event latencies for epoching
 %------------------------------------
@@ -232,7 +258,7 @@ alllatencies = tmpeventlatency(Ievent);
 
 if isempty(alllatencies)
    error('pop_epoch(): empty epoch range (no epochs were found).'); return;
-end;
+end
 fprintf('pop_epoch():%d epochs selected\n', length(alllatencies));
 
 try
@@ -278,7 +304,7 @@ if lim(1) > 0 && ischar(EEG.event(1).type)
           else
               % correct the latencies by the duration of the data that were cutout
               alllatencies(Z1) = alllatencies(Z1) - sum([tmpevents(selEvt).duration]);
-          end;
+          end
       end
    end
 end
@@ -294,7 +320,7 @@ if lim(2) < 0 && ischar(EEG.event(1).type)
           else
               % correct the latencies by the duration of the data that were cutout
               alllatencies(Z1) = alllatencies(Z1) + sum([tmpevents(selEvt).duration]);
-          end;
+          end
       end
    end
 end
@@ -308,17 +334,17 @@ switch lower( g.timeunit )
  case 'seconds',	[EEG.data tmptime indices epochevent]= epoch(EEG.data, alllatencies, lim, 'valuelim', g.valuelim, ...
                                                     'srate', EEG.srate, 'allevents', tmpeventlatency);
 	otherwise, disp('pop_epoch(): invalid event time format'); beep; return;
-end;
+end
 alllatencies = alllatencies(indices);
 fprintf('pop_epoch():%d epochs generated\n', length(indices));
 
 
 % update other fields
 % -------------------
-if lim(1) ~= tmptime(1) & lim(2)-1/EEG.srate ~= tmptime(2)
+if lim(1) ~= tmptime(1) && lim(2)-1/EEG.srate ~= tmptime(2)
 	fprintf('pop_epoch(): time limits have been adjusted to [%3.3f %3.3f] to fit data points limits\n', ...
 		tmptime(1), tmptime(2)+1/EEG.srate);
-end;
+end
 EEG.xmin = tmptime(1);
 EEG.xmax = tmptime(2);
 EEG.pnts = size(EEG.data,2);
@@ -327,21 +353,21 @@ EEG.icaact = [];
 if ~isempty(EEG.setname)
 	if ~isempty(EEG.comments)
 		EEG.comments = strvcat(['Parent dataset "' EEG.setname '": ----------'], EEG.comments);
-	end;
+	end
 	EEG.comments = strvcat(['Parent dataset: ' EEG.setname ], ' ', EEG.comments);
-end;
+end
 EEG.setname = g.newname;
 
 % count the number of events to duplicate and duplicate them
 % ----------------------------------------------------------
 totlen = 0;
-for index=1:EEG.trials, totlen = totlen + length(epochevent{index}); end;
+for index=1:EEG.trials, totlen = totlen + length(epochevent{index}); end
 EEG.event(1).epoch = 0;          % create the epoch field (for assignment consistency afterwards)
 if totlen ~= 0
     newevent(totlen) = EEG.event(1); % reserve array
 else 
     newevent = [];
-end;
+end
 
 % modify the event structure accordingly (latencies and add epoch field)
 % ----------------------------------------------------------------------
@@ -354,8 +380,8 @@ for index=1:EEG.trials
 	    newevent(count).latency = newevent(count).latency ...
 			- alllatencies(index) - tmptime(1)*EEG.srate + 1 + EEG.pnts*(index-1);
 		count = count + 1;
-    end;
-end;
+    end
+end
 EEG.event = newevent;
 EEG.epoch = [];
 EEG = eeg_checkset(EEG, 'eventconsistency');
@@ -363,7 +389,7 @@ EEG = eeg_checkset(EEG, 'eventconsistency');
 % check for boundary events
 % -------------------------
 disp('pop_epoch(): checking epochs for data discontinuity');
-if ~isempty(EEG.event) & isstr(EEG.event(1).type)
+if ~isempty(EEG.event) && ischar(EEG.event(1).type)
     tmpevent = EEG.event;
 	boundaryindex = strmatch('boundary', { tmpevent.type });
 	if ~isempty(boundaryindex)
@@ -373,30 +399,30 @@ if ~isempty(EEG.event) & isstr(EEG.event(1).type)
     			indexepoch = [indexepoch tmpevent(tmpindex).epoch ];
             else 
                 indexepoch = 1; % only one epoch
-            end;
-		end;
+            end
+		end
 		EEG = pop_select(EEG, 'notrial', indexepoch);
         % update the "indices of accepted events", too
         indices = indices(setdiff(1:length(indices),indexepoch));
-	end;
-end;
+	end
+end
 
 % generate text command
 % ---------------------
-com = sprintf('%s = pop_epoch( %s, { ', inputname(1), inputname(1));
+com = sprintf('EEG = pop_epoch( EEG, { ');
 for j=1:length(events);
-    if isstr( events{j} )   com = sprintf('%s ''%s'' ', com, events{j} );
+    if ischar( events{j} )   com = sprintf('%s ''%s'' ', com, events{j} );
     else                    com = sprintf('%s [%s] ',   com, num2str(events{j}) );
-    end;
-end;
+    end
+end
 com = sprintf('%s }, [%s]', com, num2str(lim)); 
 for i=1:2:length(args)
     if ~isempty( args{i+1} )
-        if isstr( args{i+1} )   com = sprintf('%s, ''%s'', ''%s''', com, args{i}, args{i+1} );
+        if ischar( args{i+1} )   com = sprintf('%s, ''%s'', ''%s''', com, args{i}, args{i+1} );
         else                    com = sprintf('%s, ''%s'', [%s]', com, args{i}, num2str(args{i+1}) );
-        end;
+        end
     end;    
-end;
+end
 com = [com ');'];
 return; % text command
 

@@ -84,24 +84,35 @@
 % See also:
 %           EEGLAB: dipplot(), mri3dplot(), Fieldtrip: find_inside_vol() 
 %
-% Author: Arnaud Delorme & Scott Makeig, SCCN, INC, UCSD
-% 02/19/2013 'norm2JointProb' added by Makoto.
-
+% Authors: Arnaud Delorme & Scott Makeig SCCN, INC, UCSD
+% Modified by: Makoto Miyakoshi
+%              Ramon Martinez-Cancino
 % Copyright (C) Arnaud Delorme & Scott Makeig, SCCN/INC/UCSD, 2003-
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [prob3d, mri] = dipoledensity(dipplotargs, varargin)
 
@@ -129,11 +140,11 @@ g = finputcheck(varargin, { 'subjind'     'integer'  []               [];
                             'volmesh_fname' 'string'  []  'volmesh_local.mat';
                             'mri'         { 'struct','string' } [] '';
                             'norm2JointProb' 'string'  { 'on','off' } 'off'});
-if isstr(g), error(g); end;
-if ~strcmpi(g.method, 'alldistance') & isempty(g.subjind)
+if ischar(g), error(g); end
+if ~strcmpi(g.method, 'alldistance') && isempty(g.subjind)
     error('Subject indices are required for this method');
-end;
-if ~iscell(g.weight), g.weight = { g.weight }; end;
+end
+if ~iscell(g.weight), g.weight = { g.weight }; end
 
 % plotting dipplot
 % ----------------
@@ -142,23 +153,23 @@ if ~iscell(dipplotargs) % convert input
         if size(dipplotargs,1) == 3, dipplotargs = dipplotargs';
         elseif size(dipplotargs,2) ~= 3
             error('If an array of dipoles is given as entry, there must be 3 columns or 3 rows for x y z');
-        end;
+        end
         model = [];
         for idip = 1:length(dipplotargs)
             model(idip).posxyz = dipplotargs(idip,:);
             model(idip).momxyz = [1 0 0];
             model(idip).rv = 0.5;
-        end;
+        end
         dipplotargs = model;
-    end;
+    end
     dipplotargs = { dipplotargs 'coordformat' g.coordformat };
 else 
     dipplotargs = { dipplotargs{:} 'coordformat' g.coordformat };
-end;
-struct = dipplot(dipplotargs{:}, 'plot', g.dipplot);
+end
+struct = dipplot(dipplotargs{:}, 'plot', g.dipplot, 'density', 'off');
 if nargout == 0
     drawnow;
-end;
+end
 
 % retrieve coordinates in MNI space
 % ---------------------------------
@@ -166,14 +177,14 @@ if 0 % deprecated
      % find dipoles 
      % ------------
     hmesh = findobj(gcf, 'tag', 'mesh');
-    if isempty(hmesh), error('Current figure must contain dipoles'); end;
+    if isempty(hmesh), error('Current figure must contain dipoles'); end
     hh = [];
     disp('Finding dipoles...');
     dips = zeros(1,200);
     for index = 1:1000
         hh = [ hh(:); findobj(gcf, 'tag', ['dipole' int2str(index) ]) ];
         dips(index) = length(findobj(gcf, 'tag', ['dipole' int2str(index) ]));
-    end;
+    end
     
     disp('Retrieving dipole positions ...');
     count = 1;
@@ -185,9 +196,9 @@ if 0 % deprecated
             allz(count) = tmp.eleccoord(1,3);
             alli(count) = index;
             count = count + 1;
-        end;
-    end;
-end;    
+        end
+    end
+end    
 
 % check weights
 % -------------
@@ -195,22 +206,22 @@ if ~isempty(g.weight{1})
     if ~iscell(g.weight)
         if length(g.weight) ~= length(struct)
             error('There must be as many elements in the weight matrix as there are dipoles')
-        end;
+        end
     else
         if length(g.weight{1}) ~= length(struct) || length(g.weight{1}) ~= length(g.weight{end})
             error('There must be as many elements in the weight matrix as there are dipoles')
-        end;
-    end;
+        end
+    end
 else
     g.weight = { ones( 1, length(struct)) };
-end;
+end
 if ~isempty(g.subjind)
     if length(g.subjind) ~= length(struct)
         error('There must be as many element in the subject matrix as there are dipoles')
-    end;
+    end
 else
     g.subjind = ones( 1, length(struct));
-end;
+end
 
 % decoding dipole locations
 % -------------------------
@@ -227,8 +238,8 @@ for index = 1:length(struct)
         allw2(count) = g.weight{end}(index)/dips;
         alls(count) = g.subjind(index);
         count = count + 1;
-    end;
-end;
+    end
+end
 g.weight{1}    = allw1;
 g.weight{end}  = allw2;
 g.subjind = alls;
@@ -240,13 +251,13 @@ if isempty(g.mri) % default MRI file
     load('-mat', template_models(1).mrifile); % load mri variable
     g.mri = mri;
 end
-if isstr(g.mri)
-    try, 
+if ischar(g.mri)
+    try
         mri = load('-mat', g.mri);
         mri = mri.mri;
-    catch,
+    catch
         disp('Failed to read Matlab file. Attempt to read MRI file using function read_fcdc_mri');
-        try,
+        try
             warning off;
             mri = read_fcdc_mri(g.mri);
             mri.anatomy = round(gammacorrection( mri.anatomy, 0.8));
@@ -256,18 +267,18 @@ if isstr(g.mri)
             % WARNING: the transform matrix is not 1, 1, 1 on the diagonal, some slices may be 
             % misplaced
             warning on;
-        catch,
+        catch
             error('Cannot load file using read_fcdc_mri');
-        end;
-    end;
+        end
+    end
     g.mri = mri; % output the anatomic mri image 
-end;
+end
 
 
 % reserve array for density
 % -------------------------
 prob3d = {zeros(ceil(g.mri.dim/g.subsample)) };
-for i = 2:length(g.weight), prob3d{i} = prob3d{1}; end;
+for i = 2:length(g.weight), prob3d{i} = prob3d{1}; end
 
 % compute voxel size
 % ------------------
@@ -278,29 +289,27 @@ voxvol = sum((point1(1:3)-point2(1:3)).^2)*g.subsample^3; % in mm
 % compute global subject entropy if necessary
 % -------------------------------------------
 vals   = unique_bc(g.subjind); % the unique subject indices
-if strcmpi(g.method, 'relentropy') | strcmpi(g.method, 'entropy') %%%%% entropy %%%%%%%
+if strcmpi(g.method, 'relentropy') || strcmpi(g.method, 'entropy') %%%%% entropy %%%%%%%
     newind = zeros(size(g.subjind));
     for index = 1:length(vals) % foreach subject in the cluster
         tmpind = find(g.subjind == vals(index)); % dipoles for the subject
         totcount(index) = length(tmpind); % store the number of subject dipoles
         newind(tmpind) = index; % put subject index into newind
-    end;
+    end
     g.subjind = newind;
     gp = totcount/sum(totcount);
     globent = -sum(gp.*log(gp));
-end;
+end
 
 % compute volume inside head mesh
 % -------------------------------
 dipfitdefs; % get the location of standard BEM volume file
 tmp = load('-mat',DIPOLEDENSITY_STDBEM); % load MNI mesh
 
-if isempty(g.volmesh_fname)  % default
-    filename = [ '/home/arno/matlab/MNI_VoxelTsearch' int2str(g.subsample) '.mat' ];
-else
-    filename = g.volmesh_fname; %
-end
-if ~exist(filename)
+if ~exist(g.volmesh_fname)
+    % Checking for Fieldtrip
+    if exist('ft_electroderealign', 'file')~=2,error('dipoledensity: Fieldtrip toolbox is required'); end
+    
     disp('Computing volume within head mesh...');
     [X Y Z]           = meshgrid(g.mri.xgrid(1:g.subsample:end)+g.subsample/2, ...
                                  g.mri.ygrid(1:g.subsample:end)+g.subsample/2, ...
@@ -330,15 +339,15 @@ if ~exist(filename)
         Inside        = find(isnan(IO));
         Outside       = find(~isnan(IO));
         disp('Done.');
-    end; %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-    try, 
-        save('-mat', filename, 'allpoints', 'allinds', 'Inside', 'Outside');
+    end %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+    try 
+        save('-mat', g.volmesh_fname, 'allpoints', 'allinds', 'Inside', 'Outside');
         disp('Saving file containing inside/outide voxel indices...');
-    catch, end;
+    catch, end
 else
     disp('Loading file containing inside/outide voxel indices...');
-    load('-mat',filename);
-end;
+    load('-mat',g.volmesh_fname);
+end
 InsidePoints  = allpoints(:, Inside);
 InsideIndices = allinds(:, Inside);
 
@@ -359,19 +368,19 @@ if ~strcmpi(g.method, 'alldistance')
         tmpweights{1}   = g.weight{1}(  indsort);
         tmpweights{end} = g.weight{end}(indsort);
        
-        if strcmpi(g.method, 'relentropy') | strcmpi(g.method, 'entropy') %%%%% entropy %%%%%%%
+        if strcmpi(g.method, 'relentropy') || strcmpi(g.method, 'entropy') %%%%% entropy %%%%%%%
             
             subjs  = g.subjind(indsort(1:g.methodparam)); % get subject indices of closest dipoles
             p      = histc(subjs, edges);
             if strcmpi(g.method, 'relentropy')
                 p      = p(1:end-1)./totcount; 
                 % this should be uniform if p conforms to global count for all subjects
-            end;
+            end
             p      = p/sum(p);
             p(find(p == 0)) = [];
             for tmpi = 1:length(g.weight)
                 prob3d{1}(InsideIndices(1,i), InsideIndices(2,i), InsideIndices(3,i)) = -sum(p.*log(p));
-            end;
+            end
         else
             % distance to each subject
             ordsubjs  = g.subjind(indsort);
@@ -380,15 +389,15 @@ if ~strcmpi(g.method, 'alldistance')
                 if strcmpi(g.method,'distance')
                     use_dipoles(index) = tmpind(1); % find their nearest dipole 
                 end
-            end;
+            end
             for tmpi = 1:length(g.weight)
                 prob3d{tmpi}(InsideIndices(1,i), InsideIndices(2,i), InsideIndices(3,i)) = ...
                    sum(tmpweights{tmpi}(use_dipoles).*exp(-tmpsort(use_dipoles)/ ...
                            (2*g.methodparam^2))); % 3-D gaussian smooth
-            end;
-        end;
-        if mod(i,100) == 0, fprintf('%d ', i); end;
-    end;
+            end
+        end
+        if mod(i,100) == 0, fprintf('%d ', i); end
+    end
 else % 'alldistance'
     % distance calculation: can scan dipoles instead of voxels (since linear)
     % --------------------------------------------------------
@@ -398,8 +407,8 @@ else % 'alldistance'
     fprintf('Computing (of %d):', size(allx,2));
     for tmpi=1:length(g.weight)
         tmpprob{tmpi} = zeros(1, size(InsidePoints,2));
-    end;
-    if length(g.weight) > 1, tmpprob2 = tmpprob; end;
+    end
+    if length(g.weight) > 1, tmpprob2 = tmpprob; end
     for i = 1:size(allx,2)
         alldists = (InsidePoints(1,:) - allx(i)).^2 + ...
                    (InsidePoints(2,:) - ally(i)).^2 + ...
@@ -407,23 +416,24 @@ else % 'alldistance'
 %         alldists = 1;  % TM
         for tmpi=1:length(g.weight)
             tmpprob{tmpi} = tmpprob{tmpi} + g.weight{tmpi}(i)*exp(-alldists/(2*g.methodparam^2)); % 3-D gaussian smooth
-            if any(isinf(tmpprob{tmpi})), error('Infinite value in probability calculation'); end;
-        end;
-        if mod(i,50) == 0, fprintf('%d ', i); end;
-    end;
+            if any(isinf(tmpprob{tmpi})), error('Infinite value in probability calculation'); end
+        end
+        if mod(i,50) == 0, fprintf('%d ', i); end
+    end
     % copy values to 3-D mesh
     % -----------------------
     for i = 1:length(Inside)
         pnts = allinds(:,Inside(i));
         for tmpi = 1:length(g.weight)
             prob3d{tmpi}(pnts(1), pnts(2), pnts(3)) = tmpprob{tmpi}(i);
-        end;
-    end;
+        end
+    end
     
-end;
+end
 fprintf('\n');
 
 % normalize for points inside and outside the volume
+% norm2JointProb is applied before plotting
 % --------------------------------------------------
 if strcmpi(g.method, 'alldistance') && strcmpi(g.normalization,'on')
     for i =1:length(g.weight)
@@ -431,19 +441,12 @@ if strcmpi(g.method, 'alldistance') && strcmpi(g.normalization,'on')
         if any(prob3d{i}(:)<0)
             fprintf('WARNING: Some probabilities are negative, this will likely cause problems when normalizing probabilities.\n');
             fprintf('It is highly recommended to turn normaliziation off by using ''normalization'' key to ''off''.\n');
-        end;
-        totval = sum(prob3d{i}(:));  % total values in the head
-        switch g.norm2JointProb
-            case 'off'
-                totdip = size(allx,2);   % number of dipoles
-                voxvol;                  % volume of a voxel in mm^3
-                prob3d{i} = prob3d{i}/totval*totdip/voxvol*1000; % time 1000 to get cubic centimeters
-                prob3d{i} = prob3d{i}/g.nsessions;
-            case 'on'
-                prob3d{i} = prob3d{i}/totval;
         end
-    end;
-end;
+        totval = sum(prob3d{i}(:));                                     % total values in the head
+        totdip = size(allx,2);                                          % number of dipoles
+        prob3d{i} = (prob3d{i}/totval*totdip/voxvol*1000)/g.nsessions;  % time 1000 to get cubic centimeters
+    end
+end
 
 % resample matrix
 % ----------------
@@ -456,10 +459,10 @@ if g.subsample ~= 1
         Z = ceil(g.mri.zgrid/g.subsample);
         for index = 1:size(newprob3d,3)
             newprob3d(:,:,index) = prob3d{i}(X,Y,Z(index));
-        end;    
+        end    
         prob3d{i} = newprob3d;
-    end;
-end;
+    end
+end
 
 % 3-D smoothing
 % -------------
@@ -467,8 +470,13 @@ if g.smooth ~= 0
     disp('Smoothing...');
     for i =1:length(g.weight)
         prob3d{i} = smooth3d(prob3d{i}, g.smooth);
-    end;
-end;
+    end
+end
+
+% Perform normalization so that the total sum of joint prob == 1
+if strcmpi(g.norm2JointProb, 'on')
+    prob3d{i} = prob3d{i}/sum(prob3d{i}(:));
+end
 
 % plotting
 % --------
@@ -476,7 +484,7 @@ if strcmpi(g.plot, 'off')
     close gcf;
 else
     mri3dplot( prob3d, g.mri, g.plotargs{:}); % plot the density using mri3dplot()
-end;
+end
 return;
 
 %%
@@ -484,31 +492,6 @@ function [inside, outside] = find_inside_vol(pos, vol);
 
 % FIND_INSIDE_VOL locates dipole locations inside/outside the source
 % compartment of a volume conductor model.
-% 
-% [inside, outside] = find_inside_vol(pos, vol)
-%
-% This function is obsolete and its use in other functions should be replaced 
-% by inside_vol
-
-% Copyright (C) 2003-2007, Robert Oostenveld
-%
-% This file is part of FieldTrip, see http://www.ru.nl/neuroimaging/fieldtrip
-% for the documentation and details.
-%
-%    FieldTrip is free software: you can redistribute it and/or modify
-%    it under the terms of the GNU General Public License as published by
-%    the Free Software Foundation, either version 3 of the License, or
-%    (at your option) any later version.
-%
-%    FieldTrip is distributed in the hope that it will be useful,
-%    but WITHOUT ANY WARRANTY; without even the implied warranty of
-%    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-%    GNU General Public License for more details.
-%
-%    You should have received a copy of the GNU General Public License
-%    along with FieldTrip. If not, see <http://www.gnu.org/licenses/>.
-%
-% $Id$
 
 warning('find_inside_vol is obsolete and will be removed, please use ft_inside_vol');
 inside  = ft_inside_vol(pos, vol);

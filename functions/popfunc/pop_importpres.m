@@ -37,19 +37,30 @@
 
 % Copyright (C) 13 March 2002 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [EEG, command] = pop_importpres(EEG, filename, typefield, latfield, durfield, align, varargin); 
 
@@ -58,32 +69,32 @@ command = '';
 if nargin < 1 
     help pop_importpres;
     return
-end;
+end
 
 % decode input (and backward compatibility)
 % -----------------------------------------
 if nargin < 5
     durfield = '';
-end;
-if nargin >= 5 & ~isstr(durfield)
+end
+if nargin >= 5 && ~ischar(durfield)
     if nargin >= 6
         varargin = { align varargin{:} };
-    end;
+    end
     align = durfield;
     durfield = '';
 else
     if nargin < 6
         align = 0;
-    end;
-end;
+    end
+end
 
 if nargin < 2 
 	% ask user
 	[filename, filepath] = uigetfile('*.log;*.LOG', 'Choose a Presentation file -- pop_importpres()'); 
     drawnow;
-	if filename == 0 return; end;
+	if filename == 0 return; end
 	filename = [filepath filename];
-end;
+end
 
 fields = loadtxt(filename, 'delim', 9, 'skipline', -2, 'nlines', 1, 'verbose', 'off');
 
@@ -93,13 +104,13 @@ if nargin > 1
     if nargin < 3
         typefield = 'code'; % backward compatibility
         latfield  = 'time';
-    end;
+    end
     indtype  = strmatch(lower(typefield), lower(fields));
     indlat   = strmatch(lower(latfield) , lower(fields));
     if ~isempty(durfield)
          inddur   = strmatch(lower(durfield) , lower(fields));
     else inddur = 0;
-    end;
+    end
 else
     indtype1   = strmatch('event type', lower(fields));
     indtype2   = strmatch('code', lower(fields));
@@ -116,7 +127,7 @@ else
     uigeom = { [2 1] [2 1] [2 1] 1 1 };
     result = inputgui(uigeom, uilist, 'pophelp(''pop_importpres'')', 'Import presentation file - pop_importpres()', ...
                       [], 'normal', [2 2 2 1 1]);
-    if isempty(result), return; end;
+    if isempty(result), return; end
     
     indtype = result{1};
     indlat  = result{2};
@@ -126,14 +137,14 @@ else
     if inddur ~= 0
          durfield  = fields{inddur};
     else durfield  = '';
-    end;
-end;
+    end
+end
 if isempty(indtype)
     error(['Could not detect field ''' typefield ''', try importing the file as ASCII (use delimiter=9 (tab))']);
-end;
+end
 if isempty(indlat)
     error(['Could not detect field ''' latfield ''', try importing the file as ASCII (use delimiter=9 (tab))']);
-end;
+end
 disp(['Replacing field ''' typefield ''' by ''type'' for EEGLAB compatibility']);
 disp(['Replacing field ''' latfield  ''' by ''latency'' for EEGLAB compatibility']);
 fields{indtype} = 'type';
@@ -151,7 +162,7 @@ for index = 1:length(fields)
     indspace = find(fields{index} == ' ');
     fields{index}(indspace) = '_';
     indparen = find(fields{index} == ')');
-    if ~isempty(indparen) & indparen == length(fields{index})
+    if ~isempty(indparen) && indparen == length(fields{index})
         % remove text for parenthesis
         indparen = find(fields{index} == '(');
         if indparen ~= 1
@@ -159,13 +170,13 @@ for index = 1:length(fields)
             fields{index} = fields{index}(1:indparen-1);
         else
             fields{index}(indspace) = '_';
-        end;
+        end
     else
         fields{index}(indspace) = '_';
         indparen = find(fields{index} == '(');
         fields{index}(indspace) = '_';
-    end;
-end;
+    end
+end
 
 % find if uncertainty is duplicated
 % ---------------------------------
@@ -173,17 +184,17 @@ induncert  = strmatch('uncertainty', lower(fields), 'exact');
 if length(induncert) > 1
     fields{induncert(2)}= 'Uncertainty2';
     disp('Renaming second ''Uncertainty'' field');
-end;
+end
 
 % import file
 % -----------
-if isempty(EEG.event), align = NaN; end;
+if isempty(EEG.event), align = NaN; end
 
 %EEG = pop_importevent(EEG, 'append', 'no', 'event', filename, 'timeunit', 1E-4, 'skipline', -3, ...
 %                           'delim', 9, 'align', align, 'fields', fields, varargin{:});
 EEG = pop_importevent(EEG, 'event', filename, 'timeunit', 1E-4, 'skipline', -3, ...
                            'delim', 9, 'align', align, 'fields', fields, varargin{:});
 
-command = sprintf('EEG = pop_importpres(%s, %s);', inputname(1), vararg2str({ filename typefield latfield durfield align })); 
+command = sprintf('EEG = pop_importpres(EEG, %s);', vararg2str({ filename typefield latfield durfield align })); 
 
 return;

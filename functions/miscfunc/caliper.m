@@ -33,19 +33,30 @@
 
 % Copyright (C) 11/2000 Scott Makeig & Marissa Westerfield,, SCCN/INC/UCSD 
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % Edit History:
 % 12/05/00 -- added fig showing data, ref activation, and window vector -mw
@@ -66,11 +77,11 @@ end
 nchans = size(newepoch,1);
 ntimes = size(newepoch,2);
 
-if compnums(1) == 0 | isempty(compnums(1)) 
+if compnums(1) == 0 || isempty(compnums(1)) 
    compnums = 1:nchans;
 end
 
-if min(compnums) < 1 | max(compnums) > size(weights,2)
+if min(compnums) < 1 || max(compnums) > size(weights,2)
    help caliper
    return
 end
@@ -80,7 +91,7 @@ if nargin<5
 else
   if isempty(filtnums)
       filtnums = [];
-  elseif length(filtnums)==1 & filtnums(1)==0
+  elseif length(filtnums)==1 && filtnums(1)==0
      filtnums = [];
   elseif length(filtnums) ~= 3
      fprintf('\ncaliper(): filter parameters (filtnums) must have length 3.\n')
@@ -88,7 +99,7 @@ else
   end
 end
 
-if nargin< 6  | isempty(times) | (length(times)==1 & times(1)==0)
+if nargin< 6  || isempty(times) || (length(times)==1 && times(1)==0)
   times = 0:ntimes-1;
 else
   if length(times) ~= ntimes
@@ -171,7 +182,7 @@ for c=compnums
     amps = [amps winvrms(c)*sum(refact(n,:).*newact(n,:))];
   end
   n = n+1;
-  if ~noplot & n <= 4  %%% only plot out at most the first 3 components
+  if ~noplot && n <= 4  %%% only plot out at most the first 3 components
      refproj = icaproj(refepoch,weights,c);
      refproj = env(refproj);
      windproj = winv(:,c)*(refact(n-1,:)*refnorm);

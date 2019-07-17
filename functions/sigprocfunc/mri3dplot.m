@@ -57,19 +57,30 @@
 % Copyright (C) Arnaud Delorme, sccn, INC, UCSD, 2003-
 % 03/29/2013 Makoto. Line 370 added to avoid negative matrix indices.
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [smoothprob3d, mriplanes] = mri3dplot(prob3d, mri, varargin)
 
@@ -78,13 +89,13 @@ function [smoothprob3d, mriplanes] = mri3dplot(prob3d, mri, varargin)
     if nargin < 1
         help mri3dplot;
         return;
-    end;
+    end
 
     DEFAULT_SPACING = 11;     % default MR slice interval (in mm)
     translucency    = 0.5;    % default alpha value
     mri_lim         = 85;     % +/- axis limits of MNI head image
     
-    g = finputcheck( varargin, { 'mriview'   { 'string','cell' }  { { 'sagital','axial','coronal','top','side','rear' } {} }   'top';
+    g = finputcheck( varargin, { 'mriview'   { 'string','cell' 'real' }  { { 'sagital','axial','coronal','top','side','rear' } {} [] }   'top';
                         'mixmode'   'string'   { 'add','overwrite','min' }     'add';
                         'mrislices' 'float'    []                        [];
                         'view'      'float'    []                        [];
@@ -100,16 +111,16 @@ function [smoothprob3d, mriplanes] = mri3dplot(prob3d, mri, varargin)
                         'kernel'    'float'    []                        0; 
                         'addrow'    'integer'  []                        0;
                         'fighandle' 'integer'  []                        []});
-    if isstr(g), error(g); end;
-    if isstr(g.mriview) == 1, g.plotintersect = 'off'; end;
+    if ischar(g), error(g); end
+    if ischar(g.mriview) == 1, g.plotintersect = 'off'; end
     if strcmpi(g.mriview,'sagittal'),    g.mriview = 'side'; 
     elseif strcmpi(g.mriview,'axial'),   g.mriview = 'top'; 
     elseif strcmpi(g.mriview,'coronal'), g.mriview = 'rear';
-    end;
+    end
     if strcmpi(g.subplot, 'on') % plot colorbar
         g.cbar = 'off';
-    end;
-    if isstr(mri)
+    end
+    if ischar(mri)
          try, 
             mri = load('-mat', mri);
             mri = mri.mri;
@@ -127,19 +138,19 @@ function [smoothprob3d, mriplanes] = mri3dplot(prob3d, mri, varargin)
                 warning on;
             catch,
                 error('Cannot load file using read_fcdc_mri');
-            end;
-         end;
-    end;
+            end
+         end
+    end
     
     % normalize prob3d for 1 to ncolors and create 3-D dim
     % ----------------------------------------------------
-    if ~iscell(prob3d), prob3d = { prob3d }; end;
+    if ~iscell(prob3d), prob3d = { prob3d }; end
     if length(prob3d) > 1
-        if isempty(g.cmax), g.cmax = max(max(prob3d{1}(:)),max(prob3d{2}(:))); end;
+        if isempty(g.cmax), g.cmax = max(max(prob3d{1}(:)),max(prob3d{2}(:))); end
         [newprob3d{1}] = prepare_dens(prob3d{1}, g, 'abscolor');
         [newprob3d{2}] = prepare_dens(prob3d{2}, g, 'abscolor');
     else
-        if isempty(g.cmax), g.cmax = max(prob3d{1}(:)); end;
+        if isempty(g.cmax), g.cmax = max(prob3d{1}(:)); end
         [newprob3d{1} maxdens1] = prepare_dens(prob3d{1}, g, 'usecmap');
     end;    
     fprintf('Brightest color denotes a density of: %1.6f (presumed unit: dipoles/cc)\n', g.cmax);
@@ -148,13 +159,13 @@ function [smoothprob3d, mriplanes] = mri3dplot(prob3d, mri, varargin)
     % ---------------
     if isempty(g.mrislices), 
         g.mrislices = linspace(-50, 50, DEFAULT_SPACING); 
-    end;
+    end
     
-    if strcmpi(g.cbar, 'on'), add1 = 1; else add1 = 0; end;
+    if strcmpi(g.cbar, 'on'), add1 = 1; else add1 = 0; end
     if isempty(g.geom), 
         g.geom = ceil(sqrt(length(g.mrislices)+add1)); 
         g.geom(2) = ceil((length(g.mrislices)+add1)/g.geom)+g.addrow;
-    end;
+    end
 
     if strcmpi(g.subplot, 'off')
         if isempty(g.fighandle)
@@ -166,7 +177,7 @@ function [smoothprob3d, mriplanes] = mri3dplot(prob3d, mri, varargin)
         
         pos = get(fig, 'position');
         set(fig, 'position', [ pos(1)+15 pos(2)+15 pos(3)/4*g.geom(1) pos(4)/3*g.geom(2) ]);
-    end;
+    end
     
     disp('Plotting...');
     
@@ -174,7 +185,7 @@ function [smoothprob3d, mriplanes] = mri3dplot(prob3d, mri, varargin)
     if ~iscell( g.mriview )
         g.mriview = { g.mriview };
         g.mriview(2:length( g.mrislices )) = g.mriview(1);
-    end;
+    end
     
     newprob3dori = newprob3d;
     for index = 1:length( g.mrislices ) %%%%%%% for each plotted MR image slice %%%%%%%%
@@ -188,23 +199,23 @@ function [smoothprob3d, mriplanes] = mri3dplot(prob3d, mri, varargin)
                     case 'side', coord = [  g.mrislices(index2) 0 0 1 ]; 
                     case 'top' , coord = [  0 0 g.mrislices(index2) 1 ]; 
                     case 'rear', coord = [  0 g.mrislices(index2) 0 1 ]; 
-                end;
+                end
                 coord = round( pinv(mri.transform)*coord' )';
                 for i = 1:length(newprob3d)
                     switch g.mriview{index2}
                      case 'side', newprob3d{i}(  coord(1), :, :, :) = 0;
                      case 'top' , newprob3d{i}(  :, :, coord(3), :) = 0;
                      case 'rear', newprob3d{i}(  :, coord(2), :, :) = 0;
-                    end;
-                end;
-            end;
-        end;
+                    end
+                end
+            end
+        end
 
         % create axis if necessary
         % ------------------------
         if strcmpi(g.subplot, 'off')
             mysubplot(g.geom(1), g.geom(2), index); % get an image slice axis
-        end;
+        end
         
         % find coordinate
         % ---------------
@@ -212,7 +223,7 @@ function [smoothprob3d, mriplanes] = mri3dplot(prob3d, mri, varargin)
          case 'side', coord = [  g.mrislices(index) 0 0 1 ]; 
          case 'top' , coord = [  0 0 g.mrislices(index) 1 ]; 
          case 'rear', coord = [  0 g.mrislices(index) 0 1 ]; 
-        end;
+        end
         
         coord = round( pinv(mri.transform)*coord' )';
         
@@ -222,7 +233,7 @@ function [smoothprob3d, mriplanes] = mri3dplot(prob3d, mri, varargin)
          case 'side', mriplot  = squeeze( mri.anatomy(coord(1), :, :) );
          case 'top' , mriplot  = squeeze( mri.anatomy(:, :, coord(3)) );
          case 'rear', mriplot  = squeeze( mri.anatomy(:, coord(2), :) );
-        end;
+        end
 
         mriplot(:,:,2) = mriplot(:,:,1);
         mriplot(:,:,3) = mriplot(:,:,1);
@@ -235,9 +246,9 @@ function [smoothprob3d, mriplanes] = mri3dplot(prob3d, mri, varargin)
              case 'side', densplot{i} = squeeze( newprob3d{i}(coord(1), :, :, :) );
              case 'top' , densplot{i} = squeeze( newprob3d{i}(:, :, coord(3), :) );
              case 'rear', densplot{i} = squeeze( newprob3d{i}(:, coord(2), :, :) );
-            end;
+            end
             densplot{i} = rotatemat( densplot{i}, g.rotate );
-        end;
+        end
   
         if isa(mriplot, 'uint8')
             % check if densplot is in uint8
@@ -267,7 +278,7 @@ function [smoothprob3d, mriplanes] = mri3dplot(prob3d, mri, varargin)
                 end
             end
             clear dlen checkval testint
-        end;
+        end
         
         if length(densplot) == 1
             densplot = densplot{1};
@@ -282,7 +293,7 @@ function [smoothprob3d, mriplanes] = mri3dplot(prob3d, mri, varargin)
             elseif strcmpi(g.mixmode, 'min')
                 densplot(isnan(densplot)) = 0; % do not plot colors outside the brain, as indicated by NaNs
                 mriplot  = min(mriplot, densplot); % min
-            end;
+            end
             clear densplot;
         else
             densplot{1}(isnan(densplot{1})) = 0; % do not plot colors outside the brain, as indicated by NaNs
@@ -299,8 +310,8 @@ function [smoothprob3d, mriplanes] = mri3dplot(prob3d, mri, varargin)
             else
                 mriplot(:,:,1) = max(mriplot(:,:,1), densplot{1}); % min
                 mriplot(:,:,2) = max(mriplot(:,:,2), densplot{2}); % min
-            end;
-        end;
+            end
+        end
         mriplanes{index} = mriplot;
         
         imagesc(mriplot); % plot [background MR image + density image]
@@ -317,10 +328,10 @@ function [smoothprob3d, mriplanes] = mri3dplot(prob3d, mri, varargin)
         %              [1 1; 1 1], densplot, options{:});
 
         axis equal;
-        if ~isempty(g.view), view(g.view); end;
+        if ~isempty(g.view), view(g.view); end
         tit = title( [ int2str(g.mrislices(index)) ' mm' ]);
-        if strcmpi(g.subplot, 'off'), set(tit, 'color', 'w'); end;
-    end;
+        if strcmpi(g.subplot, 'off'), set(tit, 'color', 'w'); end
+    end
     
     % plot colorbar
     % -------------
@@ -339,12 +350,12 @@ function [smoothprob3d, mriplanes] = mri3dplot(prob3d, mri, varargin)
             tmpmap = g.cmap/2 + ones(size(g.cmap))/4;  % restrict range to [1/4, 3/4] of cmap
         else
             tmpmap = g.cmap; %g.cmap/2 + ones(size(g.cmap))/4;  % restrict range to [1/4, 3/4] of cmap
-        end;
+        end
         colormap(tmpmap);
         cbar(h, [1:length(g.cmap)], [g.cmin g.cmax]);
         box off;
         set(h, 'ycolor', [0.7 0.7 0.7]);
-    end;
+    end
     
     fprintf('\n');
     if exist('fig') == 1 
@@ -352,37 +363,37 @@ function [smoothprob3d, mriplanes] = mri3dplot(prob3d, mri, varargin)
             set(fig,'color', g.cmap(1,:)/2);
         else
             set(fig,'color', [0.0471 0.0471 0.0471]/1.3);
-        end;
-    end;
+        end
+    end
 return;
 
 function mat = rotatemat(mat, angle);
 
-    if angle == 0, return; end;
+    if angle == 0, return; end
     if ndims(mat) == 2
-        if angle >= 90,  mat = rot90(mat); end;
-        if angle >= 180, mat = rot90(mat); end;
-        if angle >= 270, mat = rot90(mat); end;
+        if angle >= 90,  mat = rot90(mat); end
+        if angle >= 180, mat = rot90(mat); end
+        if angle >= 270, mat = rot90(mat); end
     else
         if angle >= 90,
             newmat(:,:,1) = rot90(mat(:,:,1));
             newmat(:,:,2) = rot90(mat(:,:,2));
             newmat(:,:,3) = rot90(mat(:,:,3));
             mat = newmat;
-        end;
+        end
         if angle >= 180,
             newmat(:,:,1) = rot90(mat(:,:,1));
             newmat(:,:,2) = rot90(mat(:,:,2));
             newmat(:,:,3) = rot90(mat(:,:,3));
             mat = newmat;
-        end;
+        end
         if angle >= 270,
             newmat(:,:,1) = rot90(mat(:,:,1));
             newmat(:,:,2) = rot90(mat(:,:,2));
             newmat(:,:,3) = rot90(mat(:,:,3));
             mat = newmat;
-        end;
-    end;
+        end
+    end
     
 function [newprob3d maxdens] = prepare_dens(prob3d, g, col);
 
@@ -390,7 +401,7 @@ function [newprob3d maxdens] = prepare_dens(prob3d, g, col);
         disp('Smoothing...');
         smoothprob3d    = smooth3(prob3d, 'gaussian', g.kernel);
         prob3d          = smoothprob3d;
-    end;
+    end
 
     maxdens = max(prob3d(:));
     ncolors = size(g.cmap,1);
@@ -409,7 +420,7 @@ function [newprob3d maxdens] = prepare_dens(prob3d, g, col);
         tmp = g.cmap(prob3d,1); newprob3d(:,:,:,1) = reshape(tmp, size(prob3d));
         tmp = g.cmap(prob3d,2); newprob3d(:,:,:,2) = reshape(tmp, size(prob3d));
         tmp = g.cmap(prob3d,3); newprob3d(:,:,:,3) = reshape(tmp, size(prob3d));
-    end;
+    end
     
 function h = mysubplot(geom1, geom2, coord);
     

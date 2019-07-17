@@ -130,19 +130,30 @@
 
 % Copyright (C) 2002 Arnaud Delorme, Salk Institute, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [crossfcoh, timesout1, freqs1, freqs2, cohboot, alltfX, alltfY] = ...
         crossfreq(X, Y, srate, varargin);
@@ -150,12 +161,12 @@ function [crossfcoh, timesout1, freqs1, freqs2, cohboot, alltfX, alltfY] = ...
 if nargin < 1
     help crossfreq; 
     return; 
-end;
+end
 
 % deal with 3-D inputs
 % --------------------
-if ndims(X) == 3, X = reshape(X, size(X,2), size(X,3)); end;
-if ndims(Y) == 3, Y = reshape(Y, size(Y,2), size(Y,3)); end;
+if ndims(X) == 3, X = reshape(X, size(X,2), size(X,3)); end
+if ndims(Y) == 3, Y = reshape(Y, size(Y,2), size(Y,3)); end
 frame = size(X,2);
 
 g = finputcheck(varargin, ...
@@ -187,12 +198,12 @@ g = finputcheck(varargin, ...
                   'wavelet2'      'real'     [0 Inf]                   [];
                   'winsize'       'integer'  [0 Inf]                   max(pow2(nextpow2(frame)-3),4) }, 'crossfreq');
 
-if isstr(g), error(g); end;
+if ischar(g), error(g); end
 
 % more defaults
 % -------------
-if isempty(g.wavelet2), g.wavelet2 = g.wavelet; end;
-if isempty(g.freqs2),   g.freqs2   = g.freqs;   end;
+if isempty(g.wavelet2), g.wavelet2 = g.wavelet; end
+if isempty(g.freqs2),   g.freqs2   = g.freqs;   end
 
 % remove ERP if necessary
 % -----------------------
@@ -202,7 +213,7 @@ trials = size(X,2);
 if strcmpi(g.rmerp, 'on')
     X = X - repmat(mean(X,2), [1 trials]);
     Y = Y - repmat(mean(Y,2), [1 trials]);
-end;
+end
 
 % perform timefreq decomposition
 % ------------------------------
@@ -224,24 +235,24 @@ if ~isempty(g.subwin)
     alltfY    = alltfY(:, ind2, :);
     timesout1 = timesout1(ind1);
     timesout2 = timesout2(ind2);
-end;
-if length(timesout1) ~= length(timesout2) | any( timesout1 ~= timesout2)
+end
+if length(timesout1) ~= length(timesout2) || any( timesout1 ~= timesout2)
     disp('Warning: Time points are different for X and Y. Use ''timesout'' to specify common time points');
     disp('Searching for common points');
     [vals ind1 ind2 ] = intersect_bc(timesout1, timesout2);
-    if length(vals) < 10, error('Less than 10 common data points'); end;
+    if length(vals) < 10, error('Less than 10 common data points'); end
     timesout1 = vals;
     timesout2 = vals;
     alltfX = alltfX(:, ind1, :);
     alltfY = alltfY(:, ind2, :);
-end;
+end
 
 % scan accross frequency and time
 % -------------------------------
 if isempty(g.alpha)
     disp('Warning: if significance mask is not applied, result might be slightly')
     disp('different (since angle is not made uniform and amplitude interpolated)')
-end;
+end
 
 cohboot =[];
 for find1 = 1:length(freqs1)
@@ -270,11 +281,11 @@ for find1 = 1:length(freqs1)
                 else
                     tmp = corrcoef( cos(tmpalltfy), tmpalltfx);
                     crossfcoh(find1,find2,ti) = tmp(2);
-                end;
-            end;
-        end;
-    end;
-end;
+                end
+            end
+        end
+    end
+end
 
     
 

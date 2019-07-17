@@ -16,7 +16,9 @@
 %                 clustering. The 'kmeans' options requires the statistical toolbox. The
 %                 'kmeanscluster' option is included in EEGLAB. The 'Neural Network' 
 %                  option requires the Matlab Neural Net toolbox {default: 'kmeans'} 
-%   'clus_num'  - [integer] the number of desired clusters (must be > 1) {default: 20}
+%   'clus_num'  - [integer] the number of desired clusters (must be > 1)
+%                 {default: 20}. Not neccesary when using Affinity Propagation algorithm 
+%   'maxiter'   - maximun numer of iterations when using Affinity Propagation algorithm 
 %   'outliers'  - [integer] identify outliers further than the given number of standard
 %                 deviations from any cluster centroid. Inf --> identify no such outliers.
 %                 {default: Inf from the command line; 3 for 'kmeans' from the pop window}
@@ -42,19 +44,30 @@
 
 % Copyright (C) Hilit Serby, SCCN, INC, UCSD, October 11, 2004, hilit@sccn.ucsd.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % Coding notes: Useful information on functions and global variables used.
 
@@ -64,25 +77,25 @@ command = '';
 if nargin < 2
     help pop_clust;
     return;
-end;
+end
 
 if isempty(STUDY.etc)
     error('No pre-clustering information, pre-cluster first!');
-end;
+end
 if ~isfield(STUDY.etc, 'preclust')
     error('No pre-clustering information, pre-cluster first!');
-end;
+end
 if isempty(STUDY.etc.preclust)
     error('No pre-clustering information, pre-cluster first!');
-end;
+end
 
-% check that the path to the stat toolbox comes first (conflict
-% with Fieldtrip)
-kmeansPath = fileparts(which('kmeans'));
-if ~isempty(kmeansPath)
+% Check that path to the stats toolbox comes first (conflict with Fieldtrip)
+flagstats = strcmp(regexp(which('kmeans'), '(?<=[\\/]toolbox[\\/])[^\\/]+', 'match', 'once'),'stats');
+if ~flagstats
+    kmeansPath = fileparts(which('kmeans'));
     rmpath(kmeansPath);
     addpath(kmeansPath);
-end;
+end
         
 if isempty(varargin) %GUI call
     
@@ -95,40 +108,44 @@ if isempty(varargin) %GUI call
         rmindex = [2:length(STUDY.cluster)];
     else
         for index = 2:length(STUDY.cluster)
-            if strcmpi(STUDY.cluster(index).parent{1}, nameclustbase) & ~strncmpi('Notclust',STUDY.cluster(index).name,8)
+            if strcmpi(STUDY.cluster(index).parent{1}, nameclustbase) && ~strncmpi('Notclust',STUDY.cluster(index).name,8)
                 rmindex = [ rmindex index ];
-            end;
+            end
         end;        
-    end;
+    end
     
-    if length(STUDY.cluster) > 2 & ~isempty(rmindex)
+    if length(STUDY.cluster) > 2 && ~isempty(rmindex)
         resp = questdlg2('Clustering again will delete the last clustering results', 'Warning', 'Cancel', 'Ok', 'Ok');
-        if strcmpi(resp, 'cancel'), return; end;
-    end;
+        if strcmpi(resp, 'cancel'), return; end
+    end
     
-	alg_options = {'Kmeans (stat. toolbox)' 'Neural Network (stat. toolbox)' 'Kmeanscluster (no toolbox)' }; %'Hierarchical tree' 
+	alg_options = {'Kmeans (stat. toolbox)' 'Neural Network (stat. toolbox)' 'Kmeanscluster (no toolbox)' 'Affinity Propagation' }; %'Hierarchical tree' 
 	set_outliers = ['set(findobj(''parent'', gcbf, ''tag'', ''outliers_std''), ''enable'', fastif(get(gcbo, ''value''), ''on'', ''off''));'...
                             'set(findobj(''parent'', gcbf, ''tag'', ''std_txt''), ''enable'', fastif(get(gcbo, ''value''), ''on'', ''off''));']; 
-	algoptions = [ 'set(findobj(''parent'', gcbf, ''userdata'', ''kmeans''), ''enable'', fastif(get(gcbo, ''value'')==1, ''on'', ''off''));' ];
-	saveSTUDY = [ 'set(findobj(''parent'', gcbf, ''userdata'', ''save''), ''enable'', fastif(get(gcbo, ''value'')==1, ''on'', ''off''));' ];
+                        
+	algoptions = [ 'set(findobj(''parent'', gcbf, ''userdata'', ''kmeans''), ''enable'', fastif(get(gcbo, ''value'')==1, ''on'', ''off''));' ...
+                  'if  get(findobj(''parent'', gcbf, ''tag'', ''clust_algorithm''),''value'') == 4 ;'...
+                  'set(findobj(''parent'', gcbf, ''tag'', ''clust_num''), ''enable'', ''off''); else; set(findobj(''parent'', gcbf, ''tag'', ''clust_num''), ''enable'', ''on''); end;'];
+	
+    saveSTUDY = [ 'set(findobj(''parent'', gcbf, ''userdata'', ''save''), ''enable'', fastif(get(gcbo, ''value'')==1, ''on'', ''off''));' ];
 	browsesave = [ '[filename, filepath] = uiputfile2(''*.study'', ''Save STUDY with .study extension -- pop_clust()''); ' ... 
                       'set(findobj(''parent'', gcbf, ''tag'', ''studyfile''), ''string'', [filepath filename]);' ];
-    if ~exist('kmeans'), valalg = 3; else valalg = 1; end;
+    if ~exist('kmeans'), valalg = 3; else valalg = 1; end
                   
     strclust = '';
     if STUDY.etc.preclust.clustlevel > length(STUDY.cluster)
         STUDY.etc.preclust.clustlevel = 1;
-    end;
+    end
     if STUDY.etc.preclust.clustlevel == 1
         strclust = [ 'Performing clustering on cluster ''' STUDY.cluster(STUDY.etc.preclust.clustlevel).name '''' ];
     else
         strclust = [ 'Performing sub-clustering on cluster ''' STUDY.cluster(STUDY.etc.preclust.clustlevel).name '''' ];
-    end;
+    end
     
     numClust = ceil(mean(cellfun(@length, { STUDY.datasetinfo.comps })));
     if numClust > 2, numClustStr = num2str(numClust);
     else             numClustStr = '10';
-    end;
+    end
     
 	clust_param = inputgui( { [1] [1] [1 1] [1 0.5 0.5 ] [ 1 0.5 0.5 ] }, ...
 	{ {'style' 'text'       'string' strclust 'fontweight' 'bold'  } {} ...
@@ -148,10 +165,10 @@ if isempty(varargin) %GUI call
             fprintf('Removing child clusters of ''%s''...\n', nameclustbase);
             STUDY.cluster(rmindex)          = [];
             STUDY.cluster(clustlevel).child = [];
-            if clustlevel == 1 & length(STUDY.cluster) > 1
+            if clustlevel == 1 && length(STUDY.cluster) > 1
                 STUDY.cluster(1).child = { STUDY.cluster(2).name }; % "Notclust" cluster
-            end;
-        end;
+            end
+        end
         
         clus_alg = alg_options{clust_param{1}};
         clus_num = str2num(clust_param{2});
@@ -163,12 +180,15 @@ if isempty(varargin) %GUI call
             clustdata = STUDY.etc.preclust.preclustdata;
         catch
             error('Error accesing preclustering data. Perform pre-clustering.');
-        end;
+        end
         command = '[STUDY] = pop_clust(STUDY, ALLEEG,';
         
-        if ~isempty(findstr(clus_alg, 'Kmeanscluster')), clus_alg = 'kmeanscluster'; end;
-        if ~isempty(findstr(clus_alg, 'Kmeans ')), clus_alg = 'kmeans'; end;
-        if ~isempty(findstr(clus_alg, 'Neural ')), clus_alg = 'neural network'; end;
+        if ~isempty(findstr(clus_alg, 'Kmeanscluster')), clus_alg = 'kmeanscluster'; end
+        if ~isempty(findstr(clus_alg, 'Kmeans ')), clus_alg = 'kmeans'; end
+        if ~isempty(findstr(clus_alg, 'Neural ')), clus_alg = 'neural network'; end
+        
+        % Cleaning cache
+        STUDY.cache = [];
         
         disp('Clustering ...');
         
@@ -185,7 +205,7 @@ if isempty(varargin) %GUI call
                     else
                         %[IDX,C,sumd,D] = kmeanscluster(clustdata,clus_num);
                         [C,IDX,sumd] =kmeans_st(real(clustdata),clus_num,150);
-                    end;
+                    end
                     [STUDY] = std_createclust(STUDY, ALLEEG, 'clusterind', IDX, 'algorithm', {'Kmeans', clus_num});
                 end    
          case 'Hierarchical tree'
@@ -195,6 +215,12 @@ if isempty(varargin) %GUI call
              [IDX,C] = neural_net(clustdata,clus_num);
              [STUDY] = std_createclust(STUDY, ALLEEG, 'clusterind', IDX, 'algorithm',  {'Neural Network', clus_num});
              command = sprintf('%s %s %d %s', command, '''algorithm'', ''Neural Network'',''clus_num'', ', clus_num, ',');
+             
+         case 'Affinity Propagation'
+             command = sprintf('%s %s%s%s %d %s', command, '''algorithm'',''Affinity Propagation'',');
+             plugin_askinstall('limo_eeg', 'apcluster');
+             [IDX,C,sumd] = std_apcluster(clustdata,'maxits',200);
+             [STUDY]      = std_createclust(STUDY, ALLEEG, 'clusterind', IDX, 'algorithm', {'Affinity Propagation',size(C,1)});
         end
         disp('Done.');
         
@@ -208,7 +234,7 @@ if isempty(varargin) %GUI call
                 STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', [filename ext], 'filepath', filepath);
               else
                 command(end:end+1) = ');';
-                if (~isempty(STUDY.filename)) & (~isempty(STUDY.filepath))
+                if (~isempty(STUDY.filename)) && (~isempty(STUDY.filepath))
                     STUDY = pop_savestudy(STUDY, ALLEEG, 'filename', STUDY.filename, 'filepath', STUDY.filepath);
                 else
                     STUDY = pop_savestudy(STUDY, ALLEEG);
@@ -218,11 +244,10 @@ if isempty(varargin) %GUI call
            command(end:end+1) = ');';
         end
            
-       % Call menu to plot clusters (use EEGLAB menu which include
-       % std_envtopo) - this crashed the hisotry
-       %eval( [ get(findobj(findobj('tag', 'EEGLAB'), 'Label', 'Edit/plot clusters'), 'callback') ] );
-       [STUDY LASTCOM] = pop_clustedit(STUDY, ALLEEG); 
-       command = [ command LASTCOM ];
+       % Call menu to plot clusters (use EEGLAB menu which include std_envtopo)
+       LASTCOM = command;
+       eval([ get(findobj(findobj('tag', 'EEGLAB'), 'Label', 'Edit/plot clusters'), 'callback') ] );
+       %[STUDY com] = pop_clustedit(STUDY, ALLEEG); 
 	end
     
 else %command line call
@@ -235,27 +260,28 @@ else %command line call
         rmindex = [2:length(STUDY.cluster)];
     else
         for index = 2:length(STUDY.cluster)
-            if strcmpi(STUDY.cluster(index).parent{1}, nameclustbase) & ~strncmpi('Notclust',STUDY.cluster(index).name,8)
+            if strcmpi(STUDY.cluster(index).parent{1}, nameclustbase) && ~strncmpi('Notclust',STUDY.cluster(index).name,8)
                 rmindex = [ rmindex index ];
-            end;
+            end
         end;        
-    end;
+    end
     if ~isempty(rmindex)
         fprintf('Removing child clusters of ''%s''...\n', nameclustbase);
         STUDY.cluster(rmindex)          = [];
         STUDY.cluster(clustlevel).child = [];
-        if clustlevel == 1 & length(STUDY.cluster) > 1
+        if clustlevel == 1 && length(STUDY.cluster) > 1
             STUDY.cluster(1).child = { STUDY.cluster(2).name }; % "Notclust" cluster
-        end;
-    end;
+        end
+    end
 
     %default values
     algorithm = 'kmeans';
-    clus_num = 20;
-    save = 'off';
+    clus_num  = 20;
+    save     = 'off';
     filename = STUDY.filename;
     filepath = STUDY.filepath;
     outliers = Inf; % default std is Inf - no outliers
+    maxiter  = 200;
     
     if mod(length(varargin),2) ~= 0
         error('pop_clust(): input variables must be specified in pairs: keywords, values');
@@ -264,17 +290,19 @@ else %command line call
     for k = 1:2:length(varargin)
         switch(varargin{k})
             case 'algorithm'
-                algorithm = varargin{k+1};
+                algorithm  = varargin{k+1};
             case 'clus_num'
-                clus_num = varargin{k+1};
+                clus_num   = varargin{k+1};
             case 'outliers'
-                outliers =  varargin{k+1};                
+                outliers   =  varargin{k+1};                
             case 'save'
-                save = varargin{k+1};
+                save       = varargin{k+1};
             case 'filename' 
-                filename = varargin{k+1};
+                filename   = varargin{k+1};
             case 'filepath'
-                filepath = varargin{k+1};
+                filepath   = varargin{k+1};
+            case 'maxiter' 
+                maxiter    = varargin{k+1};
         end
     end    
     if clus_num < 2
@@ -289,7 +317,7 @@ else %command line call
                     [IDX,C,sumd,D] = kmeans(clustdata,clus_num,'replicates',10,'emptyaction','drop');
                 else
                     [IDX,C,sumd,D] = kmeanscluster(clustdata,clus_num);
-                end;
+                end
                 [STUDY] = std_createclust(STUDY, ALLEEG, 'clusterind', IDX, 'algorithm', {'Kmeans', clus_num});
             else
                 [IDX,C,sumd,D,outliers] = robust_kmeans(clustdata,clus_num,outliers,5, algorithm);
@@ -298,13 +326,16 @@ else %command line call
         case 'neural network'
             [IDX,C] = neural_net(clustdata,clus_num);
             [STUDY] = std_createclust(STUDY, ALLEEG, 'clusterind', IDX, 'algorithm',  {'Neural Network', clus_num});
+        case 'Affinity Propagation'           
+             [IDX,C,sumd] = std_apcluster(clustdata,'maxits',maxiter);
+             [STUDY]      = std_createclust(STUDY, ALLEEG, 'clusterind', IDX, 'algorithm', {'Affinity Propagation',size(C,1)});
         otherwise
             disp('pop_clust: unknown algorithm return');
             return
     end
             % If save updated STUDY to disk
     if strcmpi(save,'on')
-        if (~isempty(STUDY.filename)) & (~isempty(STUDY.filepath))
+        if (~isempty(STUDY.filename)) && (~isempty(STUDY.filepath))
             STUDY = pop_savestudy(STUDY, 'filename', STUDY.filename, 'filepath', STUDY.filepath);
         else
             STUDY = pop_savestudy(STUDY);

@@ -17,25 +17,36 @@
 
 % Copyright (C) Arnaud Delorme, CERCO, CNRS, arno@salk.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 function [STUDY, ALLEEG, com] = pop_precomp(varargin)
 
 com = '';
 
-if ~isstr(varargin{1}) %intial settings
+if ~ischar(varargin{1}) %intial settings
     if length(varargin) < 2
         error('pop_precomp(): needs both ALLEEG and STUDY structures');
     end
@@ -45,8 +56,8 @@ if ~isstr(varargin{1}) %intial settings
     if nargin > 2
         if strcmpi(varargin{3}, 'components')
             comps = true;
-        end;
-    end;
+        end
+    end
     
     if isempty(ALLEEG)
         error('STUDY contains no datasets');
@@ -74,9 +85,8 @@ if ~isstr(varargin{1}) %intial settings
     
     geomline = [0.35 6];
     if comps == true
-        str_name       = sprintf('Pre-compute component measures for STUDY ''%s'' - ''%s''', ...
-                         STUDY.name, STUDY.design(STUDY.currentdesign).name);
-        if length(str_name) > 80, str_name = [ str_name(1:80) '...' ]; end;
+        str_name       = sprintf('Pre-compute component measures for STUDY ''%s''', STUDY.name);
+        if length(str_name) > 80, str_name = [ str_name(1:80) '...' ]; end
         guiadd1 = { {'style' 'checkbox'   'string' '' 'tag' 'compallersp' 'value' 1 }  ...
                     {'style' 'text'       'string' 'Compute ERP/spectrum/ERSP only for components selected by RV (set) or for all components (unset)' } };
         guiadd2 = { {'style' 'checkbox'   'string' '' 'tag' 'scalp_on' 'value' 0 }  ...
@@ -85,14 +95,9 @@ if ~isstr(varargin{1}) %intial settings
         geomvertadd1 = [ 1 ];
         geomadd2     = { geomline };
     else
-        str_name       = sprintf('Pre-compute channel measures for STUDY ''%s'' - ''%s''', ...
-                         STUDY.name, STUDY.design(STUDY.currentdesign).name);
-        if length(str_name) > 80, str_name = [ str_name(1:80) '...''' ]; end;
-        guiadd1  = { {'style' 'text'       'string' 'Channel list (default:all)' 'FontWeight' 'Bold'} ...
-            {'Style' 'edit'       'string' '' 'tag' 'chans' 'callback' chaneditbox 'enable' 'off' }, ...
-            {'style' 'pushbutton' 'string'  '...', 'enable' fastif(isempty(ALLEEG(1).chanlocs), 'off', 'on') ...
-            'callback' chanlist }, ...
-            {'style' 'checkbox'   'string' '' 'tag' 'interpolate_on' 'value' 1 'callback' warninterp }  ...
+        str_name       = sprintf('Pre-compute channel measures for STUDY ''%s''', STUDY.name);
+        if length(str_name) > 80, str_name = [ str_name(1:80) '...''' ]; end
+        guiadd1  = { {'style' 'checkbox'   'string' '' 'tag' 'interpolate_on' 'value' 1 'callback' warninterp }  ...
             {'style' 'text'       'string' 'Spherical interpolation of missing channels (performed after optional ICA removal below)' } ...
             {'style' 'checkbox'   'string' ' ' 'tag' 'rmica1_on' 'value' 0 'callback' cb_ica1 }  ...
             {'style' 'text'       'string' 'Remove ICA artifactual components pre-tagged in each dataset' } ...
@@ -100,14 +105,13 @@ if ~isstr(varargin{1}) %intial settings
             {'style' 'text'       'string' [ 'Remove artifactual ICA cluster or clusters (hold shift key)' 10 ' ' ] } ...
             {'style' 'listbox'    'string' { STUDY.cluster.name } 'value' 1 'max' 2  'tag' 'rmica2_val'} };
         guiadd2 = {};
-        geomadd1 = { [2 3 0.5] geomline geomline [0.35 4 2] }; 
-        geomvertadd1 = [ 1 1 1 2 ];
+        geomadd1 = { geomline geomline [0.35 4 2] }; 
+        geomvertadd1 = [ 1 1 2 ];
         geomadd2 = { };
-    end;
+    end
             
     gui_spec = { ...
-    {'style' 'text'       'string' str_name 'FontWeight' 'Bold' 'horizontalalignment' 'left'}, ...
-    {'style' 'text'       'string' '(warning: define your STUDY designs first as precomputation is specific to a given STUDY design)' } {}, ...
+    {'style' 'text'       'string' str_name 'FontWeight' 'Bold' 'horizontalalignment' 'left'}, {},...
     guiadd1{:}, ...
     {} {'style' 'text'    'string' 'List of measures to precompute' 'FontWeight' 'Bold' 'horizontalalignment' 'left'}, ...
     {'style' 'checkbox'   'string' '' 'tag' 'erp_on' 'value' 0 'Callback' set_erp } , ...
@@ -123,7 +127,7 @@ if ~isstr(varargin{1}) %intial settings
 	{'style' 'text'       'string' 'ERP-image' }, {}, ...
     {'style' 'text'       'string' 'ERP-image parameters' 'tag' 'erpimage_push' 'enable' 'off'}...
     {'style' 'edit'       'string' erpimageparams_str 'tag' 'erpimage_params' 'enable' 'off' }, ...
-    {'style' 'pushbutton' 'string' 'Test' 'tag' 'erpimage_test' 'enable' 'off' 'callback' test_erpimage}...
+    { } ...
     {'style' 'checkbox'   'string' '' 'tag' 'ersp_on' 'value' 0 'Callback' set_ersp } , ...
 	{'style' 'text'       'string' 'ERSPs' 'horizontalalignment' 'center' }, {}, ...
     {'vertshift' 'style'  'text'       'string' 'Time/freq. parameters' 'tag' 'ersp_push' 'value' 1 'enable' 'off'}, ...
@@ -133,10 +137,10 @@ if ~isstr(varargin{1}) %intial settings
 	{'style' 'text'       'string' 'ITCs' 'horizontalalignment' 'center' }, {'link2lines' 'style'  'text'   'string' '' } {} {} {}, ...
     guiadd2{:}, ...
     {}, ...
-    {'style' 'checkbox'   'string' 'Save single-trial measures for single-trial statistics (beta) - requires disk space' 'tag' 'savetrials_on' 'value' 0 } {}, ...
     {'style' 'checkbox'   'string' 'Overwrite files on disk' 'tag' 'recomp_on' 'value' 1 } {}, ...
     };
-  
+%      {'style' 'pushbutton' 'string' 'Test' 'tag' 'erpimage_test' 'enable' 'off' 'callback' test_erpimage}...
+
 	%{'style' 'checkbox'   'string' '' 'tag' 'precomp_PCA'  'Callback' precomp_PCA 'value' 0} ...
 	%{'style' 'text'       'string' 'Do not prepare dataset for clustering at this time.' 'FontWeight' 'Bold'  } {} ...
 
@@ -148,31 +152,32 @@ if ~isstr(varargin{1}) %intial settings
         tmpchanlocs = ALLEEG(index).chanlocs;
         tmpchans = { tmpchanlocs.labels };
         allchans = unique_bc({ allchans{:} tmpchanlocs.labels });
-        if length(allchans) == length(tmpchans), keepindex = index; end;
-    end;
-    if keepindex, tmpchanlocs = ALLEEG(keepindex).chanlocs; allchans = { tmpchanlocs.labels }; end;
+        if length(allchans) == length(tmpchans), keepindex = index; end
+    end
+    if keepindex, tmpchanlocs = ALLEEG(keepindex).chanlocs; allchans = { tmpchanlocs.labels }; end
     
     chanlist = {};
     firsttimeersp = 1;
     fig_arg = { ALLEEG STUDY allchans chanlist firsttimeersp };
     geomline1 = [0.40 1.3 0.1 2 2.4 0.65 ];
     geomline2 = [0.40 0.9 0.5 2 2.4 0.65 ];
-    geometry = { [1] [1] [1] geomadd1{:}  [1] [1] geomline1 geomline1 geomline1 geomline2 geomline2 geomadd2{:} 1 [1 0.1] [1 0.1] };
-    geomvert = [ 1 1 0.5 geomvertadd1 0.5 1 1 1 1 1 1 1 fastif(length(geomadd2) == 1,1,[]) 1 1];
+    geometry = { [1] [1] geomadd1{:}  [1] [1] geomline1 geomline1 geomline1 geomline2 geomline2 geomadd2{:} 1 [1 0.1] };
+    geomvert = [ 1 0.5 geomvertadd1 0.5 1 1 1 1 1 1 1 fastif(length(geomadd2) == 1,1,[]) 1];
 	[precomp_param, userdat2, strhalt, os] = inputgui( 'geometry', geometry, 'uilist', gui_spec, 'geomvert', geomvert, ...
                                                       'helpcom', ' pophelp(''std_precomp'')', ...
                                                       'title', 'Select and compute component measures for later clustering -- pop_precomp()', ...
                                                       'userdata', fig_arg);	
-	if isempty(precomp_param), return; end;
+	if isempty(precomp_param), return; end
     
     if comps == 1
         options = { STUDY ALLEEG 'components' };
     else
         options = { STUDY ALLEEG userdat2{4} };
     end
-    if ~isfield(os, 'interpolate_on'), os.interpolate_on = 0; end;
-    if ~isfield(os, 'scalp_on'),    os.scalp_on = 0; end;
-    if ~isfield(os, 'compallersp'), os.compallersp = 1; end;
+    options = { options{:} 'savetrials' 'on' }; % always save single trials
+    if ~isfield(os, 'interpolate_on'), os.interpolate_on = 0; end
+    if ~isfield(os, 'scalp_on'),    os.scalp_on = 0; end
+    if ~isfield(os, 'compallersp'), os.compallersp = 1; end
     warnflag = 0;
     
     % rm_ica option is on
@@ -181,7 +186,7 @@ if ~isstr(varargin{1}) %intial settings
         if os.rmica1_on == 1 
             options = { options{:} 'rmicacomps' 'on' };
         end
-    end;
+    end
     
     % remove ICA cluster
     % ------------------
@@ -189,12 +194,6 @@ if ~isstr(varargin{1}) %intial settings
         if os.rmica2_on == 1 
             options = { options{:} 'rmclust' os.rmica2_val };
         end
-    end;
-    
-    % interpolate option is on
-    % ------------------------
-    if os.savetrials_on == 1 
-        options = { options{:} 'savetrials' 'on' };
     end
     
     % interpolate option is on
@@ -260,7 +259,7 @@ if ~isstr(varargin{1}) %intial settings
     if os.itc_on  == 1 
         tmpparams = eval( [ '{' os.ersp_params '}' ] );
         options = { options{:} 'itc' 'on' };
-        if os.ersp_on  == 0, options = { options{:} 'erspparams' tmpparams }; end;
+        if os.ersp_on  == 0, options = { options{:} 'erspparams' tmpparams }; end
         warnflag = checkFilePresent(STUDY, 'itc', comps, warnflag, os.recomp_on);
     end       
         
@@ -269,7 +268,7 @@ if ~isstr(varargin{1}) %intial settings
     if length(options) == 4
         warndlg2('No measure selected: aborting.'); 
         return; 
-    end;
+    end
     [STUDY ALLEEG] = std_precomp(options{:});
     com = sprintf('[STUDY ALLEEG] = std_precomp(STUDY, ALLEEG, %s);', vararg2str(options(3:end)));
     
@@ -289,7 +288,7 @@ else
             if ~isempty(tmp)
                 set(findobj('parent', hdl, 'tag', 'chans'), 'string', tmp2);
                 userdat{4} = tmp3;
-            end;
+            end
             set(hdl, 'userdata',userdat); 
      
         case 'chaneditbox'
@@ -299,7 +298,7 @@ else
         case { 'setitc' 'setersp' }
             set_itc  = get(findobj('parent', hdl, 'tag', 'itc_on'), 'value'); 
             set_ersp = get(findobj('parent', hdl, 'tag', 'ersp_on'), 'value'); 
-            if  (~set_ersp & ~set_itc )
+            if  (~set_ersp && ~set_itc )
                 set(findobj('parent', hdl,'tag', 'ersp_push'),   'enable', 'off');
                 set(findobj('parent', hdl,'tag', 'ersp_params'), 'enable', 'off');
                 set(findobj('parent', hdl,'tag', 'ersp_test'),   'enable', 'off');                
@@ -313,7 +312,7 @@ else
             if firsttimeersp
                 warndlg2(strvcat('Checking both ''ERSP'' and ''ITC'' does not require further', ...
                                  'computing time. However it requires disk space'));
-            end;
+            end
             
         case 'setspec'
             set_spec = get(findobj('parent', hdl, 'tag', 'spectra_on'), 'value'); 
@@ -347,11 +346,13 @@ else
             end
             
         case 'testspec'
-            try,
+            %try,
                 spec_params = eval([ '{' get(findobj('parent', hdl, 'tag', 'spec_params'), 'string') '}' ]); 
 
                 TMPEEG = eeg_checkset(ALLEEG(1), 'loaddata');
-                [ X f ] = std_spec(TMPEEG, 'channels', { TMPEEG.chanlocs(1).labels }, 'trialindices', { [1:min(20,TMPEEG.trials)] }, 'recompute', 'on', 'savefile', 'off', spec_params{:});
+                [ X f ] = std_spec(TMPEEG, 'channels', { TMPEEG.chanlocs(1).labels }, 'trialindices', { [1:min(20,TMPEEG.trials)] }, 'recompute', 'on', 'savefile', 'off', 'trialinfo', struct('condition', ''), spec_params{:});
+                if ndims(X) > 2, X = mean(X,3); end
+                X = 10*log10(X);
                 figure; plot(f, X); 
                 xlabel('Frequencies (Hz)');
                 ylabel('Power');
@@ -365,24 +366,25 @@ else
                                                          'after computation'));
                 icadefs;
                 set(gcf, 'color', BACKCOLOR);
-            catch, warndlg2('Error while calling function, check parameters'); end;
+            %catch, warndlg2('Error while calling function, check parameters'); end
 
         case 'testersp'
             try,
                 ersp_params = eval([ '{' get(findobj('parent', hdl, 'tag', 'ersp_params'), 'string') '}' ]); 
                 tmpstruct = struct(ersp_params{:});
-                [ tmpX tmpt tmpf ersp_params ] = std_ersp(ALLEEG(1), 'channels', 1, 'trialindices', { [1:min(20,ALLEEG(1).trials)] }, 'type', 'ersp', 'recompute', 'on', 'savefile', 'off', ersp_params{:});
+                [ tmpX, tmpt, tmpf, ersp_params ] = std_ersp(ALLEEG(1), 'channels', 1, 'trialindices', { [1:min(20,ALLEEG(1).trials)] }, 'type', 'ersp', 'parallel', 'off', 'recompute', 'on', 'savefile', 'off', ersp_params{:});
                 std_plottf(tmpt, tmpf, { tmpX });
-            catch, warndlg2('Error while calling function, check parameters'); end;
+            catch, warndlg2('Error while calling function, check syntax'); end
                 
         case 'testerpimage'
+            % THIS CODE IS NOT FUNCTIONAL ANY MORE
             try,
                 erpimage_params = eval([ '{' get(findobj('parent', hdl, 'tag', 'erpimage_params'), 'string') '}' ]); 
                 tmpstruct = struct(erpimage_params{:});
                 erpimstruct = std_erpimage(ALLEEG(1), 'channels', 1, 'recompute', 'on', 'savefile', 'off', erpimage_params{:});
                 figure; pos = get(gcf, 'position'); pos(3)=pos(3)*2; set(gcf, 'position', pos);
                 subplot(1,2,1); 
-                tftopo(erpimstruct.chan1, erpimstruct.times, 1:size(erpimstruct.chan1,1), 'ylabel', 'Trials');
+                tftopo(erpimstruct.chan1, erpimstruct.times, 1:size(erpimstruct.chan1,1), 'ylabel', 'Trials'); % erpimstruct.chan1 contains a string not data
                 subplot(1,2,2); 
                 text( 0.2, 0.8, strvcat( 'This is a test plot performed on', ...
                                          'the first channel of the first', ...
@@ -393,9 +395,9 @@ else
                 axis off;  
                 icadefs;
                 set(gcf, 'color', BACKCOLOR);
-            catch, warndlg2('Error while calling function, check parameters'); end;
+            catch, warndlg2('Error while calling function, check parameters'); end
                 
-    end;
+    end
 end
 STUDY.saved = 'no';
 
@@ -403,22 +405,27 @@ STUDY.saved = 'no';
 % ------------------------
 function warnflag = checkFilePresent(STUDY, datatype, comps, warnflag, recompute);
     
-    if ~recompute, return; end;
+    if ~recompute, return; end
     if warnflag, return; end; % warning has already been issued
     
+    oneSubject = STUDY.design(STUDY.currentdesign).cases.value{1};
     if comps
-         dataFilename = [ STUDY.design(STUDY.currentdesign).cell(1).filebase '.ica' datatype ];
-    else dataFilename = [ STUDY.design(STUDY.currentdesign).cell(1).filebase '.dat' datatype ];
-    end;
-    if exist(dataFilename)
+         dataFilename = [ oneSubject '.ica' datatype ];
+    else dataFilename = [ oneSubject '.dat' datatype ];
+    end
+    allSubjects = { STUDY.datasetinfo.subject };
+    inds = strmatch( oneSubject, allSubjects, 'exact');
+    filepath = STUDY.datasetinfo(inds(1)).filepath;
+    
+    if exist(fullfile(filepath, dataFilename))
         textmsg = [ 'WARNING: SOME DATAFILES ALREADY EXIST, OVERWRITE THEM?' 10 ...
                     '(if you have another STUDY using the same datasets, it might overwrite its' 10 ...
                     'precomputed data files. Instead, use a single STUDY and create multiple designs).' ];
         res = questdlg2(textmsg, 'Precomputed datafiles already present on disk', 'No', 'Yes', 'Yes');
         if strcmpi(res, 'No')
             error('User aborded precomputing measures');
-        end;
-    end;
+        end
+    end
     warnflag = 1;
     
        

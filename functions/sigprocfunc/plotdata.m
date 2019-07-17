@@ -28,19 +28,30 @@
 % Copyright (C) 05-01-96 Scott Makeig, Arnaud Delorme & Tzyy-Ping Jung, 
 % SCCN/INC/UCSD, scott@sccn.ucsd.edu
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 % 5-1-96 from showerps.m  -sm from showerp.m -tpj
 % 5-3-96 added default channel numbering, frames & title -sm
@@ -113,7 +124,7 @@ end
 
 if nargin < 7,
     righttitle = 0; 
-end;
+end
 if nargin < 6
     colors = 0;
 end
@@ -149,22 +160,22 @@ end
          fprintf('\nWARNING: %d points at end of data will not be plotted.\n',...
                     framestotal-datasets*frames);
     end
-  end;
+  end
 
   if chans>MAXPLOTDATACHANS,
     fprintf('plotdata: not set up to plot more than %d channels.\n',...
                        MAXPLOTDATACHANS);
     return
-  end;
+  end
   if datasets>MAXPLOTDATAEPOCHS 
       fprintf('plotdata: not set up to plot more than %d epochs.\n',...
                        MAXPLOTDATAEPOCHS);
     return
-  end;
+  end
   if datasets<1
       fprintf('plotdata: cannot plot less than 1 epoch!\n');
       return
-  end;
+  end
 %
 %%%%%%%%%%%%% Extend the size of the plotting area in the window %%%%%%%%%%%%
 %
@@ -178,9 +189,9 @@ end
 %
 %%%%%%%%%%%%%%%%%%%% Read the channel names %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
-  if isnumeric(channels) & channels(1)==0,
+  if isnumeric(channels) && channels(1)==0,
     channels = [1:size(data,1)];
-  end;
+  end
   if isnumeric(channels),
       channames = num2str(channels(:));                   %%CJH
   else
@@ -191,14 +202,14 @@ end
 %    if chid <3,
 %        fprintf('plotdata(): cannot open file %s.\n',channels);
 %        return
-%     end;
+%     end
 %     if isempty( findstr( lower(channels), '.loc') )
 %    		channames = fscanf(chid,'%s',[4 Inf]);
 %    		channames = channames';
 %     else
 %        	channames = fscanf(chid,'%d %f %f  %s',[7 128]);
 %    		channames = char(channames(4:7,:)');
-%     end;
+%     end
 %     ii = find(channames == '.');
 %     channames(ii) = ' ';
     
@@ -208,16 +219,16 @@ end
     %    for j=1:c
     %        if channames(i,j)=='.',
     %            channames(i,j)=' ';
-    %        end;
-    %    end;
-    %end;
+    %        end
+    %    end
+    %end
 %    end; % setting channames
 
 %
 %%%%%%%%%%%%%%%%%%%%%%%%% Read the color names %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %
   if colors ~=0,
-    if ~isstr(colors)
+    if ~ischar(colors)
        fprintf('plotdata(): color file name must be a string.\n');
        return
     end
@@ -226,7 +237,7 @@ end
     if cid <3,
         fprintf('plotdata: cannot open file %s.\n',colors);
         return
-    end;
+    end
     colors = fscanf(cid,'%s',[3 Inf]);
     colors = colors';
        [r c] = size(colors);
@@ -234,15 +245,15 @@ end
         for j=1:c
             if colors(i,j)=='.',
                 colors(i,j)=' ';
-            end;
-        end;
-    end;
+            end
+        end
+    end
   else % use default color order (no yellow!)
      colors =['r  ';'b  ';'g  ';'c  ';'m  ';'r  ';'b  ';'g  ';'c  ';'m  ';'r  ';'b  ';'g  ';'c  ';'m  ';'r  ';'b  ';'g  ';'c  ';'m  ';'r  ';'b  ';'g  ';'c  ';'m  ';'r  ';'b  ';'g  ';'c  ';'m  ';'r  ';'b  ';'g  ';'c  ';'m  '];
      colors = [colors; colors];  % make > 64 available
-  end;
+  end
   for c=1:size(colors,1)   % make white traces black unless axis color is white
-    if colors(c,1)=='w' & axcolor~=[1 1 1]
+    if colors(c,1)=='w' && axcolor~=[1 1 1]
          colors(c,1)='k';
     end
   end
@@ -263,27 +274,27 @@ end
       fprintf( ...
        'plotdata: limits should be 0 or an array [xmin xmax ymin ymax].\n');
       return
-    end;
+    end
     xmin = limits(1);
     xmax = limits(2);
     ymin = limits(3);
     ymax = limits(4);
-  end;
+  end
 
-  if xmax == 0 & xmin == 0,
+  if xmax == 0 && xmin == 0,
     x = (0:1:frames-1);
     xmin = 0;
     xmax = frames-1;
   else
     dx = (xmax-xmin)/(frames-1);
     x=xmin*ones(1,frames)+dx*(0:frames-1); % compute x-values
-  end;
+  end
   if xmax<=xmin,
       fprintf('plotdata() - xmax must be > xmin.\n')
       return
   end
 
-  if ymax == 0 & ymin == 0,
+  if ymax == 0 && ymin == 0,
       ymax=double(max(max(data)));
       ymin=double(min(min(data)));
       yrange = ymax-ymin;
@@ -296,13 +307,13 @@ end
   end
 
   xlabel = 'Time (ms)';
-  if ymin >= 0 & xmin >= 0,          % For all-positive (spectral) data
+  if ymin >= 0 && xmin >= 0,          % For all-positive (spectral) data
     ISSPEC = 1;
     SIGN = 1;
     fprintf('\nPlotting positive up. Assuming data are spectra.\n');
     xlabel = 'Freq (Hz)';
     ymin = 0;                        % plot positive-up
-  end;
+  end
 
 %
 %%%%%%%%%%%%%%%%%%%%%%%% Set up plotting environment %%%%%%%%%%%%%%%%%%%%%%%%%
@@ -330,7 +341,7 @@ end
       set(h,'FontSize',FONTSIZE);            % choose font size
       set(h,'YLim',[ymin ymax]);            % set default plotting parameters
       set(h,'XLim',[xmin xmax]);
-  end;
+  end
 
   msg = ['\nPlotting %d traces of %d frames with colors: '];
   for c=1:datasets
@@ -374,7 +385,7 @@ end
             ymin = double(ymin);
             ymax = double(ymax);
 
-            if ymin == ymax, ymin = ymin-1; ymax = ymax+1; end;
+            if ymin == ymax, ymin = ymin-1; ymax = ymax+1; end
             plot(x,SIGN*data(I,1+P*frames:1+P*frames+frames-1),colors(mod(P,length(colors))+1));   
             
             if SIGN > 0
@@ -400,7 +411,7 @@ end
                     set(hi,'HorizontalAlignment','right','Clipping','off');
                 end
                 
-                if I==chans & limitset,    % draw timescale on lowest right plot
+                if I==chans && limitset,    % draw timescale on lowest right plot
                     ytick = double(-ymax-0.25*ydiff);
                     
                     tick = [int2str(xmin)]; h=text(xmin,ytick,tick); % min time
@@ -417,8 +428,8 @@ end
                     set(h,'FontSize',TICKFONTSIZE);         % choose font size
                     set(h,'HorizontalAlignment','center',...
                       'Clipping','off');  % center text
-                end;
-        end;
+                end
+        end
       %
       %%%%%%%%%%%%%%%%%%%%% Plot spectral data positive-up [0,ymax] %%%%%%%%%%%%%%%%%%%%%%%%
       %
@@ -431,7 +442,7 @@ end
         % ymaxm = 10.^ceil(log(ymax)/log(10.));
         % if ymaxm/2. > ymax,
         %    ymaxm = ymaxm/2.;
-        % end;
+        % end
 
         axis([xmin xmax ymin ymaxm]);      % set axis values
 
@@ -446,7 +457,7 @@ end
           axis('off');h=text(signx,0,'0'); 
             set(h,'FontSize',TICKFONTSIZE);
             set(h,'HorizontalAlignment','right','Clipping','off');    
-         end;
+         end
 
          if I==chans,                    % draw freq scale on lowest right plot
             ytick = -0.25*ymax;
@@ -486,7 +497,7 @@ end
           
           if ~isempty(channels),                          % print channames
               if ~ISSPEC
-                  if ymin <= 0 & ymax >= 0,
+                  if ymin <= 0 && ymax >= 0,
                   yht = 0;
                   else
                       yht = nan_mean(SIGN*data(I,1+P*frames:1+P*frames+frames-1));
@@ -506,7 +517,7 @@ end
                   % axis('off'),h=text(xmax+0.10*xdiff,ymax/2,[channames(I,:)]);
                   %    set(h,'HorizontalAlignment','left');      % print after traces
                   
-              end;
+              end
           end; 
       end; 
       
@@ -531,7 +542,7 @@ end
 if plottitle
 	h = textsc(plottitle, 'title');
 	set(h, 'fontsize', FONTSIZE);
-end;
+end
 axcopy(gcf, 'axis on');
 
 if 0,    % START DETOUR XXXXXXXXXXXXX

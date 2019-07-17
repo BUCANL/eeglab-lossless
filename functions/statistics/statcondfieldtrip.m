@@ -51,19 +51,30 @@
 
 % Copyright (C) Arnaud Delorme
 %
-% This program is free software; you can redistribute it and/or modify
-% it under the terms of the GNU General Public License as published by
-% the Free Software Foundation; either version 2 of the License, or
-% (at your option) any later version.
+% This file is part of EEGLAB, see http://www.eeglab.org
+% for the documentation and details.
 %
-% This program is distributed in the hope that it will be useful,
-% but WITHOUT ANY WARRANTY; without even the implied warranty of
-% MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-% GNU General Public License for more details.
+% Redistribution and use in source and binary forms, with or without
+% modification, are permitted provided that the following conditions are met:
 %
-% You should have received a copy of the GNU General Public License
-% along with this program; if not, write to the Free Software
-% Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
+% 1. Redistributions of source code must retain the above copyright notice,
+% this list of conditions and the following disclaimer.
+%
+% 2. Redistributions in binary form must reproduce the above copyright notice,
+% this list of conditions and the following disclaimer in the documentation
+% and/or other materials provided with the distribution.
+%
+% THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+% AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+% IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+% ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+% LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+% CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+% SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+% INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+% CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+% ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF
+% THE POSSIBILITY OF SUCH DAMAGE.
 
 
 function [ ori_vals, df, pvals ] = statcondfieldtrip( data, varargin );
@@ -71,7 +82,7 @@ function [ ori_vals, df, pvals ] = statcondfieldtrip( data, varargin );
     if nargin < 1
         help statcondfieldtrip;
         return;
-    end;
+    end
     
     [g cfgparams] = finputcheck( varargin, { 'naccu'      ''          []             [];
                                              'method'     'string'    { }            'param';
@@ -83,13 +94,13 @@ function [ ori_vals, df, pvals ] = statcondfieldtrip( data, varargin );
                                              'structoutput' 'string'  { 'on','off' }      'off';
 %                                             'method'    'string'    {  } 'analytic'; % 'montecarlo','analytic','stat','glm'
                                              'paired'     'string'    { 'on','off' }      'on' }, 'statcond', 'ignore');
-    if isstr(g), error(g); end;    
-    if ~isempty(g.mode), g.method = g.mode; end;
-    if strcmpi(g.method, 'parametric'), g.method = 'param'; end;
-    if strcmpi(g.method, 'permutation'), g.method = 'montecarlo'; end;
+    if ischar(g), error(g); end;    
+    if ~isempty(g.mode), g.method = g.mode; end
+    if strcmpi(g.method, 'parametric'), g.method = 'param'; end
+    if strcmpi(g.method, 'permutation'), g.method = 'montecarlo'; end
     if ~isempty(g.neighbours) && isempty(g.chanlocs)
         g.chanlocs = struct('labels', { g.neighbours(:).label });
-    end;
+    end
     if size(data,2) == 1, data  = transpose(data); end; % cell array transpose
     alphaset = fastif(isnan(g.alpha) || isempty(g.alpha), 0, 1);
     
@@ -100,8 +111,8 @@ function [ ori_vals, df, pvals ] = statcondfieldtrip( data, varargin );
     if size(data{1},1) == 1
         for index = 1:length(data(:))
             data{index} = squeeze(data{index});
-        end;
-    end;
+        end
+    end
     tmpsize = size(data{1});
     
     % find the channel dimension if any
@@ -113,10 +124,10 @@ function [ ori_vals, df, pvals ] = statcondfieldtrip( data, varargin );
                     g.chandim = index;
                 else
                     error('Multiple possibilities for the channel dimension, please specify manually');
-                end;
-            end;
-        end;
-    end;
+                end
+            end
+        end
+    end
     
     % cfg configuration for Fieldtrip
     % -------------------------------
@@ -126,17 +137,17 @@ function [ ori_vals, df, pvals ] = statcondfieldtrip( data, varargin );
          cfg.method = 'analytic';
     elseif strcmpi(g.method, 'perm') && strcmpi(g.method, 'permutation') || strcmpi(g.method, 'bootstrap')
          cfg.method = 'montecarlo';
-    end;
+    end
     if ~isempty(g.neighbours)
         cfg.neighbours = g.neighbours;
-    end;
+    end
     if isfield(cfg, 'mcorrect')
          if strcmpi(cfg.mcorrect, 'none')
              cfg.mcorrect = 'no';
-         end;
+         end
          cfg.correctm = cfg.mcorrect;
     else cfg.mcorrect = [];
-    end;
+    end
     cfg.feedback    = 'no';
     cfg.ivar        = 1;
     cfg.alpha       = fastif(alphaset, g.alpha, 0.05);
@@ -146,28 +157,28 @@ function [ ori_vals, df, pvals ] = statcondfieldtrip( data, varargin );
     % --------------------------
     if length(unique(cellfun('size', data, ndims(data{1}) ))) > 1
         g.paired = 'off'; 
-    end;
+    end
     fprintf('%d x %d, ', size(data,1), size(data,2));
     if strcmpi(g.paired, 'on')
          fprintf('paired data, ');
     else fprintf('unpaired data, ');
-    end;
-    if size(data,1) == 1 & size(data,2) == 2
+    end
+    if size(data,1) == 1 && size(data,2) == 2
          fprintf('computing T values\n');
     else fprintf('computing F values\n');
-    end;
+    end
     
     % set randomizations
     % ------------------
     if strcmpi(cfg.method, 'montecarlo') && isempty(cfg.numrandomization)
         cfg.numrandomization = 200;
-        if ~strcmpi(cfg.mcorrect, 'no'), cfg.numrandomization = cfg.numrandomization*20; end;
-    end;
+        if ~strcmpi(cfg.mcorrect, 'no'), cfg.numrandomization = cfg.numrandomization*20; end
+    end
     cfg.correcttail = 'alpha';
     
     if size(data,1) == 1, % only one row
         
-        if size(data,2) == 2 & strcmpi(g.paired, 'on')
+        if size(data,2) == 2 && strcmpi(g.paired, 'on')
             
             % paired t-test (very fast)
             % -------------
@@ -179,9 +190,9 @@ function [ ori_vals, df, pvals ] = statcondfieldtrip( data, varargin );
             if isfield(stat, 'df')
                  df = stat.df;
             else df = [];
-            end;
+            end
             
-        elseif size(data,2) == 2 & strcmpi(g.paired, 'off')
+        elseif size(data,2) == 2 && strcmpi(g.paired, 'off')
             
             % paired t-test (very fast)
             % -------------
@@ -192,7 +203,7 @@ function [ ori_vals, df, pvals ] = statcondfieldtrip( data, varargin );
             if isfield(stat, 'df')
                  df = stat.df;
             else df = [];
-            end;
+            end
             
         elseif strcmpi(g.paired, 'on')
             
@@ -204,7 +215,7 @@ function [ ori_vals, df, pvals ] = statcondfieldtrip( data, varargin );
             if exist(fullfile(tmpP, 'statfun', 'ft_statfun_depsamplesFmultivariate.m'))
                  cfg.statistic   = 'depsamplesFunivariate';
             else cfg.statistic   = 'depsamplesF';
-            end;
+            end
             [newdata design1 design2 design3] = makefieldtripdata(data, g.chandim, g.chanlocs);
             cfg.design      = [ design1; design3 ];
             cfg.uvar        = 2;
@@ -212,7 +223,7 @@ function [ ori_vals, df, pvals ] = statcondfieldtrip( data, varargin );
             if isfield(stat, 'dfnum')
                  df = [stat.dfnum stat.dfdenom];
             else df = [];
-            end;
+            end
             
         else
             % one-way ANOVA (unpaired) 
@@ -228,9 +239,9 @@ function [ ori_vals, df, pvals ] = statcondfieldtrip( data, varargin );
             if isfield(stat, 'dfnum')
                  df = [stat.dfnum stat.dfdenom];
             else df = [];
-            end;
+            end
             
-        end;
+        end
         
     else
         if strcmpi(g.paired, 'on')
@@ -249,7 +260,7 @@ function [ ori_vals, df, pvals ] = statcondfieldtrip( data, varargin );
             if isfield(stat, 'df')
                  df = stat.df;
             else df = [];
-            end;
+            end
             
         else
             
@@ -265,8 +276,8 @@ function [ ori_vals, df, pvals ] = statcondfieldtrip( data, varargin );
                     newdata{index}.powspctrm = squeeze(newdata{index}.powspctrm);
                     newdata{index}.label     = { g.chanlocs.labels };
                     newdata{index}.freq      = 1;
-                end;
-            end;
+                end
+            end
             cfg
             newdata{1}
             cfg.design      = [ design1; design2 ];
@@ -276,8 +287,8 @@ function [ ori_vals, df, pvals ] = statcondfieldtrip( data, varargin );
             ori_vals        = stat.stat;
             df              = stat.df;
             
-        end;
-    end;
+        end
+    end
     
     ori_vals  = stat.stat;
     pvals     = stat.prob;
@@ -287,8 +298,8 @@ function [ ori_vals, df, pvals ] = statcondfieldtrip( data, varargin );
         pvals    = reshape(pvals   , size(pvals   ,2), size(pvals   ,3), size(pvals   ,4));
         if isfield(stat, 'mask')
             stat.mask = reshape(stat.mask   , size(stat.mask   ,2), size(stat.mask   ,3), size(stat.mask   ,4));
-        end;
-    end;
+        end
+    end
     
     if strcmpi(g.structoutput, 'on')
         outputstruct.mask = stat.mask;
@@ -296,7 +307,7 @@ function [ ori_vals, df, pvals ] = statcondfieldtrip( data, varargin );
         if length(data(:)) == 2
              outputstruct.t = ori_vals;
         else outputstruct.f = ori_vals;
-        end;
+        end
         outputstruct.stat   = ori_vals;
 %         outputstruct.method = g.method;
 %         outputstruct.pval   = pvals;
@@ -305,9 +316,9 @@ function [ ori_vals, df, pvals ] = statcondfieldtrip( data, varargin );
 %         if length(data(:)) == 2
 %              outputstruct.t = ori_vals;
 %         else outputstruct.f = ori_vals;
-%         end;
+%         end
         ori_vals = outputstruct;
-    end;
+    end
     
 function val = myndims(a)
     if ndims(a) > 2
@@ -319,7 +330,7 @@ function val = myndims(a)
             val = 1;
         else
             val = 2;
-        end;
+        end
     end; 
   
 function [newdata, design1, design2, design3] = makefieldtripdata(data, chandim, chanlocs);
@@ -337,26 +348,26 @@ function [newdata, design1, design2, design3] = makefieldtripdata(data, chandim,
             if chandim
                  newdata{i}.powspctrm = transpose(data{i});
             else newdata{i}.powspctrm = reshape(transpose(data{i}), size(data{i},2), 1, size(data{i},1));
-            end;
+            end
             
           case 3,
             if chandim == 2 % chandim can be 1 or 2
                 swapdim = [2 1];
-            end;
+            end
             if chandim
                  newdata{i}.powspctrm = permute(data{i}, [3 1 2]);
             else newdata{i}.powspctrm = permute(data{i}, [3 4 1 2]); % 4 is a singleton dimension
-            end;
+            end
             
           case 4,
-            newdata{i}.powspctrm = permute(data{i}, [4 1 2 3]);
-        end;
+            newdata{i}.powspctrm = permute(data{i}, [4 3 1 2 ]); % Fixed dimension from [4 1 2 3]
+        end
         
         newdata{i}.label     = cell(1,size(newdata{i}.powspctrm,2));
         newdata{i}.label(:)  = { 'cz' };
         for ic = 1:length(newdata{i}.label)
             newdata{i}.label{ic} = [ 'c' num2str(ic) ];
-        end;
+        end
         newdata{i}.freq      = [1:size(newdata{i}.powspctrm,3)];
         newdata{i}.time      = [1:size(newdata{i}.powspctrm,4)];
         
@@ -368,11 +379,11 @@ function [newdata, design1, design2, design3] = makefieldtripdata(data, chandim,
             newdata{i}.label     = { chanlocs.labels };
             newdata{i}.freq      = 1;
             newdata{i}.time      = 1;
-        end;
+        end
         if isempty(chanlocs) && size(newdata{i}.powspctrm,2) ~= 1
             newdata{i}.dimord    = 'rpt_freq_time';
-        end;
-    end;
+        end
+    end
     
     design1 = [];
     design2 = [];
@@ -384,6 +395,6 @@ function [newdata, design1, design2, design3] = makefieldtripdata(data, chandim,
             design1 = [ design1 ones(1, nrepeat)*i ];
             design2 = [ design2 ones(1, nrepeat)*j ];
             design3 = [ design3 [1:nrepeat] ];
-        end;
-    end;
+        end
+    end
         
