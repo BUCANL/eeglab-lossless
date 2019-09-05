@@ -248,7 +248,8 @@ if strcmpi(memmapdata, 'off')
         DAT=sread(dat, Inf);% this isn't transposed in original!!!!!!!!
         newblockrange    = [];
     end
-    sclose(dat);
+    % Octave compatability issue which needs to be commented out
+    % sclose(dat);
 else
     fprintf('Reading data in %s format (file will be mapped to memory so this may take a while)...\n', dat.TYPE);
     inc = ceil(250000/(dat.NS*dat.SPR)); % 1Mb block
