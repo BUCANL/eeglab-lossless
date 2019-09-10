@@ -27,7 +27,7 @@ function [fh, EEG, com] = pop_prop_extended(EEG, typecomp, chanorcomp, winhandle
 %
 %   Notes: for the dipole plot, you need EEG.dipfit precalculated
 %
-%   See also: spectopo(), erpimage(), scroll(), topoplot()
+%   See also: spectopo(), erpimage(), scrollplot(), topoplot()
 %
 %   TODO Notes: remove all axes(ax* called in erpimage (2793 2836 3515 [3475])
 %   also fix axcopy in the same way
@@ -204,10 +204,10 @@ scrollax = uicontrol('Parent', fh, 'Style', 'Slider', ...
 if ~scroll_event
     EEG.event = []; end
 if typecomp
-    scroll(EEG.times, single(EEG.data(chanorcomp, :, :)), 5, EEG.event, fh, datax, scrollax);
+    scrollplot(EEG.times, single(EEG.data(chanorcomp, :, :)), 5, EEG.event, fh, datax, scrollax);
     tstitle_h = title('Channel Time Series', 'fontsize', 14, 'FontWeight', 'Normal');
 else
-    scroll(EEG.times, single(icaacttmp), 5, EEG.event, fh, datax, scrollax);
+    scrollplot(EEG.times, single(icaacttmp), 5, EEG.event, fh, datax, scrollax);
     tstitle_h = title(['Scrolling IC' int2str(chanorcomp) ' Activity'], 'fontsize', 14, 'FontWeight', 'Normal');
 end
 set(tstitle_h,'FontSize',14, 'Position', get(tstitle_h, 'Position'), 'units', 'normalized');
@@ -373,8 +373,14 @@ try
     end
 	set(get(hfreq, 'ylabel'), 'string', 'Power 10*log_{10}(uV^2/Hz)', 'fontsize', 14); 
 	set(get(hfreq, 'xlabel'), 'string', 'Frequency (Hz)', 'fontsize', 14, 'fontweight', 'normal'); 
-	set(hfreq, 'fontsize', 14, 'fontweight', 'normal'); 
-    axis on tight;
+	set(hfreq, 'fontsize', 14, 'fontweight', 'normal');
+    xlims = xlim;
+    hfreqline = findobj(hfreq, 'type', 'line');
+    xdata = get(hfreqline, 'xdata');
+    ydata = get(hfreqline, 'ydata');
+    ind = xdata >= xlims(1) & xdata <= xlims(2);
+    axis on;
+    axis([xlims min(ydata(ind)) max(ydata(ind))])
     box on;
     grid on;
 catch e

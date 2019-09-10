@@ -42,7 +42,7 @@
 function [com] = pop_viewprops( EEG, typecomp, chanorcomp, spec_opt, erp_opt, scroll_event, classifier_name, fig)
 
 COLACC = [0.75 1 0.75];
-PLOTPERFIG = 55;
+PLOTPERFIG = 35;
 com = '';
 
 if nargin < 1
@@ -138,7 +138,11 @@ if ~exist('fig','var')
 		   'numbertitle', 'off', 'color', BACKCOLOR);
 	set(gcf,'MenuBar', 'none');
 	pos = get(gcf,'Position');
-	set(gcf,'Position', [pos(1) 20 800/7*column 600/5*rows]);
+    if ~typecomp && isfield(EEG.etc, 'ic_classification')
+    	set(gcf,'Position', [pos(1) 20 800/7*column 600/5*rows*1.2]);
+    else
+    	set(gcf,'Position', [pos(1) 20 800/7*column 600/5*rows]);
+    end
     incx = 120;
     incy = 110;
     sizewx = 100/column;
@@ -213,10 +217,10 @@ for ri = chanorcomp
                         warning(['The number of ICs do not match the number of IC classifications. This will result in incorrectly plotted labels. Please rerun ' classifier_name])
                     end
                     [prob, classind] = max(EEG.etc.ic_classification.(classifier_name).classifications(ri, :));
-                    t = title(sprintf('%s: %.0f%%', ...
+                    t = title(sprintf('%s : %.1f%%', ...
                         EEG.etc.ic_classification.(classifier_name).classes{classind}, ...
                         prob*100));
-                    set(t, 'Position', get(t, 'Position') .* [1 -1.05 1])
+                    set(t, 'Position', get(t, 'Position') .* [1 -1.2 1])
                 end
             end
         end
@@ -234,9 +238,7 @@ for ri = chanorcomp
     if typecomp
         set( button, 'backgroundcolor', COLACC, 'string', EEG.chanlocs(ri).labels); 	
     else
-        weightR = fastif(2.0*(1-prob)>= 1.0, 1.0,2.0*(1-prob));
-        weightG = 1.0*(prob);
-        set( button, 'backgroundcolor', [weightR weightG 0], 'string', int2str(ri)); 	
+        set( button, 'backgroundcolor', COLACC, 'string', int2str(ri)); 	
     end
 	drawnow;
 	count = count +1;

@@ -10,3 +10,6 @@
 [submodule "plugins/bids-matlab-tools"]
 	path = plugins/bids-matlab-tools
 	url = https://github.com/BUCANL/bids-matlab-tools.git
+[submodule "plugins/ICLabel"]
+	path = plugins/ICLabel
+	url = https://github.com/BUCANL/ICLabel.git
