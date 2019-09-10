@@ -144,21 +144,30 @@ elseif ~ischar(varargin{1})
     if nargin > 6, options = { options{:} 'plotfreqz' varargin{6} }; end
     if nargin > 7, options = { options{:} 'minphase'  varargin{7} }; end
     if nargin > 8, options = { options{:} 'usefftfilt' varargin{8} }; end
-    
+
+    try revfilt; catch revfilt=0; end
     if nargin < 5 || isempty(revfilt)	
         revfilt = 0;	
-    end	
+    end
+
+    try usefft; catch usefft=0; end
     if nargin < 6	
         usefft = [];	
     elseif usefft == 1	
         error('FFT filtering not supported. Argument is provided for backward compatibility in command line mode only.')	
     end	
+
+    try plotfreqz; catch plotfreqz=0; end
     if nargin < 7 || isempty(plotfreqz)	
         plotfreqz = 0;	
     end	
+
+    try minphase; catch minphase=0; end
     if nargin < 8 || isempty(minphase)	
         minphase = 0;	
     end	
+
+    try usefftfilt; catch usefftfilt=0; end
     if nargin < 9 || isempty(usefftfilt)	
         usefftfilt = 0;	
     end    
