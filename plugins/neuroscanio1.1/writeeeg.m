@@ -228,4 +228,5 @@ HDR.VERSION = 2.11;
 
 HDR = sopen(HDR,'w');
 HDR = swrite(HDR, x');
-HDR = sclose(HDR);
+% Octave compatability issue with below line. Commenting out for now.
+% HDR = sclose(HDR);
