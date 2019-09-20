@@ -154,7 +154,7 @@ if ~isempty(HDR.EVENT)
         for i = 1:length(HDR.EVENT)
             if isfield(HDR.EVENT, 'type')
                 ind = str2num(HDR.EVENT(i).type);
-                if strcmp(HDR.EVENT(i).type(1:2),'e-') # Special casing
+                if strcmp(HDR.EVENT(i).type(1:2),'e-')
                     ind = [];
                 end
                 if isempty(ind)
