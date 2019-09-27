@@ -15,7 +15,7 @@
 % See also:
 %   pop_interpmont
 
-function EEG = warp_locs(EEG,coord_fname,varargin)
+function [EEG, transform] = warp_locs(EEG,coord_fname,varargin)
 
 %g=struct(varargin{:});
 
@@ -41,7 +41,7 @@ if isempty(EEG.chanlocs(1).X)
     return
 end
 
-[newlocs] = coregister(EEG.chanlocs, ...
+[newlocs, transform] = coregister(EEG.chanlocs, ...
     coord_fname, ...
     'chaninfo1',EEG.chaninfo, ...
     'warp', g.landmarks, ...
