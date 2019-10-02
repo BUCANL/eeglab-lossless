@@ -141,8 +141,9 @@ elseif isequal(regexp(ftpath, ['.*' filesep 'fieldtrip-20[0-9]{6}']), 1)
   
 else
   % get it from the Contents.m file in the FieldTrip release
-  a = ver(ftpath);
-  ftver = a.Version;
+  ftver = '20190922';
+  %a = ver(ftpath);
+  %ftver = a.Version;
   
 end % if issvn, isgit or otherwise
 

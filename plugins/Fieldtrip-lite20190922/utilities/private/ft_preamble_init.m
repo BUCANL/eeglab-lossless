@@ -49,7 +49,15 @@ FjmoT6aA_lowest_ft = FjmoT6aA_stack(3).name;
 FjmoT6aA_highest_ft = FjmoT6aA_stack(3).name;
 [FjmoT6aA_ft_ver, FjmoT6aA_ft_path] = ft_version;
 for FjmoT6aA_k = 3:numel(FjmoT6aA_stack)
-  if startsWith(FjmoT6aA_stack(FjmoT6aA_k).file, FjmoT6aA_ft_path)
+  
+  boolWith = false;
+  try
+    boolWith = startsWith(FjmoT6aA_stack(FjmoT6aA_k).file, FjmoT6aA_ft_path);
+  catch
+    boolWith = wa_startsWith(FjmoT6aA_stack(FjmoT6aA_k).file, FjmoT6aA_ft_path);
+  end
+
+  if boolWith
     FjmoT6aA_highest_ft = FjmoT6aA_stack(FjmoT6aA_k).name;
   else
     % we are operating under the assumption here that a private FieldTrip
