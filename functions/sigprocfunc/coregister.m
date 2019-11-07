@@ -304,6 +304,8 @@ if ~isempty(chanlocs2)
     TMP.nbchan = length(TMP.chanlocs);
     cfg   = eeglab2fieldtrip(TMP, 'chanloc_withfid');
     elec2 = cfg.elec;
+    % Tyler edit for ll_validate
+    elec2.pnt = elec2.elecpos;
 else 
     elec2 = [];
     dat.transform = [ 0 0 0 0 0 0 1 1 1 ];
